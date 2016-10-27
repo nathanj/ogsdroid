@@ -58,14 +58,6 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
         board.draw(c, b);
 
-//        c.drawLine(15, 15, 215, 15, p2);
-//        c.drawLine(15, 45, 215, 45, p2);
-//        c.drawLine(15, 75, 215, 75, p2);
-//        c.drawLine(15, 15, 15, 215, p2);
-//        c.drawLine(45, 15, 45, 215, p2);
-//        c.drawLine(75, 15, 75, 215, p2);
-
-
         holder.unlockCanvasAndPost(c);
     }
 

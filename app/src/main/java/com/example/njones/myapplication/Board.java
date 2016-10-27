@@ -14,6 +14,7 @@ import android.graphics.Rect;
 
 class Board {
     public int board[][];
+    private int rows = 19, cols = 19;
 
     Board() {
         board = new int[19][19];
@@ -22,32 +23,71 @@ class Board {
         board[5][3] = 1;
     }
 
-    public void draw(Canvas c, Bitmap b) {
+    private void drawGrid(Canvas c) {
+        int width = c.getWidth();
+        int height = c.getHeight();
+        int horizSpacing = width/(cols+1);
+        int vertSpacing = height/(rows+1);
 
+        Paint p = new Paint();
+        p.setARGB(255, 0, 0, 0);
+        p.setStrokeWidth(1);
 
-        Paint p2 = new Paint();
-        p2.setARGB(255, 0, 0, 0);
-        p2.setStrokeWidth(2);
+        // Vertical lines
+        for (int i = 0; i < cols; i++) {
+            int x = (i+1) * horizSpacing;
+            int y = vertSpacing;
+            int fx = x;
+            int fy = height - vertSpacing;
+            c.drawLine(x, y, fx, fy, p);
 
-        for (int i = 0; i < 19; i++)
-        {
-            c.drawLine(15 + c.getWidth()/19 * i, 15, 15 + c.getWidth()/19 * i, 700, p2);
-            c.drawLine(15, 15 + c.getWidth()/19 * i, 700, 15 + c.getWidth()/19 * i, p2);
         }
+        // Horizontal lines
+        for (int j = 0; j < rows; j++) {
+            int x = horizSpacing;
+            int y = (j+1) * vertSpacing;
+            int fx = width - horizSpacing;
+            int fy = y;
+            c.drawLine(x, y, fx, fy, p);
+        }
+    }
 
+    private void drawStone(Canvas c) {
+        int width = c.getWidth();
+        int height = c.getHeight();
+        int horizSpacing = width/(cols+1);
+        int vertSpacing = height/(rows+1);
+
+        int midx = j * horizSpacing;
+        int midy = i * vertSpacing;
+
+        int x = midx - horizSpacing;
+        int fx = midx + horizSpacing;
+        int y = midy - vertSpacing;
+        int fy = midy + vertSpacing;
+
+        Paint p = new Paint();
+        p.setARGB(255, 255, 255, 255);
+        p.setStrokeWidth(0);
+        p.setStyle(Paint.Style.FILL);
+        c.drawOval(x, fx, y, fy, p);
+        p.setARGB(255, 30, 30, 30);
+        p.setStrokeWidth(1);
+        p.setStyle(Paint.Style.STROKE);
+        c.drawOval(x, fx, y, fy, p);
+    }
+
+    private void drawStones(Canvas c) {
         for (int i = 0; i < 19; i++) {
             for (int j = 0; j < 19; j++) {
                 if (board[i][j] == 1) {
-                    Rect r3 = new Rect();
-                    int x = i * c.getWidth()/19 + 15 - c.getWidth()/19/2;
-                    int y = j * c.getWidth()/19 + 15 - c.getWidth()/19/2;
-                    r3.set(x, y, x + c.getWidth()/19, y + c.getWidth()/19);
-                    c.drawBitmap(b, null, r3, null);
+                    drawStone(c, i, j);
                 }
             }
-        }
+    }
 
-
-
+    public void draw(Canvas c, Bitmap b) {
+        drawGrid(c);
+        drawStones(c);
     }
 }
