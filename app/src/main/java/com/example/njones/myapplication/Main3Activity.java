@@ -50,13 +50,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
         r2.set(0, 0, c.getWidth(), c.getHeight());
         c.drawBitmap(bmpIcon, null, r2, null);
 
-        Bitmap b2 = BitmapFactory.decodeResource(getResources(),
-                R.drawable.inner);
-
-        Bitmap b = BitmapFactory.decodeResource(getResources(),
-                R.drawable.stone_1);
-
-        board.draw(c, b);
+        board.draw(c);
 
         holder.unlockCanvasAndPost(c);
     }

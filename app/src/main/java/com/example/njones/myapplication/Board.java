@@ -21,6 +21,11 @@ class Board {
         board[10][10] = 1;
         board[9][9] = 1;
         board[5][3] = 1;
+        board[5][4] = 1;
+        board[5][5] = 1;
+        board[6][3] = 2;
+        board[6][4] = 2;
+        board[6][5] = 2;
     }
 
     private void drawGrid(Canvas c) {
@@ -52,7 +57,7 @@ class Board {
         }
     }
 
-    private void drawStone(Canvas c) {
+    private void drawStone(Canvas c, int i, int j, int v) {
         int width = c.getWidth();
         int height = c.getHeight();
         int horizSpacing = width/(cols+1);
@@ -66,15 +71,27 @@ class Board {
         int y = midy - vertSpacing;
         int fy = midy + vertSpacing;
 
-        Paint p = new Paint();
-        p.setARGB(255, 255, 255, 255);
-        p.setStrokeWidth(0);
-        p.setStyle(Paint.Style.FILL);
-        c.drawOval(x, fx, y, fy, p);
-        p.setARGB(255, 30, 30, 30);
-        p.setStrokeWidth(1);
-        p.setStyle(Paint.Style.STROKE);
-        c.drawOval(x, fx, y, fy, p);
+        if (v == 1) {
+            Paint p = new Paint();
+            p.setARGB(255, 255, 255, 255);
+            p.setStrokeWidth(0);
+            p.setStyle(Paint.Style.FILL);
+            c.drawOval(x, fx, y, fy, p);
+            p.setARGB(255, 30, 30, 30);
+            p.setStrokeWidth(1);
+            p.setStyle(Paint.Style.STROKE);
+            c.drawOval(x, fx, y, fy, p);
+        } else {
+            Paint p = new Paint();
+            p.setARGB(255, 0, 0, 0);
+            p.setStrokeWidth(0);
+            p.setStyle(Paint.Style.FILL);
+            c.drawOval(x, fx, y, fy, p);
+            p.setARGB(255, 30, 30, 30);
+            p.setStrokeWidth(1);
+            p.setStyle(Paint.Style.STROKE);
+            c.drawOval(x, fx, y, fy, p);
+        }
     }
 
     private void drawStones(Canvas c) {
@@ -84,9 +101,10 @@ class Board {
                     drawStone(c, i, j);
                 }
             }
+        }
     }
 
-    public void draw(Canvas c, Bitmap b) {
+    public void draw(Canvas c) {
         drawGrid(c);
         drawStones(c);
     }
