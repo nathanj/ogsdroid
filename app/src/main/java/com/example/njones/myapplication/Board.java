@@ -5,21 +5,21 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.util.Log;
 
 /**
  * Created by njones on 10/26/16.
- *
+ * <p>
  * Represents the go board.
  */
 
 class Board {
     public int board[][];
-    private int rows = 19, cols = 19;
+    private int rows = 13, cols = 13;
 
     Board() {
-        board = new int[19][19];
-        board[10][10] = 1;
-        board[9][9] = 1;
+        board = new int[rows][cols];
         board[5][3] = 1;
         board[5][4] = 1;
         board[5][5] = 1;
@@ -29,10 +29,9 @@ class Board {
     }
 
     private void drawGrid(Canvas c) {
-        int width = c.getWidth();
-        int height = c.getHeight();
-        int horizSpacing = width/(cols+1);
-        int vertSpacing = height/(rows+1);
+        int dims = Math.min(c.getWidth(), c.getHeight());
+        float horizSpacing = dims / (cols + 1);
+        float vertSpacing = dims / (rows + 1);
 
         Paint p = new Paint();
         p.setARGB(255, 0, 0, 0);
@@ -40,65 +39,70 @@ class Board {
 
         // Vertical lines
         for (int i = 0; i < cols; i++) {
-            int x = (i+1) * horizSpacing;
-            int y = vertSpacing;
-            int fx = x;
-            int fy = height - vertSpacing;
+            float x = (i + 1) * horizSpacing;
+            float y = vertSpacing;
+            float fx = x;
+            Log.w("myApp", String.format("fx=%f", fx));
+            float fy = rows * vertSpacing;
             c.drawLine(x, y, fx, fy, p);
 
         }
         // Horizontal lines
         for (int j = 0; j < rows; j++) {
-            int x = horizSpacing;
-            int y = (j+1) * vertSpacing;
-            int fx = width - horizSpacing;
-            int fy = y;
+            float x = horizSpacing;
+            float y = (j + 1) * vertSpacing;
+            float fx = cols * horizSpacing;
+            Log.w("myApp",
+                    String.format("fx=%f width=%d horizSpacing=%f",
+                            fx, dims, horizSpacing));
+            float fy = y;
             c.drawLine(x, y, fx, fy, p);
         }
     }
 
     private void drawStone(Canvas c, int i, int j, int v) {
-        int width = c.getWidth();
-        int height = c.getHeight();
-        int horizSpacing = width/(cols+1);
-        int vertSpacing = height/(rows+1);
+        int dims = Math.min(c.getWidth(), c.getHeight());
+        int horizSpacing = dims / (cols + 1);
+        int vertSpacing = dims / (rows + 1);
 
         int midx = j * horizSpacing;
         int midy = i * vertSpacing;
 
-        int x = midx - horizSpacing;
-        int fx = midx + horizSpacing;
-        int y = midy - vertSpacing;
-        int fy = midy + vertSpacing;
+        int x = midx - horizSpacing / 2;
+        int fx = midx + horizSpacing / 2;
+        int y = midy - vertSpacing / 2;
+        int fy = midy + vertSpacing / 2;
+        RectF r = new RectF();
+        r.set(x, y, fx, fy);
 
         if (v == 1) {
             Paint p = new Paint();
             p.setARGB(255, 255, 255, 255);
             p.setStrokeWidth(0);
             p.setStyle(Paint.Style.FILL);
-            c.drawOval(x, fx, y, fy, p);
+            c.drawOval(r, p);
             p.setARGB(255, 30, 30, 30);
             p.setStrokeWidth(1);
             p.setStyle(Paint.Style.STROKE);
-            c.drawOval(x, fx, y, fy, p);
+            c.drawOval(r, p);
         } else {
             Paint p = new Paint();
             p.setARGB(255, 0, 0, 0);
             p.setStrokeWidth(0);
             p.setStyle(Paint.Style.FILL);
-            c.drawOval(x, fx, y, fy, p);
+            c.drawOval(r, p);
             p.setARGB(255, 30, 30, 30);
             p.setStrokeWidth(1);
             p.setStyle(Paint.Style.STROKE);
-            c.drawOval(x, fx, y, fy, p);
+            c.drawOval(r, p);
         }
     }
 
     private void drawStones(Canvas c) {
-        for (int i = 0; i < 19; i++) {
-            for (int j = 0; j < 19; j++) {
-                if (board[i][j] == 1) {
-                    drawStone(c, i, j);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (board[i][j] != 0) {
+                    drawStone(c, i, j, board[i][j]);
                 }
             }
         }
