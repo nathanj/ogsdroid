@@ -6,11 +6,13 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -24,7 +26,11 @@ import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Callback {
+import com.ogs.OGS;
+
+public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener, View.OnTouchListener {
+
+    private SurfaceView sv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,11 +39,35 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        SurfaceView sv = (SurfaceView) findViewById(R.id.surfaceView);
+        sv = (SurfaceView) findViewById(R.id.surfaceView);
         SurfaceHolder sh = sv.getHolder();
         sh.addCallback(this);
 
+        sv.setOnClickListener(this);
+        sv.setOnTouchListener(this);
 
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+
+        StrictMode.setThreadPolicy(policy);
+
+        /*OGS ogs = new OGS("ee20259490eabd6e8fba",
+                "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
+        ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
+        //ogs.login("nathanj439", "691c9d7a8986c29d80a0c13cb509d986");
+        JSONObject obj = null;
+        try {
+            obj = new JSONObject(ogs.me());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            Log.w("myApp", obj.toString(2));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }*/
+
+
+        /*
         final Socket socket;
         try {
             socket = IO.socket("https://ggs.online-go.com");
@@ -124,16 +154,16 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
         {
             e.printStackTrace();
         }
+        */
 
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-
     }
 
-    public void surfaceCreated(SurfaceHolder holder) {
-        Board board = new Board();
+    private Board board = new Board();
 
+    public void surfaceCreated(SurfaceHolder holder) {
         Canvas c = holder.lockCanvas();
 
         Bitmap bmpIcon = BitmapFactory.decodeResource(getResources(),
@@ -152,9 +182,24 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
         board.draw(c);
 
         holder.unlockCanvasAndPost(c);
+
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
 
+    }
+
+    @Override
+    public void onClick(View view) {
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent event) {
+        Log.w("myApp", event.getX() + " " + event.getY() + " " + event.getAction());
+
+        board.addStone(view.getWidth(), view.getHeight(), event.getX(), event.getY());
+
+        surfaceCreated(sv.getHolder());
+        return true;
     }
 }

@@ -20,6 +20,8 @@ class Board {
 
     Board() {
         board = new int[rows][cols];
+        board[0][0] = 1;
+        board[12][12] = 2;
         board[5][3] = 1;
         board[5][4] = 1;
         board[5][5] = 1;
@@ -30,8 +32,7 @@ class Board {
 
     private void drawGrid(Canvas c) {
         int dims = Math.min(c.getWidth(), c.getHeight());
-        float horizSpacing = dims / (cols + 1);
-        float vertSpacing = dims / (rows + 1);
+        float spacing = dims / (Math.max(cols, rows) + 1);
 
         Paint p = new Paint();
         p.setARGB(255, 0, 0, 0);
@@ -39,22 +40,18 @@ class Board {
 
         // Vertical lines
         for (int i = 0; i < cols; i++) {
-            float x = (i + 1) * horizSpacing;
-            float y = vertSpacing;
+            float x = (i + 1) * spacing;
+            float y = spacing;
             float fx = x;
-            Log.w("myApp", String.format("fx=%f", fx));
-            float fy = rows * vertSpacing;
+            float fy = rows * spacing;
             c.drawLine(x, y, fx, fy, p);
 
         }
         // Horizontal lines
         for (int j = 0; j < rows; j++) {
-            float x = horizSpacing;
-            float y = (j + 1) * vertSpacing;
-            float fx = cols * horizSpacing;
-            Log.w("myApp",
-                    String.format("fx=%f width=%d horizSpacing=%f",
-                            fx, dims, horizSpacing));
+            float x = spacing;
+            float y = (j + 1) * spacing;
+            float fx = cols * spacing;
             float fy = y;
             c.drawLine(x, y, fx, fy, p);
         }
@@ -62,16 +59,17 @@ class Board {
 
     private void drawStone(Canvas c, int i, int j, int v) {
         int dims = Math.min(c.getWidth(), c.getHeight());
-        int horizSpacing = dims / (cols + 1);
-        int vertSpacing = dims / (rows + 1);
+        float spacing = dims / (Math.max(cols, rows) + 1);
 
-        int midx = j * horizSpacing;
-        int midy = i * vertSpacing;
+        Log.w("myApp", String.format("c w=%d h=%d", c.getWidth(), c.getHeight()));
 
-        int x = midx - horizSpacing / 2;
-        int fx = midx + horizSpacing / 2;
-        int y = midy - vertSpacing / 2;
-        int fy = midy + vertSpacing / 2;
+        float midx = (j+1) * spacing;
+        float midy = (i+1) * spacing;
+
+        float x = midx - spacing / 2;
+        float fx = midx + spacing / 2;
+        float y = midy - spacing / 2;
+        float fy = midy + spacing / 2;
         RectF r = new RectF();
         r.set(x, y, fx, fy);
 
@@ -111,5 +109,20 @@ class Board {
     public void draw(Canvas c) {
         drawGrid(c);
         drawStones(c);
+    }
+
+    public void addStone(int width, int height, float x, float y) {
+        Log.w("myApp", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
+        int dims = Math.min(width, height);
+        float spacing = dims / (Math.max(cols, rows) + 1);
+
+        int sx = (int) ((x - spacing / 2) / spacing);
+        int sy = (int) ((y - spacing / 2) / spacing);
+        if (sx >= cols)
+            return;
+        if (sy >= rows)
+            return;
+        board[sy][sx] = 1;
+        Log.w("myApp", String.format("created stone at %d/%d", sx, sy));
     }
 }
