@@ -16,18 +16,18 @@ import android.util.Log;
 
 class Board {
     public int board[][];
-    private int rows = 13, cols = 13;
+    private int rows = 9, cols = 9;
 
     Board() {
         board = new int[rows][cols];
-        board[0][0] = 1;
-        board[12][12] = 2;
-        board[5][3] = 1;
-        board[5][4] = 1;
-        board[5][5] = 1;
-        board[6][3] = 2;
-        board[6][4] = 2;
-        board[6][5] = 2;
+//        board[0][0] = 1;
+//        board[12][12] = 2;
+//        board[5][3] = 1;
+//        board[5][4] = 1;
+//        board[5][5] = 1;
+//        board[6][3] = 2;
+//        board[6][4] = 2;
+//        board[6][5] = 2;
     }
 
     private void drawGrid(Canvas c) {
@@ -57,14 +57,14 @@ class Board {
         }
     }
 
-    private void drawStone(Canvas c, int i, int j, int v) {
+    private void drawStone(Canvas c, int i, int j, int v, boolean last) {
         int dims = Math.min(c.getWidth(), c.getHeight());
         float spacing = dims / (Math.max(cols, rows) + 1);
 
         Log.w("myApp", String.format("c w=%d h=%d", c.getWidth(), c.getHeight()));
 
-        float midx = (j+1) * spacing;
-        float midy = (i+1) * spacing;
+        float midx = (j + 1) * spacing;
+        float midy = (i + 1) * spacing;
 
         float x = midx - spacing / 2;
         float fx = midx + spacing / 2;
@@ -73,25 +73,35 @@ class Board {
         RectF r = new RectF();
         r.set(x, y, fx, fy);
 
-        if (v == 1) {
-            Paint p = new Paint();
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        if (v == 1)
             p.setARGB(255, 255, 255, 255);
-            p.setStrokeWidth(0);
-            p.setStyle(Paint.Style.FILL);
-            c.drawOval(r, p);
-            p.setARGB(255, 30, 30, 30);
-            p.setStrokeWidth(1);
-            p.setStyle(Paint.Style.STROKE);
-            c.drawOval(r, p);
-        } else {
-            Paint p = new Paint();
+        else
             p.setARGB(255, 0, 0, 0);
-            p.setStrokeWidth(0);
-            p.setStyle(Paint.Style.FILL);
-            c.drawOval(r, p);
+        p.setStrokeWidth(0);
+        p.setStyle(Paint.Style.FILL);
+        c.drawOval(r, p);
+        if (v == 1)
             p.setARGB(255, 30, 30, 30);
-            p.setStrokeWidth(1);
+        else
+            p.setARGB(255, 30, 30, 30);
+        p.setStrokeWidth(1);
+        p.setStyle(Paint.Style.STROKE);
+        c.drawOval(r, p);
+
+        if (last) {
+            p = new Paint(Paint.ANTI_ALIAS_FLAG);
+            if (v == 1)
+                p.setARGB(255, 0, 0, 0);
+            else
+                p.setARGB(255, 255, 255, 255);
+            p.setStrokeWidth(2);
             p.setStyle(Paint.Style.STROKE);
+            float x2 = midx - spacing / 4;
+            float fx2 = midx + spacing / 4;
+            float y2 = midy - spacing / 4;
+            float fy2 = midy + spacing / 4;
+            r.set(x2, y2, fx2, fy2);
             c.drawOval(r, p);
         }
     }
@@ -100,7 +110,7 @@ class Board {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (board[i][j] != 0) {
-                    drawStone(c, i, j, board[i][j]);
+                    drawStone(c, i, j, board[i][j], i == lastY && j == lastX);
                 }
             }
         }
@@ -111,7 +121,7 @@ class Board {
         drawStones(c);
     }
 
-    public void addStone(int width, int height, float x, float y) {
+    public String addStoneAtTouch(int width, int height, float x, float y) {
         Log.w("myApp", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
         int dims = Math.min(width, height);
         float spacing = dims / (Math.max(cols, rows) + 1);
@@ -119,10 +129,43 @@ class Board {
         int sx = (int) ((x - spacing / 2) / spacing);
         int sy = (int) ((y - spacing / 2) / spacing);
         if (sx >= cols)
-            return;
+            return "";
         if (sy >= rows)
-            return;
+            return "";
         board[sy][sx] = 1;
         Log.w("myApp", String.format("created stone at %d/%d", sx, sy));
+        String moveStr = "";
+        int c1 = (int)'a' + sx;
+        int c2 = (int)'a' + sy;
+        Log.w("myApp", String.format("c1=%d c2=%d", c1, c2));
+        moveStr = moveStr + (char) c1;
+        moveStr = moveStr + (char) c2;
+        Log.w("myApp", "moveStr = " + moveStr);
+        return moveStr;
     }
+
+    public void addStone(int x, int y) {
+        if (lastV == 1)
+            lastV = 2;
+        else
+            lastV = 1;
+
+        board[y][x] = lastV;
+        lastY = y;
+        lastX = x;
+
+    }
+
+    public void addStone(String coords) {
+	    char c1 = coords.charAt(0);
+	    char c2 = coords.charAt(1);
+	    if (lastV == 1)
+		    lastV = 2;
+	    else
+		    lastV = 1;
+	    board[(int)c2][(int)c1] = lastV;
+	    Log.w("myApp", "added stone at " + coords);
+    }
+
+    private int lastY, lastX, lastV = 1;
 }

@@ -7,8 +7,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -17,20 +15,22 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
+import com.ogs.OGS;
+import com.ogs.OGSGameConnection;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.net.URISyntaxException;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-import com.ogs.OGS;
-
 public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener, View.OnTouchListener {
 
     private SurfaceView sv;
+    private OGS ogs;
+    private int currentGameId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,26 +50,51 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
         StrictMode.setThreadPolicy(policy);
 
-        /*OGS ogs = new OGS("ee20259490eabd6e8fba",
-                "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
-        ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
-        //ogs.login("nathanj439", "691c9d7a8986c29d80a0c13cb509d986");
-        JSONObject obj = null;
         try {
-            obj = new JSONObject(ogs.me());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        try {
+            ogs = new OGS("ee20259490eabd6e8fba",
+                    "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
+            ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
+            //ogs.login("nathanj439", "691c9d7a8986c29d80a0c13cb509d986");
+            JSONObject obj = ogs.me();
             Log.w("myApp", obj.toString(2));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }*/
+//            obj = ogs.listServerChallenges();
 
+//            JSONArray results = obj.getJSONArray("results");
+//            Log.w("myApp", "challenge length = " + results.length());
+//            JSONObject obj2 = results.getJSONObject(0);
+//            Log.w("myApp", obj2.toString(2));
 
-        /*
-        final Socket socket;
-        try {
+//            JSONObject games = ogs.listGames();
+//            Log.w("myApp", "games length = " + games.length());
+//            JSONArray results = games.getJSONArray("results");
+//            JSONObject game = results.getJSONObject(0);
+//            currentGameId = game.getInt("id");
+            currentGameId = 6748759;
+
+            JSONObject gameDetails = ogs.getGameDetails(currentGameId);
+            JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
+
+            final String auth = gameDetails.getString("auth");
+            Log.w("myApp", moves.toString(2));
+
+            for (int i = 0; i < moves.length(); i++) {
+                JSONArray move = moves.getJSONArray(i);
+                board.addStone(move.getInt(0), move.getInt(1));
+            }
+
+            ogs.openSocket();
+            OGSGameConnection gameCon = ogs.openGameConnection(currentGameId);
+
+            gameCon.setMoveListener(new OGSGameConnection.MoveListener() {
+                @Override
+                public void call(int x, int y) {
+                    board.addStone(x, y);
+                    surfaceCreated(sv.getHolder());
+                }
+            });
+
+	    /*
+            final Socket socket;
             socket = IO.socket("https://ggs.online-go.com");
             socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
@@ -78,7 +103,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                     {
                         JSONObject obj = new JSONObject();
                         try {
-                            obj.put("game_id", 6726727);
+                            obj.put("game_id", currentGameId);
                             obj.put("player_id", 212470);
                             obj.put("chat", true);
                             Log.w("myApp", "json object: " + obj.toString());
@@ -96,30 +121,18 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                     try
 
                     {
-                        obj.put("auth", "ee71d495f4500328d86c0ccba756d250");
-                        obj.put("game_id", 6726727);
+                        obj.put("auth", auth);
+                        obj.put("game_id", currentGameId);
                         obj.put("player_id", 212470);
-                        obj.put("move", "ad");
+                        obj.put("move", "af");
                         Log.w("myApp", "json object: " + obj.toString());
                         socket.emit("game/move", obj);
                         Log.w("myApp", "emitted game connect");
-                    } catch (
-                            JSONException e
-                            )
-
-                    {
+                    } catch (JSONException e) {
                         e.printStackTrace();
                     }
 
                     //socket.disconnect();
-                }
-
-            }).on("event", new Emitter.Listener() {
-
-                @Override
-                public void call(Object... args) {
-                    JSONObject obj = (JSONObject) args[0];
-                    Log.w("myApp", "on event: " + obj.toString());
                 }
 
             }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
@@ -129,13 +142,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                     Log.w("myApp", "socket disconnect");
                 }
 
-            }).on(Socket.EVENT_MESSAGE, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    JSONObject obj = (JSONObject) args[0];
-                    Log.w("myApp", "on message: " + obj.toString());
-                }
-            }).on("game/6726727/gamedata", new Emitter.Listener() {
+            }).on("game/" + currentGameId + "/gamedata", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
                     JSONObject obj = (JSONObject) args[0];
@@ -147,14 +154,18 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                 }
             });
             socket.connect();
-        } catch (
-                URISyntaxException e
-                )
 
-        {
+            surfaceCreated(sv.getHolder());
+	*/
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        */
+
+
+        //*
+
+        // */
 
     }
 
@@ -197,7 +208,18 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     public boolean onTouch(View view, MotionEvent event) {
         Log.w("myApp", event.getX() + " " + event.getY() + " " + event.getAction());
 
-        board.addStone(view.getWidth(), view.getHeight(), event.getX(), event.getY());
+        if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
+            String moveStr = board.addStoneAtTouch(view.getWidth(), view.getHeight(), event.getX(),
+                    event.getY());
+            Log.w("myApp", "moveStr = " + moveStr);
+            if (moveStr.length() > 0) {
+                try {
+                    ogs.gameMove(currentGameId, moveStr);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
         surfaceCreated(sv.getHolder());
         return true;
