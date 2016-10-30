@@ -175,7 +175,7 @@ public class OGS {
 
     /** Uses the real time api to connect to a game. */
     public OGSGameConnection openGameConnection(int gameId) {
-	    return new OGSGameConnection(socket, gameId, userId);
+	    return new OGSGameConnection(this, socket, gameId, userId);
     }
 
     private String clientId;

@@ -10,6 +10,7 @@ import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -30,6 +31,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
     private SurfaceView sv;
     private OGS ogs;
+    private OGSGameConnection gameCon;
     private int currentGameId;
 
     @Override
@@ -38,6 +40,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
         setContentView(R.layout.activity_main3);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        getSupportActionBar().setHomeButtonEnabled(true);
 
         sv = (SurfaceView) findViewById(R.id.surfaceView);
         SurfaceHolder sh = sv.getHolder();
@@ -57,19 +61,19 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             //ogs.login("nathanj439", "691c9d7a8986c29d80a0c13cb509d986");
             JSONObject obj = ogs.me();
             Log.w("myApp", obj.toString(2));
-//            obj = ogs.listServerChallenges();
+            //            obj = ogs.listServerChallenges();
 
-//            JSONArray results = obj.getJSONArray("results");
-//            Log.w("myApp", "challenge length = " + results.length());
-//            JSONObject obj2 = results.getJSONObject(0);
-//            Log.w("myApp", obj2.toString(2));
+            //            JSONArray results = obj.getJSONArray("results");
+            //            Log.w("myApp", "challenge length = " + results.length());
+            //            JSONObject obj2 = results.getJSONObject(0);
+            //            Log.w("myApp", obj2.toString(2));
 
-//            JSONObject games = ogs.listGames();
-//            Log.w("myApp", "games length = " + games.length());
-//            JSONArray results = games.getJSONArray("results");
-//            JSONObject game = results.getJSONObject(0);
-//            currentGameId = game.getInt("id");
-            currentGameId = 6748759;
+            //            JSONObject games = ogs.listGames();
+            //            Log.w("myApp", "games length = " + games.length());
+            //            JSONArray results = games.getJSONArray("results");
+            //            JSONObject game = results.getJSONObject(0);
+            //            currentGameId = game.getInt("id");
+            currentGameId = 6751040;
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
@@ -79,85 +83,32 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
             for (int i = 0; i < moves.length(); i++) {
                 JSONArray move = moves.getJSONArray(i);
-                board.addStone(move.getInt(0), move.getInt(1));
+                int x = move.getInt(0);
+                int y = move.getInt(1);
+                if (x == -1)
+                    ;
+                else
+                    board.addStone(move.getInt(0), move.getInt(1));
             }
 
             ogs.openSocket();
-            OGSGameConnection gameCon = ogs.openGameConnection(currentGameId);
+            gameCon = ogs.openGameConnection(currentGameId);
 
-            gameCon.setMoveListener(new OGSGameConnection.MoveListener() {
+            gameCon.setCallbacks(new OGSGameConnection.OGSGameConnectionCallbacks() {
                 @Override
-                public void call(int x, int y) {
-                    board.addStone(x, y);
+                public void move(int x, int y) {
+                    if (x == -1)
+                        ; // pass
+                    else
+                        board.addStone(x, y);
                     surfaceCreated(sv.getHolder());
                 }
-            });
-
-	    /*
-            final Socket socket;
-            socket = IO.socket("https://ggs.online-go.com");
-            socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
                 @Override
-                public void call(Object... args) {
-                    {
-                        JSONObject obj = new JSONObject();
-                        try {
-                            obj.put("game_id", currentGameId);
-                            obj.put("player_id", 212470);
-                            obj.put("chat", true);
-                            Log.w("myApp", "json object: " + obj.toString());
-                            socket.emit("game/connect", obj);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                    }
-
-                    JSONObject obj = new JSONObject();
-                    try
-
-                    {
-                        obj.put("auth", auth);
-                        obj.put("game_id", currentGameId);
-                        obj.put("player_id", 212470);
-                        obj.put("move", "af");
-                        Log.w("myApp", "json object: " + obj.toString());
-                        socket.emit("game/move", obj);
-                        Log.w("myApp", "emitted game connect");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    //socket.disconnect();
-                }
-
-            }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-
-                @Override
-                public void call(Object... args) {
-                    Log.w("myApp", "socket disconnect");
-                }
-
-            }).on("game/" + currentGameId + "/gamedata", new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    JSONObject obj = (JSONObject) args[0];
-                    try {
-                        Log.w("myApp", "on gamedata: " + obj.toString(2));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                public void clock(JSONObject clock) {
+                    Log.w("myApp", clock.toString());
                 }
             });
-            socket.connect();
-
-            surfaceCreated(sv.getHolder());
-	*/
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -209,19 +160,21 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
         Log.w("myApp", event.getX() + " " + event.getY() + " " + event.getAction());
 
         if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
-            String moveStr = board.addStoneAtTouch(view.getWidth(), view.getHeight(), event.getX(),
-                    event.getY());
+            String moveStr = board.addStoneAtTouch(view.getWidth(),
+                    view.getHeight(), event.getX(), event.getY());
             Log.w("myApp", "moveStr = " + moveStr);
-            if (moveStr.length() > 0) {
-                try {
-                    ogs.gameMove(currentGameId, moveStr);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+            if (moveStr.length() > 0)
+                gameCon.makeMove(moveStr);
         }
 
         surfaceCreated(sv.getHolder());
+        return true;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
+        tb.inflateMenu(R.menu.menu_main);
         return true;
     }
 }
