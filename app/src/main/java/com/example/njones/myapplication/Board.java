@@ -144,27 +144,71 @@ class Board {
         return moveStr;
     }
 
-    public void addStone(int x, int y) {
-        if (lastV == 1)
-            lastV = 2;
+    private int oppositeColor(int color) {
+        if (color == 1)
+            return 2;
         else
-            lastV = 1;
+            return 1;
+    }
+
+    public void addStone(int x, int y) {
+        lastV = oppositeColor(lastV);
 
         board[y][x] = lastV;
         lastY = y;
         lastX = x;
 
+        captureGroup(x - 1, y, oppositeColor(lastV));
+        captureGroup(x + 1, y, oppositeColor(lastV));
+        captureGroup(x, y - 1, oppositeColor(lastV));
+        captureGroup(x, y + 1, oppositeColor(lastV));
     }
 
     public void addStone(String coords) {
 	    char c1 = coords.charAt(0);
 	    char c2 = coords.charAt(1);
-	    if (lastV == 1)
-		    lastV = 2;
-	    else
-		    lastV = 1;
+        lastV = oppositeColor(lastV);
 	    board[(int)c2][(int)c1] = lastV;
 	    Log.w("myApp", "added stone at " + coords);
+    }
+
+    private boolean hasLiberty(int x, int y, int color) {
+        // edges
+        if (y < 0 || y >= rows)
+            return false;
+        if (x < 0 || x >= cols)
+            return false;
+        // open space
+        if (board[y][x] == 0)
+            return true;
+        // opposite color stone
+        if (board[y][x] != color)
+            return false;
+        return
+            hasLiberty(x - 1, y) ||
+            hasLiberty(x + 1, y) ||
+            hasLiberty(x, y - 1) ||
+            hasLiberty(x, y + 1);
+    }
+
+    private void captureStones(int x, int y, int color) {
+        if (y < 0 || y >= rows)
+            return;
+        if (x < 0 || x >= cols)
+            return;
+        if (board[y][x] == color) {
+            board[y][x] = 0;
+            captureStones(x - 1, y);
+            captureStones(x + 1, y);
+            captureStones(x, y - 1);
+            captureStones(x, y + 1);
+        }
+    }
+
+    private void captureGroup(int x, int y, int color) {
+        if (!hasLiberty(x, y, color)) {
+            captureStones(x, y, color);
+        }
     }
 
     private int lastY, lastX, lastV = 1;
