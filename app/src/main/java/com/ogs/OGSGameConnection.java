@@ -18,6 +18,7 @@ public class OGSGameConnection {
     public static interface OGSGameConnectionCallbacks {
         public void move(int x, int y);
         public void clock(JSONObject clock);
+        public void phase(JSONObject phase);
     }
 
     private Socket socket;
@@ -53,6 +54,13 @@ public class OGSGameConnection {
             public void call(Object... args) {
                 JSONObject obj = (JSONObject) args[0];
                 move(obj);
+            }
+        });
+        socket.on("game/" + gameId + "/phase", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject obj = (JSONObject) args[0];
+                phase(obj);
             }
         });
         try {
@@ -95,6 +103,17 @@ public class OGSGameConnection {
             Log.w("OGSGameConnection", "on clock: " + obj.toString(2));
             if (callbacks != null) {
                 callbacks.clock(obj);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void phase(JSONObject obj) {
+        try {
+            Log.w("OGSGameConnection", "on phase: " + obj.toString(2));
+            if (callbacks != null) {
+                callbacks.phase(obj);
             }
         } catch (JSONException e) {
             e.printStackTrace();
