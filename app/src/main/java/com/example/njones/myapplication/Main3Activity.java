@@ -73,7 +73,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             //            JSONArray results = games.getJSONArray("results");
             //            JSONObject game = results.getJSONObject(0);
             //            currentGameId = game.getInt("id");
-            currentGameId = 6751040;
+            currentGameId = 6763036;
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
@@ -108,6 +108,11 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                 public void clock(JSONObject clock) {
                     Log.w("myApp", clock.toString());
                 }
+
+                @Override
+                public void phase(JSONObject phase) {
+
+                }
             });
         } catch (Exception e) {
             e.printStackTrace();
@@ -127,6 +132,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
     public void surfaceCreated(SurfaceHolder holder) {
         Canvas c = holder.lockCanvas();
+        Log.w("capture", "c = " + c);
 
         Bitmap bmpIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.board);

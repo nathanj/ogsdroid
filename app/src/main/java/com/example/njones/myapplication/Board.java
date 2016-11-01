@@ -16,7 +16,7 @@ import android.util.Log;
 
 class Board {
     public int board[][];
-    private int rows = 9, cols = 9;
+    private int rows = 13, cols = 13;
 
     Board() {
         board = new int[rows][cols];
@@ -60,8 +60,6 @@ class Board {
     private void drawStone(Canvas c, int i, int j, int v, boolean last) {
         int dims = Math.min(c.getWidth(), c.getHeight());
         float spacing = dims / (Math.max(cols, rows) + 1);
-
-        Log.w("myApp", String.format("c w=%d h=%d", c.getWidth(), c.getHeight()));
 
         float midx = (j + 1) * spacing;
         float midy = (i + 1) * spacing;
@@ -135,8 +133,8 @@ class Board {
         board[sy][sx] = 1;
         Log.w("myApp", String.format("created stone at %d/%d", sx, sy));
         String moveStr = "";
-        int c1 = (int)'a' + sx;
-        int c2 = (int)'a' + sy;
+        int c1 = (int) 'a' + sx;
+        int c2 = (int) 'a' + sy;
         Log.w("myApp", String.format("c1=%d c2=%d", c1, c2));
         moveStr = moveStr + (char) c1;
         moveStr = moveStr + (char) c2;
@@ -165,11 +163,11 @@ class Board {
     }
 
     public void addStone(String coords) {
-	    char c1 = coords.charAt(0);
-	    char c2 = coords.charAt(1);
+        char c1 = coords.charAt(0);
+        char c2 = coords.charAt(1);
         lastV = oppositeColor(lastV);
-	    board[(int)c2][(int)c1] = lastV;
-	    Log.w("myApp", "added stone at " + coords);
+        board[(int) c2][(int) c1] = lastV;
+        Log.w("myApp", "added stone at " + coords);
     }
 
     private boolean hasLiberty(int x, int y, int color) {
@@ -184,11 +182,16 @@ class Board {
         // opposite color stone
         if (board[y][x] != color)
             return false;
+        // already visited
+        if ((board[y][x] & 0x80) > 0)
+            return false;
+        // mark stone as visited
+        board[y][x] |= 0x80;
         return
-            hasLiberty(x - 1, y) ||
-            hasLiberty(x + 1, y) ||
-            hasLiberty(x, y - 1) ||
-            hasLiberty(x, y + 1);
+                hasLiberty(x - 1, y, color) ||
+                        hasLiberty(x + 1, y, color) ||
+                        hasLiberty(x, y - 1, color) ||
+                        hasLiberty(x, y + 1, color);
     }
 
     private void captureStones(int x, int y, int color) {
@@ -198,17 +201,33 @@ class Board {
             return;
         if (board[y][x] == color) {
             board[y][x] = 0;
-            captureStones(x - 1, y);
-            captureStones(x + 1, y);
-            captureStones(x, y - 1);
-            captureStones(x, y + 1);
+            captureStones(x - 1, y, color);
+            captureStones(x + 1, y, color);
+            captureStones(x, y - 1, color);
+            captureStones(x, y + 1, color);
         }
     }
 
     private void captureGroup(int x, int y, int color) {
-        if (!hasLiberty(x, y, color)) {
-            captureStones(x, y, color);
+        if (y < 0 || y >= rows)
+            return;
+        if (x < 0 || x >= cols)
+            return;
+        if (board[y][x] == color) {
+            boolean has = hasLiberty(x, y, color);
+            Log.w("capture", "x = " + x + ", y = " + y + ", hasLiberty = " + has);
+            // remove marks
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    board[j][i] &= ~0x80;
+                }
+            }
+            if (!has) {
+                Log.w("capture", "capturing stones");
+                captureStones(x, y, color);
+            }
         }
+
     }
 
     private int lastY, lastX, lastV = 1;

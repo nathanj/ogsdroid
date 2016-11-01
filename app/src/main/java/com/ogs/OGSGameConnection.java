@@ -78,11 +78,11 @@ public class OGSGameConnection {
     }
 
     private void gamedata(JSONObject obj) {
-        try {
-            Log.w("OGSGameConnection", "on gamedata: " + obj.toString(2));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Log.w("OGSGameConnection", "on gamedata: " + obj.toString(2));
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private void move(JSONObject obj) {
@@ -99,14 +99,14 @@ public class OGSGameConnection {
     }
 
     private void clock(JSONObject obj) {
-        try {
-            Log.w("OGSGameConnection", "on clock: " + obj.toString(2));
+//        try {
+//            Log.w("OGSGameConnection", "on clock: " + obj.toString(2));
             if (callbacks != null) {
                 callbacks.clock(obj);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private void phase(JSONObject obj) {
