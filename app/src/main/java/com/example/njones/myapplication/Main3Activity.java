@@ -33,6 +33,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     private OGS ogs;
     private OGSGameConnection gameCon;
     private int currentGameId;
+    private String phase = "play";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +77,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             currentGameId = 6763036;
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
+            phase = gameDetails.getString("phase");
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
 
             final String auth = gameDetails.getString("auth");
@@ -111,7 +113,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
                 @Override
                 public void phase(JSONObject phase) {
-
+                    this.phase = phase.toString;
                 }
             });
         } catch (Exception e) {
@@ -165,15 +167,22 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     public boolean onTouch(View view, MotionEvent event) {
         Log.w("myApp", event.getX() + " " + event.getY() + " " + event.getAction());
 
-        if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
-            String moveStr = board.addStoneAtTouch(view.getWidth(),
-                    view.getHeight(), event.getX(), event.getY());
-            Log.w("myApp", "moveStr = " + moveStr);
-            if (moveStr.length() > 0)
-                gameCon.makeMove(moveStr);
+        if (phase.equals("play")) {
+            if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
+                String moveStr = board.addStoneAtTouch(view.getWidth(),
+                        view.getHeight(), event.getX(), event.getY());
+                Log.w("myApp", "moveStr = " + moveStr);
+                if (moveStr.length() > 0)
+                    gameCon.makeMove(moveStr);
+            }
+        } else if (phase.equals("stone removal")) {
+            if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
+                board.stoneRemovalAtTouch(view.getWidth(),
+                        view.getHeight(), event.getX(), event.getY());
+            }
         }
 
-        surfaceCreated(sv.getHolder());
+        //surfaceCreated(sv.getHolder());
         return true;
     }
 
