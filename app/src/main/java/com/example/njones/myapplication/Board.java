@@ -15,14 +15,15 @@ import android.util.Log;
  */
 
 class Board {
-    private static int EMPTY = 0;
-    private static int BLACK = 1;
-    private static int WHITE = 2;
+    private static int EMPTY = 0x00;
+    private static int BLACK = 0x01;
+    private static int WHITE = 0x02;
     private static int COLOR = (BLACK | WHITE);
-    private static int MARKED = 0x80;
-    private static int WHITE_TERRITORY = 0x40;
-    private static int BLACK_TERRITORY = 0x20;
-    private static int NEUTRAL_TERRITORY = 0x10;
+    private static int MARKED = 0x10;
+    private static int REMOVED = 0x20;
+    private static int NEUTRAL_TERRITORY = 0x100;
+    private static int BLACK_TERRITORY = 0x200;
+    private static int WHITE_TERRITORY = 0x400;
     private static int TERRITORY = (BLACK_TERRITORY | WHITE_TERRITORY);
 
     public int board[][];
@@ -74,7 +75,7 @@ class Board {
         r.set(x, y, fx, fy);
 
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        if (v == WHITE_TERRITORY || v == (MARKED|BLACK))
+        if (v == WHITE_TERRITORY || v == (REMOVED | BLACK))
             p.setARGB(255, 255, 255, 255);
         else
             p.setARGB(255, 0, 0, 0);
@@ -86,12 +87,12 @@ class Board {
     private void drawStone(Canvas c, int i, int j, int v, boolean last) {
         int dims = Math.min(c.getWidth(), c.getHeight());
         float spacing = dims / (Math.max(cols, rows) + 1);
-	boolean marked = (v & MARKED) == MARKED;
-	int alpha = 255;
+        boolean removed = (v & REMOVED) == REMOVED;
+        int alpha = 255;
 
-	if (marked) {
-		alpha = 100;
-	}
+        if (removed) {
+            alpha = 100;
+        }
 
         float midx = (j + 1) * spacing;
         float midy = (i + 1) * spacing;
@@ -142,7 +143,7 @@ class Board {
                 if ((board[i][j] & COLOR) > 0) {
                     drawStone(c, i, j, board[i][j], i == lastY && j == lastX);
                 }
-                if ((board[i][j] & TERRITORY) > 0 || (board[i][j] & MARKED) > 0) {
+                if ((board[i][j] & TERRITORY) > 0 || (board[i][j] & REMOVED) > 0) {
                     drawTerritory(c, i, j, board[i][j]);
                 }
             }
@@ -154,40 +155,40 @@ class Board {
         drawStones(c);
     }
 
-    void unmarkGroup(int x, int y, int color) {
+    void unremoveGroup(int x, int y, int color) {
         if (y < 0 || y >= rows)
             return;
         if (x < 0 || x >= cols)
             return;
-        // already unmarked, nothing to do
-        if ((board[y][x] & MARKED) != MARKED)
+        // already unremoved, nothing to do
+        if ((board[y][x] & REMOVED) != REMOVED)
             return;
         if (board[y][x] == color) {
-            board[y][x] &= ~MARKED;
-            unmarkGroup(x - 1, y, color);
-            unmarkGroup(x + 1, y, color);
-            unmarkGroup(x, y - 1, color);
-            unmarkGroup(x, y + 1, color);
+            board[y][x] &= ~REMOVED;
+            unremoveGroup(x - 1, y, color);
+            unremoveGroup(x + 1, y, color);
+            unremoveGroup(x, y - 1, color);
+            unremoveGroup(x, y + 1, color);
         }
     }
 
-    void markGroup(int x, int y, int color) {
+    void removeGroup(int x, int y, int color) {
         //Log.w("remov", "checking marking group at x=" + x + " y=" + y + " color=" + color);
         if (y < 0 || y >= rows)
             return;
         if (x < 0 || x >= cols)
             return;
-        // already marked, nothing to do
-        if ((board[y][x] & MARKED) == MARKED)
+        // already removed, nothing to do
+        if ((board[y][x] & REMOVED) == REMOVED)
             return;
         if (board[y][x] == color) {
             //Log.w("remov", "really marking group at x=" + x + " y=" + y + " color=" + color);
 
-            board[y][x] |= MARKED;
-            markGroup(x - 1, y, color);
-            markGroup(x + 1, y, color);
-            markGroup(x, y - 1, color);
-            markGroup(x, y + 1, color);
+            board[y][x] |= REMOVED;
+            removeGroup(x - 1, y, color);
+            removeGroup(x + 1, y, color);
+            removeGroup(x, y - 1, color);
+            removeGroup(x, y + 1, color);
         }
     }
 
@@ -204,6 +205,14 @@ class Board {
             setTerritory(x, y - 1, territory);
             setTerritory(x, y + 1, territory);
         }
+        // marked removed stone, remove mark and keep traversing
+        if ((board[y][x] & (MARKED | REMOVED)) == (MARKED | REMOVED)) {
+            board[y][x] &= ~MARKED;
+            setTerritory(x - 1, y, territory);
+            setTerritory(x + 1, y, territory);
+            setTerritory(x, y - 1, territory);
+            setTerritory(x, y + 1, territory);
+        }
     }
 
     int determineTerritory(int x, int y) {
@@ -211,15 +220,15 @@ class Board {
             return 0;
         if (x < 0 || x >= cols)
             return 0;
-        // removed stone, treat as empty
+        // already marked
         if ((board[y][x] & MARKED) == MARKED)
             return 0;
         // stone, return that color
-        if (board[y][x] != 0) {
-            Log.w("trace", String.format("returning y=%d x=%d color=%d", y, x, board[y][x]));
+        if ((board[y][x] & REMOVED) != REMOVED && (board[y][x] & COLOR) > 0) {
+            Log.w("trace", String.format("returning y=%d x=%d color=%x", y, x, board[y][x]));
             return board[y][x];
         }
-        // empty space, mark and keep traversing
+        // removed stone and empty space, mark and keep traversing
         board[y][x] |= MARKED;
         return
                 determineTerritory(x - 1, y) |
@@ -238,6 +247,7 @@ class Board {
                 board[j][i] &= ~NEUTRAL_TERRITORY;
             }
         }
+        traceBoard("before determine territory");
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (board[j][i] == EMPTY) {
@@ -258,7 +268,7 @@ class Board {
 
     void traceBoard(String header) {
         for (int r = 0; r < rows; r++) {
-            Log.w("trace", String.format("%s: %2x %2x %2x %2x %2x %2x %2x %2x %2x",
+            Log.w("trace", String.format("%30s: %3x %3x %3x %3x %3x %3x %3x %3x %3x",
                     header,
                     board[r][0],
                     board[r][1],
@@ -286,10 +296,10 @@ class Board {
             return "";
         int color = board[sy][sx];
         traceBoard("before mark");
-        if ((color & MARKED) == MARKED)
-            unmarkGroup(sx, sy, color);
+        if ((color & REMOVED) == REMOVED)
+            unremoveGroup(sx, sy, color);
         else
-            markGroup(sx, sy, color);
+            removeGroup(sx, sy, color);
         traceBoard("after mark");
         markTerritory();
         traceBoard("after territyroy");
