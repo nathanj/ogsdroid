@@ -74,10 +74,11 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             //            JSONArray results = games.getJSONArray("results");
             //            JSONObject game = results.getJSONObject(0);
             //            currentGameId = game.getInt("id");
-            currentGameId = 6763036;
+            currentGameId = 6772417;
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
-            phase = gameDetails.getString("phase");
+            phase = gameDetails.getJSONObject("gamedata").getString("phase");
+            phase = "stone removal";
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
 
             final String auth = gameDetails.getString("auth");
@@ -112,8 +113,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                 }
 
                 @Override
-                public void phase(JSONObject phase) {
-                    this.phase = phase.toString;
+                public void phase(JSONObject phase2) {
+                    phase = phase2.toString();
                 }
             });
         } catch (Exception e) {
@@ -182,7 +183,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             }
         }
 
-        //surfaceCreated(sv.getHolder());
+        surfaceCreated(sv.getHolder());
         return true;
     }
 

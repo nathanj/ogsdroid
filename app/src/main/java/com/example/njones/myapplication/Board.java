@@ -15,18 +15,18 @@ import android.util.Log;
  */
 
 class Board {
-    private static int EMPTY             = 0;
-    private static int BLACK             = 1;
-    private static int WHITE             = 2;
-    private static int COLOR             = (BLACK|WHITE);
-    private static int MARKED            = 0x80;
-    private static int WHITE_TERRITORY   = 0x40;
-    private static int BLACK_TERRITORY   = 0x20;
+    private static int EMPTY = 0;
+    private static int BLACK = 1;
+    private static int WHITE = 2;
+    private static int COLOR = (BLACK | WHITE);
+    private static int MARKED = 0x80;
+    private static int WHITE_TERRITORY = 0x40;
+    private static int BLACK_TERRITORY = 0x20;
     private static int NEUTRAL_TERRITORY = 0x10;
-    private static int TERRITORY         = (BLACK_TERRITORY|WHITE_TERRITORY);
+    private static int TERRITORY = (BLACK_TERRITORY | WHITE_TERRITORY);
 
     public int board[][];
-    private int rows = 13, cols = 13;
+    private int rows = 9, cols = 9;
 
     Board() {
         board = new int[rows][cols];
@@ -74,7 +74,7 @@ class Board {
         r.set(x, y, fx, fy);
 
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        if (v == WHITE_TERRITORY)
+        if (v == WHITE_TERRITORY || v == (MARKED|BLACK))
             p.setARGB(255, 255, 255, 255);
         else
             p.setARGB(255, 0, 0, 0);
@@ -86,42 +86,42 @@ class Board {
     private void drawStone(Canvas c, int i, int j, int v, boolean last) {
         int dims = Math.min(c.getWidth(), c.getHeight());
         float spacing = dims / (Math.max(cols, rows) + 1);
+	boolean marked = (v & MARKED) == MARKED;
+	int alpha = 255;
+
+	if (marked) {
+		alpha = 100;
+	}
 
         float midx = (j + 1) * spacing;
         float midy = (i + 1) * spacing;
 
-        float x = midx - spacing / 2;
-        float fx = midx + spacing / 2;
-        float y = midy - spacing / 2;
-        float fy = midy + spacing / 2;
+        float x = midx - spacing / 2 + 1;
+        float fx = midx + spacing / 2 - 1;
+        float y = midy - spacing / 2 + 1;
+        float fy = midy + spacing / 2 - 1;
         RectF r = new RectF();
         r.set(x, y, fx, fy);
 
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         if ((v & COLOR) == WHITE)
-            p.setARGB(255, 255, 255, 255);
+            p.setARGB(alpha, 255, 255, 255);
         else
-            p.setARGB(255, 0, 0, 0);
+            p.setARGB(alpha, 0, 0, 0);
         p.setStrokeWidth(0);
         p.setStyle(Paint.Style.FILL);
         c.drawOval(r, p);
         if ((v & COLOR) == WHITE)
-            p.setARGB(255, 30, 30, 30);
+            p.setARGB(alpha, 150, 150, 150);
         else
-            p.setARGB(255, 30, 30, 30);
+            p.setARGB(alpha, 30, 30, 30);
         p.setStrokeWidth(1);
         p.setStyle(Paint.Style.STROKE);
         c.drawOval(r, p);
-        if ((v & MARKED) == MARKED) {
-            p.setARGB(255, 255, 30, 30);
-            p.setStrokeWidth(3);
-            p.setStyle(Paint.Style.STROKE);
-            c.drawOval(r, p);
-        }
 
         if (last) {
             p = new Paint(Paint.ANTI_ALIAS_FLAG);
-            if (v == 1)
+            if ((v & COLOR) == WHITE)
                 p.setARGB(255, 0, 0, 0);
             else
                 p.setARGB(255, 255, 255, 255);
@@ -142,7 +142,7 @@ class Board {
                 if ((board[i][j] & COLOR) > 0) {
                     drawStone(c, i, j, board[i][j], i == lastY && j == lastX);
                 }
-                if ((board[i][j] & TERRITORY) > 0) {
+                if ((board[i][j] & TERRITORY) > 0 || (board[i][j] & MARKED) > 0) {
                     drawTerritory(c, i, j, board[i][j]);
                 }
             }
@@ -172,6 +172,7 @@ class Board {
     }
 
     void markGroup(int x, int y, int color) {
+        //Log.w("remov", "checking marking group at x=" + x + " y=" + y + " color=" + color);
         if (y < 0 || y >= rows)
             return;
         if (x < 0 || x >= cols)
@@ -180,6 +181,8 @@ class Board {
         if ((board[y][x] & MARKED) == MARKED)
             return;
         if (board[y][x] == color) {
+            //Log.w("remov", "really marking group at x=" + x + " y=" + y + " color=" + color);
+
             board[y][x] |= MARKED;
             markGroup(x - 1, y, color);
             markGroup(x + 1, y, color);
@@ -188,14 +191,14 @@ class Board {
         }
     }
 
-    void int setTerritory(int x, int y, int territory) {
+    void setTerritory(int x, int y, int territory) {
         if (y < 0 || y >= rows)
-            return 0;
+            return;
         if (x < 0 || x >= cols)
-            return 0;
+            return;
         // marked empty space, convert to territory and keep traversing
-        if ((board[y][x] & (MARKED|EMPTY)) == (MARKED|EMPTY)) {
-            board[y][x] == territory;
+        if ((board[y][x] & (MARKED | COLOR)) == (MARKED | EMPTY)) {
+            board[y][x] = territory;
             setTerritory(x - 1, y, territory);
             setTerritory(x + 1, y, territory);
             setTerritory(x, y - 1, territory);
@@ -203,7 +206,7 @@ class Board {
         }
     }
 
-    void int determineTerritory(int x, int y) {
+    int determineTerritory(int x, int y) {
         if (y < 0 || y >= rows)
             return 0;
         if (x < 0 || x >= cols)
@@ -212,18 +215,21 @@ class Board {
         if ((board[y][x] & MARKED) == MARKED)
             return 0;
         // stone, return that color
-        if (board[y][x] != 0)
+        if (board[y][x] != 0) {
+            Log.w("trace", String.format("returning y=%d x=%d color=%d", y, x, board[y][x]));
             return board[y][x];
+        }
         // empty space, mark and keep traversing
         board[y][x] |= MARKED;
         return
-            determineTerritory(x - 1, y) |
-            determineTerritory(x + 1, y) |
-            determineTerritory(x, y - 1) |
-            determineTerritory(x, y + 1);
+                determineTerritory(x - 1, y) |
+                        determineTerritory(x + 1, y) |
+                        determineTerritory(x, y - 1) |
+                        determineTerritory(x, y + 1);
     }
 
     void markTerritory() {
+        Log.w("removal", "marking terrotiry");
         // remove all previous territory markers
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -235,20 +241,40 @@ class Board {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (board[j][i] == EMPTY) {
-                    int mask = determineTerritory(x, y);
+                    int mask = determineTerritory(i, j);
+                    Log.w("removal", String.format("r=%d c=%d mask=%x", j, i, mask));
+                    traceBoard("before setting territory");
                     if (mask == WHITE)
-                        setTerritory(x, y, WHITE_TERRITORY);
+                        setTerritory(i, j, WHITE_TERRITORY);
                     else if (mask == BLACK)
-                        setTerritory(x, y, BLACK_TERRITORY);
+                        setTerritory(i, j, BLACK_TERRITORY);
                     else
-                        setTerritory(x, y, NEUTRAL_TERRITORY);
+                        setTerritory(i, j, NEUTRAL_TERRITORY);
+                    traceBoard("in territory");
                 }
             }
         }
     }
 
+    void traceBoard(String header) {
+        for (int r = 0; r < rows; r++) {
+            Log.w("trace", String.format("%s: %2x %2x %2x %2x %2x %2x %2x %2x %2x",
+                    header,
+                    board[r][0],
+                    board[r][1],
+                    board[r][2],
+                    board[r][3],
+                    board[r][4],
+                    board[r][5],
+                    board[r][6],
+                    board[r][7],
+                    board[r][8]
+            ));
+        }
+    }
+
     public String stoneRemovalAtTouch(int width, int height, float x, float y) {
-        Log.w("myApp", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
+        Log.w("removal", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
         int dims = Math.min(width, height);
         float spacing = dims / (Math.max(cols, rows) + 1);
 
@@ -259,11 +285,15 @@ class Board {
         if (sx < 0 || sy >= rows)
             return "";
         int color = board[sy][sx];
+        traceBoard("before mark");
         if ((color & MARKED) == MARKED)
             unmarkGroup(sx, sy, color);
         else
             markGroup(sx, sy, color);
+        traceBoard("after mark");
         markTerritory();
+        traceBoard("after territyroy");
+        return "";
     }
 
     public String addStoneAtTouch(int width, int height, float x, float y) {
@@ -377,5 +407,5 @@ class Board {
 
     }
 
-    private int lastY, lastX, lastV = 1;
+    private int lastY, lastX, lastV = 2;
 }
