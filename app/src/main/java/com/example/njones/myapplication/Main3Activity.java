@@ -35,6 +35,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     private int currentGameId;
     private String phase = "play";
 
+    private static final String TAG = "Main3Activity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +63,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
             //ogs.login("nathanj439", "691c9d7a8986c29d80a0c13cb509d986");
             JSONObject obj = ogs.me();
-            Log.w("myApp", obj.toString(2));
+            Log.w(TAG, obj.toString(2));
             //            obj = ogs.listServerChallenges();
 
             //            JSONArray results = obj.getJSONArray("results");
@@ -82,7 +84,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
 
             final String auth = gameDetails.getString("auth");
-            Log.w("myApp", moves.toString(2));
+            Log.w(TAG, moves.toString(2));
 
             for (int i = 0; i < moves.length(); i++) {
                 JSONArray move = moves.getJSONArray(i);
@@ -109,12 +111,33 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
                 @Override
                 public void clock(JSONObject clock) {
-                    Log.w("myApp", clock.toString());
+                    Log.w(TAG, clock.toString());
                 }
 
                 @Override
                 public void phase(JSONObject phase2) {
                     phase = phase2.toString();
+                }
+
+                @Override
+                public void removedStones(JSONObject obj) {
+                    try {
+                        String coords = obj.getString("stones");
+                        boolean removed = obj.getBoolean("removed");
+                        board.stoneRemoval(coords, removed);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void removedStonesAccepted(JSONObject obj) {
+
+                }
+
+                @Override
+                public void error(JSONObject obj) {
+                    Log.e(TAG, "got ogs error: " + obj.toString());
                 }
             });
         } catch (Exception e) {
@@ -135,7 +158,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
     public void surfaceCreated(SurfaceHolder holder) {
         Canvas c = holder.lockCanvas();
-        Log.w("capture", "c = " + c);
+        Log.w(TAG, "c = " + c);
 
         Bitmap bmpIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.board);
@@ -166,13 +189,13 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
     @Override
     public boolean onTouch(View view, MotionEvent event) {
-        Log.w("myApp", event.getX() + " " + event.getY() + " " + event.getAction());
+        Log.w(TAG, event.getX() + " " + event.getY() + " " + event.getAction());
 
         if (phase.equals("play")) {
             if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
                 String moveStr = board.addStoneAtTouch(view.getWidth(),
                         view.getHeight(), event.getX(), event.getY());
-                Log.w("myApp", "moveStr = " + moveStr);
+                Log.w(TAG, "moveStr = " + moveStr);
                 if (moveStr.length() > 0)
                     gameCon.makeMove(moveStr);
             }
@@ -189,8 +212,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
-        tb.inflateMenu(R.menu.menu_main);
+//        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
+//        tb.inflateMenu(R.menu.menu_main);
         return true;
     }
 }

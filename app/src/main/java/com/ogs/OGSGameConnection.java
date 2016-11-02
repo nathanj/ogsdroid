@@ -19,6 +19,9 @@ public class OGSGameConnection {
         public void move(int x, int y);
         public void clock(JSONObject clock);
         public void phase(JSONObject phase);
+        public void removedStones(JSONObject obj);
+        public void removedStonesAccepted(JSONObject obj);
+        public void error(JSONObject obj);
     }
 
     private Socket socket;
@@ -41,22 +44,37 @@ public class OGSGameConnection {
                 JSONObject obj = (JSONObject) args[0];
                 clock(obj);
             }
-        });
-        socket.on("game/" + gameId + "/gamedata", new Emitter.Listener() {
+        }).on("game/" + gameId + "/gamedata", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 JSONObject obj = (JSONObject) args[0];
                 gamedata(obj);
             }
-        });
-        socket.on("game/" + gameId + "/move", new Emitter.Listener() {
+        }).on("game/" + gameId + "/move", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 JSONObject obj = (JSONObject) args[0];
                 move(obj);
             }
-        });
-        socket.on("game/" + gameId + "/phase", new Emitter.Listener() {
+        }).on("game/" + gameId + "/removed_stones", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject obj = (JSONObject) args[0];
+                removedStones(obj);
+            }
+        }).on("game/" + gameId + "/removed_stones_accepted", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject obj = (JSONObject) args[0];
+                removedStonesAccepted(obj);
+            }
+        }).on("game/" + gameId + "/error", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject obj = (JSONObject) args[0];
+                error(obj);
+            }
+        }).on("game/" + gameId + "/phase", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 JSONObject obj = (JSONObject) args[0];
@@ -120,6 +138,39 @@ public class OGSGameConnection {
         }
     }
 
+    private void removedStones(JSONObject obj) {
+        try {
+            Log.w("OGSGameConnection", "on removed_stones: " + obj.toString(2));
+            if (callbacks != null) {
+                callbacks.removedStones(obj);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void removedStonesAccepted(JSONObject obj) {
+        try {
+            Log.w("OGSGameConnection", "on removed_stones_accepted: " + obj.toString(2));
+            if (callbacks != null) {
+                callbacks.removedStonesAccepted(obj);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void error(JSONObject obj) {
+        try {
+            Log.w("OGSGameConnection", "on error: " + obj.toString(2));
+            if (callbacks != null) {
+                callbacks.error(obj);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void makeMove(String coord) {
         try {
             JSONObject obj = new JSONObject();
@@ -131,6 +182,55 @@ public class OGSGameConnection {
             Log.w("myApp", "socket = " + socket);
             socket.emit("game/move", obj);
             Log.w("myApp", "emitted game connect");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removeStones(String coords, boolean removed) {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("auth", gameAuth);
+            obj.put("game_id", gameId);
+            obj.put("player_id", userId);
+            obj.put("stones", coords);
+            obj.put("removed", removed);
+            Log.w("myApp", "json object: " + obj.toString());
+            Log.w("myApp", "socket = " + socket);
+            socket.emit("game/removed_stones/set", obj);
+            Log.w("myApp", "emitted game removed_stones/set");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void acceptStones(String coords) {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("auth", gameAuth);
+            obj.put("game_id", gameId);
+            obj.put("player_id", userId);
+            obj.put("stones", coords);
+            obj.put("strict_seki_mode", false);
+            Log.w("myApp", "json object: " + obj.toString());
+            Log.w("myApp", "socket = " + socket);
+            socket.emit("game/removed_stones/accept", obj);
+            Log.w("myApp", "emitted game removed_stones/accept");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void rejectStones() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("auth", gameAuth);
+            obj.put("game_id", gameId);
+            obj.put("player_id", userId);
+            Log.w("myApp", "json object: " + obj.toString());
+            Log.w("myApp", "socket = " + socket);
+            socket.emit("game/removed_stones/reject", obj);
+            Log.w("myApp", "emitted game removed_stones/reject");
         } catch (JSONException e) {
             e.printStackTrace();
         }

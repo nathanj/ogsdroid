@@ -1,10 +1,7 @@
 package com.example.njones.myapplication;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 
@@ -281,6 +278,18 @@ class Board {
                     board[r][8]
             ));
         }
+    }
+
+    public void stoneRemoval(String coords, boolean removed) {
+        for (int i = 0; i < coords.length(); i++) {
+            int sx = (int) coords.charAt(i) - (int) 'a';
+            int sy = (int) coords.charAt(i+1) - (int) 'a';
+            if (removed)
+                board[sy][sx] |= REMOVED;
+            else
+                board[sy][sx] &= ~REMOVED;
+        }
+        markTerritory();
     }
 
     public String stoneRemovalAtTouch(int width, int height, float x, float y) {
