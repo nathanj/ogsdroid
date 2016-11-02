@@ -15,6 +15,8 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 public class OGSGameConnection {
+    private static final String TAG = "OGSGameConnection";
+
     public static interface OGSGameConnectionCallbacks {
         public void move(int x, int y);
         public void clock(JSONObject clock);
@@ -97,7 +99,7 @@ public class OGSGameConnection {
 
     private void gamedata(JSONObject obj) {
 //        try {
-//            Log.w("OGSGameConnection", "on gamedata: " + obj.toString(2));
+//            Log.w(TAG, "on gamedata: " + obj.toString(2));
 //        } catch (JSONException e) {
 //            e.printStackTrace();
 //        }
@@ -105,7 +107,7 @@ public class OGSGameConnection {
 
     private void move(JSONObject obj) {
         try {
-            Log.w("OGSGameConnection", "on move: " + obj.toString(2));
+            Log.w(TAG, "on move: " + obj.toString(2));
             if (callbacks != null) {
                 JSONArray a = obj.getJSONArray("move");
                 callbacks.move(a.getInt(0), a.getInt(1));
@@ -118,7 +120,7 @@ public class OGSGameConnection {
 
     private void clock(JSONObject obj) {
 //        try {
-//            Log.w("OGSGameConnection", "on clock: " + obj.toString(2));
+//            Log.w(TAG, "on clock: " + obj.toString(2));
             if (callbacks != null) {
                 callbacks.clock(obj);
             }
@@ -129,7 +131,7 @@ public class OGSGameConnection {
 
     private void phase(JSONObject obj) {
         try {
-            Log.w("OGSGameConnection", "on phase: " + obj.toString(2));
+            Log.w(TAG, "on phase: " + obj.toString(2));
             if (callbacks != null) {
                 callbacks.phase(obj);
             }
@@ -140,7 +142,7 @@ public class OGSGameConnection {
 
     private void removedStones(JSONObject obj) {
         try {
-            Log.w("OGSGameConnection", "on removed_stones: " + obj.toString(2));
+            Log.w(TAG, "on removed_stones: " + obj.toString(2));
             if (callbacks != null) {
                 callbacks.removedStones(obj);
             }
@@ -151,7 +153,7 @@ public class OGSGameConnection {
 
     private void removedStonesAccepted(JSONObject obj) {
         try {
-            Log.w("OGSGameConnection", "on removed_stones_accepted: " + obj.toString(2));
+            Log.w(TAG, "on removed_stones_accepted: " + obj.toString(2));
             if (callbacks != null) {
                 callbacks.removedStonesAccepted(obj);
             }
@@ -162,7 +164,7 @@ public class OGSGameConnection {
 
     private void error(JSONObject obj) {
         try {
-            Log.w("OGSGameConnection", "on error: " + obj.toString(2));
+            Log.w(TAG, "on error: " + obj.toString(2));
             if (callbacks != null) {
                 callbacks.error(obj);
             }
@@ -178,10 +180,10 @@ public class OGSGameConnection {
             obj.put("game_id", gameId);
             obj.put("player_id", userId);
             obj.put("move", coord);
-            Log.w("myApp", "json object: " + obj.toString());
-            Log.w("myApp", "socket = " + socket);
+            Log.w(TAG, "json object: " + obj.toString());
+            Log.w(TAG, "socket = " + socket);
             socket.emit("game/move", obj);
-            Log.w("myApp", "emitted game connect");
+            Log.w(TAG, "emitted game connect");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -195,10 +197,10 @@ public class OGSGameConnection {
             obj.put("player_id", userId);
             obj.put("stones", coords);
             obj.put("removed", removed);
-            Log.w("myApp", "json object: " + obj.toString());
-            Log.w("myApp", "socket = " + socket);
+            Log.w(TAG, "json object: " + obj.toString());
+            Log.w(TAG, "socket = " + socket);
             socket.emit("game/removed_stones/set", obj);
-            Log.w("myApp", "emitted game removed_stones/set");
+            Log.w(TAG, "emitted game removed_stones/set");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -212,10 +214,10 @@ public class OGSGameConnection {
             obj.put("player_id", userId);
             obj.put("stones", coords);
             obj.put("strict_seki_mode", false);
-            Log.w("myApp", "json object: " + obj.toString());
-            Log.w("myApp", "socket = " + socket);
+            Log.w(TAG, "json object: " + obj.toString());
+            Log.w(TAG, "socket = " + socket);
             socket.emit("game/removed_stones/accept", obj);
-            Log.w("myApp", "emitted game removed_stones/accept");
+            Log.w(TAG, "emitted game removed_stones/accept");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -227,10 +229,10 @@ public class OGSGameConnection {
             obj.put("auth", gameAuth);
             obj.put("game_id", gameId);
             obj.put("player_id", userId);
-            Log.w("myApp", "json object: " + obj.toString());
-            Log.w("myApp", "socket = " + socket);
+            Log.w(TAG, "json object: " + obj.toString());
+            Log.w(TAG, "socket = " + socket);
             socket.emit("game/removed_stones/reject", obj);
-            Log.w("myApp", "emitted game removed_stones/reject");
+            Log.w(TAG, "emitted game removed_stones/reject");
         } catch (JSONException e) {
             e.printStackTrace();
         }

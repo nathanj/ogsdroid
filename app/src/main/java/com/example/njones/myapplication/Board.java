@@ -169,7 +169,7 @@ class Board {
         }
     }
 
-    void removeGroup(int x, int y, int color) {
+    String removeGroup(int x, int y, int color) {
         //Log.w("remov", "checking marking group at x=" + x + " y=" + y + " color=" + color);
         if (y < 0 || y >= rows)
             return;
@@ -292,6 +292,33 @@ class Board {
         markTerritory();
     }
 
+    String toStringCoords(int x, int y) {
+        StringBuilder s(2);
+        s.append((char) (x + (int) 'a'));
+        s.append((char) (y + (int) 'a'));
+        return s.toString();
+    }
+
+    String markedToCoords() {
+        StringBuilder s;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if ((board[j][i] & MARKED) == MARKED) {
+                    s.append(toStringCoords(i, j));
+                }
+            }
+        }
+        return s.toString();
+    }
+
+    void removeMarked() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                board[j][i] &= ~MARKED;
+            }
+        }
+    }
+
     public String stoneRemovalAtTouch(int width, int height, float x, float y) {
         Log.w("removal", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
         int dims = Math.min(width, height);
@@ -304,14 +331,23 @@ class Board {
         if (sx < 0 || sy >= rows)
             return "";
         int color = board[sy][sx];
-        traceBoard("before mark");
-        if ((color & REMOVED) == REMOVED)
-            unremoveGroup(sx, sy, color);
-        else
-            removeGroup(sx, sy, color);
-        traceBoard("after mark");
-        markTerritory();
-        traceBoard("after territyroy");
+
+        removeGroup(sx, sy, color);
+        String coords = markedToCoords();
+        removeMarked();
+        return coords;
+
+
+
+
+        //traceBoard("before mark");
+        //if ((color & REMOVED) == REMOVED)
+        //    unremoveGroup(sx, sy, color);
+        //else
+        //    removeGroup(sx, sy, color);
+        //traceBoard("after mark");
+        //markTerritory();
+        //traceBoard("after territyroy");
         return "";
     }
 

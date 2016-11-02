@@ -201,8 +201,9 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             }
         } else if (phase.equals("stone removal")) {
             if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
-                board.stoneRemovalAtTouch(view.getWidth(),
+                String coords = board.stoneRemovalAtTouch(view.getWidth(),
                         view.getHeight(), event.getX(), event.getY());
+                gameCon.removedStones(coords, true);
             }
         }
 
