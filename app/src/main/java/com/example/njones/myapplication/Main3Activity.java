@@ -59,6 +59,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
         StrictMode.setThreadPolicy(policy);
 
+        /*
         try {
             ogs = new OGS("ee20259490eabd6e8fba",
                     "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
@@ -191,81 +192,81 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
     }
 
-    public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        Log.w(TAG, "surfaceChanged");
-    }
-
-    private Board board = new Board();
-
-    public void surfaceCreated(SurfaceHolder holder) {
-        Log.w(TAG, "surfaceCreated");
-        Canvas c = holder.lockCanvas();
-        Log.w(TAG, "c = " + c);
-        if (c == null)
-            return;
-
-        Bitmap bmpIcon = BitmapFactory.decodeResource(getResources(),
-                R.drawable.board);
-        Rect r = new Rect();
-        r.set(0, 0, bmpIcon.getWidth(), bmpIcon.getHeight());
-        Rect r2 = new Rect();
-        r2.set(0, 0, c.getWidth(), c.getHeight());
-        c.drawBitmap(bmpIcon, null, r2, null);
-
-        board.draw(c);
-
-        holder.unlockCanvasAndPost(c);
-
-    }
-
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.w(TAG, "surfaceDestroyed");
-    }
-
-    @Override
-    public void onClick(View view) {
-    }
-
-    @Override
-    public boolean onTouch(View view, MotionEvent event) {
-        Log.w(TAG, event.getX() + " " + event.getY() + " " + event.getAction());
-
-        if (phase.equals("play")) {
-            if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
-                String moveStr = board.addStoneAtTouch(view.getWidth(),
-                        view.getHeight(), event.getX(), event.getY());
-                Log.w(TAG, "moveStr = " + moveStr);
-                if (moveStr.length() > 0)
-                    gameCon.makeMove(moveStr);
-            }
-        } else if (phase.equals("stone removal")) {
-            if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
-                String coords = board.stoneRemovalAtTouch(view.getWidth(),
-                        view.getHeight(), event.getX(), event.getY());
-                Log.w(TAG, "coords=" + coords);
-                gameCon.removeStones(coords, true);
-            }
-        }
-
-        //surfaceCreated(sv.getHolder());
-        return true;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-//        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
-//        tb.inflateMenu(R.menu.menu_main);
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.pass:
-                Log.w(TAG, "user chose pass");
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+//         Log.w(TAG, "surfaceChanged");
+//     }
+// 
+//     private Board board = new Board();
+// 
+//     public void surfaceCreated(SurfaceHolder holder) {
+//         Log.w(TAG, "surfaceCreated");
+//         Canvas c = holder.lockCanvas();
+//         Log.w(TAG, "c = " + c);
+//         if (c == null)
+//             return;
+// 
+//         Bitmap bmpIcon = BitmapFactory.decodeResource(getResources(),
+//                 R.drawable.board);
+//         Rect r = new Rect();
+//         r.set(0, 0, bmpIcon.getWidth(), bmpIcon.getHeight());
+//         Rect r2 = new Rect();
+//         r2.set(0, 0, c.getWidth(), c.getHeight());
+//         c.drawBitmap(bmpIcon, null, r2, null);
+// 
+//         board.draw(c);
+// 
+//         holder.unlockCanvasAndPost(c);
+// 
+//     }
+// 
+//     public void surfaceDestroyed(SurfaceHolder holder) {
+//         Log.w(TAG, "surfaceDestroyed");
+//     }
+// 
+//     @Override
+//     public void onClick(View view) {
+//     }
+// 
+//     @Override
+//     public boolean onTouch(View view, MotionEvent event) {
+//         Log.w(TAG, event.getX() + " " + event.getY() + " " + event.getAction());
+// 
+//         if (phase.equals("play")) {
+//             if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
+//                 String moveStr = board.addStoneAtTouch(view.getWidth(),
+//                         view.getHeight(), event.getX(), event.getY());
+//                 Log.w(TAG, "moveStr = " + moveStr);
+//                 if (moveStr.length() > 0)
+//                     gameCon.makeMove(moveStr);
+//             }
+//         } else if (phase.equals("stone removal")) {
+//             if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
+//                 String coords = board.stoneRemovalAtTouch(view.getWidth(),
+//                         view.getHeight(), event.getX(), event.getY());
+//                 Log.w(TAG, "coords=" + coords);
+//                 gameCon.removeStones(coords, true);
+//             }
+//         }
+// 
+//         //surfaceCreated(sv.getHolder());
+//         return true;
+//     }
+// 
+//     @Override
+//     public boolean onCreateOptionsMenu(Menu menu) {
+// //        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
+// //        tb.inflateMenu(R.menu.menu_main);
+//         getMenuInflater().inflate(R.menu.menu_main, menu);
+//         return true;
+//     }
+// 
+//     @Override
+//     public boolean onOptionsItemSelected(MenuItem item) {
+//         switch (item.getItemId()) {
+//             case R.id.pass:
+//                 Log.w(TAG, "user chose pass");
+//                 return true;
+//         }
+//         return super.onOptionsItemSelected(item);
+//     }
 }

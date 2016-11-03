@@ -29,6 +29,7 @@ import io.socket.emitter.Emitter;
 
 public class BoardView extends View {
     private static final String TAG = "BoardView";
+    private Board board = new Board();
 
     public BoardView(Context context) {
         super(context);
@@ -37,6 +38,8 @@ public class BoardView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        board.draw(canvas);
 
         Paint p = new Paint();
         p.setARGB(255, 0, 0, 0);
