@@ -47,13 +47,13 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        sv = (SurfaceView) findViewById(R.id.surfaceView);
-        SurfaceHolder sh = sv.getHolder();
-        sh.addCallback(this);
-        activity = this;
+        //sv = (SurfaceView) findViewById(R.id.surfaceView);
+        //SurfaceHolder sh = sv.getHolder();
+        //sh.addCallback(this);
+        //activity = this;
 
-        sv.setOnClickListener(this);
-        sv.setOnTouchListener(this);
+        //sv.setOnClickListener(this);
+        //sv.setOnTouchListener(this);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 
@@ -127,7 +127,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                         ; // pass
                     else
                         board.addStone(x, y);
-                    surfaceCreated(sv.getHolder());
+                    //surfaceCreated(sv.getHolder());
                 }
 
                 @Override
@@ -192,11 +192,13 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+        Log.w(TAG, "surfaceChanged");
     }
 
     private Board board = new Board();
 
     public void surfaceCreated(SurfaceHolder holder) {
+        Log.w(TAG, "surfaceCreated");
         Canvas c = holder.lockCanvas();
         Log.w(TAG, "c = " + c);
         if (c == null)
@@ -204,11 +206,6 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
         Bitmap bmpIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.board);
-
-        Paint p = new Paint();
-        p.setARGB(128, 128, 128, 128);
-        c.drawLine(10, 10, 80, 80, p);
-        //c.drawBitmap(bmpIcon, 50, 50, null);
         Rect r = new Rect();
         r.set(0, 0, bmpIcon.getWidth(), bmpIcon.getHeight());
         Rect r2 = new Rect();
@@ -222,7 +219,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
-
+        Log.w(TAG, "surfaceDestroyed");
     }
 
     @Override
@@ -250,7 +247,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             }
         }
 
-        surfaceCreated(sv.getHolder());
+        //surfaceCreated(sv.getHolder());
         return true;
     }
 

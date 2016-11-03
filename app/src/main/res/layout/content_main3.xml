@@ -13,13 +13,13 @@
     tools:context="com.example.njones.myapplication.Main3Activity"
     tools:showIn="@layout/activity_main3">
 
-    <SurfaceView
+    <com.example.njones.myapplication.BoardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:id="@+id/surfaceView"
+        android:id="@+id/boardview"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
