@@ -172,21 +172,22 @@ class Board {
     String removeGroup(int x, int y, int color) {
         //Log.w("remov", "checking marking group at x=" + x + " y=" + y + " color=" + color);
         if (y < 0 || y >= rows)
-            return;
+            return "";
         if (x < 0 || x >= cols)
-            return;
+            return "";
         // already removed, nothing to do
-        if ((board[y][x] & REMOVED) == REMOVED)
-            return;
+        if ((board[y][x] & MARKED) == MARKED)
+            return "";
         if (board[y][x] == color) {
             //Log.w("remov", "really marking group at x=" + x + " y=" + y + " color=" + color);
 
-            board[y][x] |= REMOVED;
+            board[y][x] |= MARKED;
             removeGroup(x - 1, y, color);
             removeGroup(x + 1, y, color);
             removeGroup(x, y - 1, color);
             removeGroup(x, y + 1, color);
         }
+        return "";
     }
 
     void setTerritory(int x, int y, int territory) {
@@ -293,14 +294,14 @@ class Board {
     }
 
     String toStringCoords(int x, int y) {
-        StringBuilder s(2);
+        StringBuilder s = new StringBuilder(2);
         s.append((char) (x + (int) 'a'));
         s.append((char) (y + (int) 'a'));
         return s.toString();
     }
 
     String markedToCoords() {
-        StringBuilder s;
+        StringBuilder s = new StringBuilder();
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if ((board[j][i] & MARKED) == MARKED) {
@@ -348,7 +349,6 @@ class Board {
         //traceBoard("after mark");
         //markTerritory();
         //traceBoard("after territyroy");
-        return "";
     }
 
     public String addStoneAtTouch(int width, int height, float x, float y) {

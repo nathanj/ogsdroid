@@ -23,7 +23,7 @@ public class OGSGameConnection {
         public void phase(JSONObject phase);
         public void removedStones(JSONObject obj);
         public void removedStonesAccepted(JSONObject obj);
-        public void error(JSONObject obj);
+        public void error(String msg);
     }
 
     private Socket socket;
@@ -73,8 +73,8 @@ public class OGSGameConnection {
         }).on("game/" + gameId + "/error", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                JSONObject obj = (JSONObject) args[0];
-                error(obj);
+                String msg = (String) args[0];
+                error(msg);
             }
         }).on("game/" + gameId + "/phase", new Emitter.Listener() {
             @Override
@@ -162,15 +162,10 @@ public class OGSGameConnection {
         }
     }
 
-    private void error(JSONObject obj) {
-        try {
-            Log.w(TAG, "on error: " + obj.toString(2));
+    private void error(String msg) {
             if (callbacks != null) {
-                callbacks.error(obj);
+                callbacks.error(msg);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     public void makeMove(String coord) {

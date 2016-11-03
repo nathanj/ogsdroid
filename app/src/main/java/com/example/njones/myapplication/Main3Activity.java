@@ -36,6 +36,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     private String phase = "play";
 
     private static final String TAG = "Main3Activity";
+    private AppCompatActivity activity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
         sv = (SurfaceView) findViewById(R.id.surfaceView);
         SurfaceHolder sh = sv.getHolder();
         sh.addCallback(this);
+        activity = this;
 
         sv.setOnClickListener(this);
         sv.setOnTouchListener(this);
@@ -76,12 +78,31 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             //            JSONArray results = games.getJSONArray("results");
             //            JSONObject game = results.getJSONObject(0);
             //            currentGameId = game.getInt("id");
-            currentGameId = 6772417;
+            currentGameId = 6784691;
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             phase = gameDetails.getJSONObject("gamedata").getString("phase");
-            phase = "stone removal";
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
+            final String whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
+            int whiteId = gameDetails.getJSONObject("players").getJSONObject("white").getInt("id");
+            final String blackPlayer = gameDetails.getJSONObject("players").getJSONObject("black").getString("username");
+            final int blackId = gameDetails.getJSONObject("players").getJSONObject("black").getInt("id");
+            int whoseTurn = gameDetails.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
+
+            if (phase.equals("play")) {
+                if (whoseTurn == blackId)
+                    setTitle(String.format("%s vs %s - Black to play", whitePlayer, blackPlayer));
+                else
+                    setTitle(String.format("%s vs %s - White to play", whitePlayer, blackPlayer));
+            } else if (phase.equals("finished")) {
+                int winner = gameDetails.getJSONObject("gamedata").getInt("winner");
+                if (winner == blackId)
+                    setTitle(String.format("%s vs %s - Black won", whitePlayer, blackPlayer));
+                else
+                    setTitle(String.format("%s vs %s - White won", whitePlayer, blackPlayer));
+            } else if (phase.equals("stone removal")) {
+                setTitle(String.format("%s vs %s - Stone removal", whitePlayer, blackPlayer));
+            }
 
             final String auth = gameDetails.getString("auth");
             Log.w(TAG, moves.toString(2));
@@ -111,7 +132,26 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
                 @Override
                 public void clock(JSONObject clock) {
+                    try {
+
                     Log.w(TAG, clock.toString());
+                    final int whoseTurn = clock.getInt("current_player");
+
+                        activity.runOnUiThread(new Runnable() {
+                            public void run() {
+                                if (whoseTurn == blackId)
+                                    setTitle(String.format("%s vs %s - Black to play", whitePlayer, blackPlayer));
+                                else
+                                    setTitle(String.format("%s vs %s - White to play", whitePlayer, blackPlayer));
+
+                            }
+                        });
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+
                 }
 
                 @Override
@@ -136,8 +176,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                 }
 
                 @Override
-                public void error(JSONObject obj) {
-                    Log.e(TAG, "got ogs error: " + obj.toString());
+                public void error(String msg) {
+                    Log.e(TAG, "got ogs error: " + msg);
                 }
             });
         } catch (Exception e) {
@@ -159,6 +199,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     public void surfaceCreated(SurfaceHolder holder) {
         Canvas c = holder.lockCanvas();
         Log.w(TAG, "c = " + c);
+        if (c == null)
+            return;
 
         Bitmap bmpIcon = BitmapFactory.decodeResource(getResources(),
                 R.drawable.board);
@@ -203,7 +245,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
                 String coords = board.stoneRemovalAtTouch(view.getWidth(),
                         view.getHeight(), event.getX(), event.getY());
-                gameCon.removedStones(coords, true);
+                Log.w(TAG, "coords=" + coords);
+                gameCon.removeStones(coords, true);
             }
         }
 
