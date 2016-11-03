@@ -258,6 +258,17 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
     public boolean onCreateOptionsMenu(Menu menu) {
 //        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
 //        tb.inflateMenu(R.menu.menu_main);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.pass:
+                Log.w(TAG, "user chose pass");
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
