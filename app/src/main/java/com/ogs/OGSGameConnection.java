@@ -17,6 +17,7 @@ import io.socket.emitter.Emitter;
 public class OGSGameConnection {
     private static final String TAG = "OGSGameConnection";
 
+
     public static interface OGSGameConnectionCallbacks {
         public void move(int x, int y);
         public void clock(JSONObject clock);
@@ -232,4 +233,18 @@ public class OGSGameConnection {
             e.printStackTrace();
         }
     }
+
+    public void pass() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("auth", gameAuth);
+            obj.put("game_id", gameId);
+            obj.put("player_id", userId);
+            obj.put("pass", true);
+            socket.emit("game/pass", obj);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

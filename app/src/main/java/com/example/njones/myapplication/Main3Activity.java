@@ -1,5 +1,6 @@
 package com.example.njones.myapplication;
 
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -7,10 +8,12 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -27,7 +30,7 @@ import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Callback, View.OnClickListener, View.OnTouchListener {
+public class Main3Activity extends AppCompatActivity /*implements SurfaceHolder.Callback, View.OnClickListener, View.OnTouchListener*/ {
 
     private SurfaceView sv;
     private OGS ogs;
@@ -45,12 +48,15 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        final BoardView bv = (BoardView) findViewById(R.id.boardview);
+
+
         getSupportActionBar().setHomeButtonEnabled(true);
 
         //sv = (SurfaceView) findViewById(R.id.surfaceView);
         //SurfaceHolder sh = sv.getHolder();
         //sh.addCallback(this);
-        //activity = this;
+        activity = this;
 
         //sv.setOnClickListener(this);
         //sv.setOnTouchListener(this);
@@ -59,7 +65,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 
         StrictMode.setThreadPolicy(policy);
 
-        /*
+        //*
         try {
             ogs = new OGS("ee20259490eabd6e8fba",
                     "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
@@ -79,7 +85,7 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
             //            JSONArray results = games.getJSONArray("results");
             //            JSONObject game = results.getJSONObject(0);
             //            currentGameId = game.getInt("id");
-            currentGameId = 6784691;
+            currentGameId = 6790027;
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             phase = gameDetails.getJSONObject("gamedata").getString("phase");
@@ -115,11 +121,14 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                 if (x == -1)
                     ;
                 else
-                    board.addStone(move.getInt(0), move.getInt(1));
+                    bv.board.addStone(move.getInt(0), move.getInt(1));
             }
 
             ogs.openSocket();
             gameCon = ogs.openGameConnection(currentGameId);
+
+            bv.gameConnection = gameCon;
+            bv.phase = phase;
 
             gameCon.setCallbacks(new OGSGameConnection.OGSGameConnectionCallbacks() {
                 @Override
@@ -127,7 +136,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                     if (x == -1)
                         ; // pass
                     else
-                        board.addStone(x, y);
+                        bv.board.addStone(x, y);
+                    bv.postInvalidate();
                     //surfaceCreated(sv.getHolder());
                 }
 
@@ -165,7 +175,8 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
                     try {
                         String coords = obj.getString("stones");
                         boolean removed = obj.getBoolean("removed");
-                        board.stoneRemoval(coords, removed);
+                        bv.board.stoneRemoval(coords, removed);
+                        bv.postInvalidate();
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -252,21 +263,33 @@ public class Main3Activity extends AppCompatActivity implements SurfaceHolder.Ca
 //         return true;
 //     }
 // 
-//     @Override
-//     public boolean onCreateOptionsMenu(Menu menu) {
-// //        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
-// //        tb.inflateMenu(R.menu.menu_main);
-//         getMenuInflater().inflate(R.menu.menu_main, menu);
-//         return true;
-//     }
-// 
-//     @Override
-//     public boolean onOptionsItemSelected(MenuItem item) {
-//         switch (item.getItemId()) {
-//             case R.id.pass:
-//                 Log.w(TAG, "user chose pass");
-//                 return true;
-//         }
-//         return super.onOptionsItemSelected(item);
-//     }
+     @Override
+     public boolean onCreateOptionsMenu(Menu menu) {
+ //        Toolbar tb = (Toolbar) findViewById(R.id.toolbar);
+ //        tb.inflateMenu(R.menu.menu_main);
+         getMenuInflater().inflate(R.menu.menu_main, menu);
+         return true;
+     }
+
+     @Override
+     public boolean onOptionsItemSelected(MenuItem item) {
+         switch (item.getItemId()) {
+             case R.id.pass:
+                 Log.w(TAG, "user chose pass");
+
+                 new AlertDialog.Builder(this)
+                         .setMessage("Are you sure you want to pass?")
+                         .setCancelable(true)
+                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                             public void onClick(DialogInterface dialog, int id) {
+                                 gameCon.pass();
+                             }
+                         })
+                         .setNegativeButton("No", null)
+                         .show();
+
+                 return true;
+         }
+         return super.onOptionsItemSelected(item);
+     }
 }

@@ -28,8 +28,8 @@ class Board {
 
     Board() {
         board = new int[rows][cols];
-        board[1][1] = WHITE;
-        board[2][2] = BLACK;
+//        board[1][1] = WHITE;
+//        board[2][2] = BLACK;
     }
 
     private void drawGrid(Canvas c) {
