@@ -55,7 +55,7 @@ public class BoardView extends View {
         r2 = new Rect();
     }
 
-    public void createBoard(int rows, int cols) {
+    public void initBoard(int rows, int cols) {
         board = new Board(rows, cols);
     }
 
@@ -91,8 +91,6 @@ public class BoardView extends View {
         } else {
             Log.w(TAG, "unknown phase " + phase);
         }
-
-        //invalidate();
         return true;
     }
 

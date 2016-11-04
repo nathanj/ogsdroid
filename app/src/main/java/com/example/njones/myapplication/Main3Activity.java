@@ -93,7 +93,7 @@ public class Main3Activity extends AppCompatActivity /*implements SurfaceHolder.
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             int height = gameDetails.getJSONObject("gamedata").getInt("height");
             int width = gameDetails.getJSONObject("gamedata").getInt("width");
-            bv.createBoard(height, width);
+            bv.initBoard(height, width);
             phase = gameDetails.getJSONObject("gamedata").getString("phase");
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
             final String whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
@@ -172,8 +172,8 @@ public class Main3Activity extends AppCompatActivity /*implements SurfaceHolder.
                 }
 
                 @Override
-                public void phase(JSONObject phase2) {
-                    phase = phase2.toString();
+                public void phase(JSONObject phase) {
+                    bv.phase = phase.toString();
                 }
 
                 @Override
