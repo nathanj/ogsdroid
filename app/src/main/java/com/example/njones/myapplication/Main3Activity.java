@@ -52,12 +52,9 @@ public class Main3Activity extends AppCompatActivity /*implements SurfaceHolder.
         final BoardView bv = (BoardView) findViewById(R.id.boardview);
 
         Intent intent = getIntent();
-        int id = intent.getIntExtra("id", 0);
-        Log.w("AAAAAAAAAAA", "the id was " + id);
+        currentGameId = intent.getIntExtra("id", 0);
+        Log.w("AAAAAAAAAAA", "the id was " + currentGameId);
 
-        return;
-
-/*
         getSupportActionBar().setHomeButtonEnabled(true);
 
         //sv = (SurfaceView) findViewById(R.id.surfaceView);
@@ -91,9 +88,12 @@ public class Main3Activity extends AppCompatActivity /*implements SurfaceHolder.
             //            JSONArray results = games.getJSONArray("results");
             //            JSONObject game = results.getJSONObject(0);
             //            currentGameId = game.getInt("id");
-            currentGameId = 6790027;
+//            currentGameId = 6790027;
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
+            int height = gameDetails.getJSONObject("gamedata").getInt("height");
+            int width = gameDetails.getJSONObject("gamedata").getInt("width");
+            bv.createBoard(height, width);
             phase = gameDetails.getJSONObject("gamedata").getString("phase");
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
             final String whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");

@@ -24,12 +24,12 @@ class Board {
     private static int TERRITORY = (BLACK_TERRITORY | WHITE_TERRITORY);
 
     public int board[][];
-    private int rows = 9, cols = 9;
+    private int rows, cols;
 
-    Board() {
+    Board(int rows, int cols) {
+        this.rows = rows;
+        this.cols = cols;
         board = new int[rows][cols];
-//        board[1][1] = WHITE;
-//        board[2][2] = BLACK;
     }
 
     private void drawGrid(Canvas c) {

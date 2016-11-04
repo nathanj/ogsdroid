@@ -31,7 +31,7 @@ import io.socket.emitter.Emitter;
 
 public class BoardView extends View {
     private static final String TAG = "BoardView";
-    public Board board = new Board();
+    public Board board;
     private Bitmap background;
     private Rect r, r2;
 
@@ -53,6 +53,10 @@ public class BoardView extends View {
                 R.drawable.board);
         r = new Rect();
         r2 = new Rect();
+    }
+
+    public void createBoard(int rows, int cols) {
+        board = new Board(rows, cols);
     }
 
     @Override
