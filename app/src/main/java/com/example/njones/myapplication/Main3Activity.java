@@ -1,6 +1,7 @@
 package com.example.njones.myapplication;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -50,7 +51,13 @@ public class Main3Activity extends AppCompatActivity /*implements SurfaceHolder.
 
         final BoardView bv = (BoardView) findViewById(R.id.boardview);
 
+        Intent intent = getIntent();
+        int id = intent.getIntExtra("id", 0);
+        Log.w("AAAAAAAAAAA", "the id was " + id);
 
+        return;
+
+/*
         getSupportActionBar().setHomeButtonEnabled(true);
 
         //sv = (SurfaceView) findViewById(R.id.surfaceView);
@@ -62,7 +69,6 @@ public class Main3Activity extends AppCompatActivity /*implements SurfaceHolder.
         //sv.setOnTouchListener(this);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-
         StrictMode.setThreadPolicy(policy);
 
         //*
