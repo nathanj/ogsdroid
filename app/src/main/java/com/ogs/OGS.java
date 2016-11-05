@@ -37,9 +37,9 @@ public class OGS {
                 sb.append(inputLine);
             }
 
-            System.out.println(sb.toString());
+//            System.out.println(sb.toString());
             JSONObject obj = new JSONObject(sb.toString());
-            System.out.println(obj.toString(2));
+//            System.out.println(obj.toString(2));
 
             in.close();
             return sb.toString();
@@ -81,9 +81,9 @@ public class OGS {
                 sb.append(inputLine);
             }
 
-            System.out.println(sb.toString());
+//            System.out.println(sb.toString());
             JSONObject obj = new JSONObject(sb.toString());
-            System.out.println(obj.toString(2));
+//            System.out.println(obj.toString(2));
 
             in.close();
             return sb.toString();

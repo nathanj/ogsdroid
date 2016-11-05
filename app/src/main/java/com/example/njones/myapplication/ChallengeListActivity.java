@@ -5,11 +5,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.StrictMode;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -245,6 +250,10 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
+
+
+
+        //*
         ogs = new OGS("ee20259490eabd6e8fba",
                 "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
         ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
@@ -326,6 +335,7 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
                 }
             }
         });
+        // */
     }
 
     @Override
