@@ -53,7 +53,7 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
     ArrayList<Game> gameList = new ArrayList<>();
     ArrayList<Challenge> challengeList = new ArrayList<>();
 
-    private class Challenge {
+    private class Challenge implements Comparable<Challenge> {
         int challengeId;
         String name;
         String username;
@@ -67,6 +67,7 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
         Challenge(int id) {
             challengeId = id;
         }
+
         Challenge(JSONObject obj) {
             try {
                 challengeId = obj.getInt("challenge_id");
@@ -85,12 +86,18 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
             }
         }
 
+        private String rankToString(int rank) {
+            if (rank < 30)
+                return String.format("%d Kyu", 30 - rank);
+            else
+                return String.format("%d Dan", rank - 30 + 1);
+        }
+
         @Override
         public String toString() {
-            return String.format("%s - %dx%d - %s (%d) (%d - %d) - %s - %d seconds per move",
-                    name, width, height, username, rank,
-                    minRank, maxRank, ranked ? "Ranked" :
-                            "Casual", timePerMove);
+            return String.format("%s - %dx%d - %s (%s) - %s - %ds / move",
+                    name, width, height, username, rankToString(rank),
+                    ranked ? "Ranked" : "Casual", timePerMove);
         }
 
         @Override
@@ -100,6 +107,17 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
                 return false;
 
             return other.challengeId == challengeId;
+        }
+
+        public boolean canAccept(int myRanking) {
+            return myRanking >= minRank && myRanking <= maxRank && (!ranked || Math.abs(myRanking - rank) <= 9);
+        }
+
+        public int compareTo(Challenge challenge) {
+		if (challenge.timePerMove == timePerMove) {
+			return rank - challenge.rank;
+		}
+		return timePerMove - challenge.timePerMove;
         }
     }
 
@@ -217,17 +235,27 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
         }
     }
 
+    private int myRanking;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_challenge_list);
 
-        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        //StrictMode.setThreadPolicy(policy);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         ogs = new OGS("ee20259490eabd6e8fba",
                 "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
         ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
+
+        try {
+            JSONObject me = ogs.me();
+            myRanking = me.getInt("ranking");
+            Log.w(TAG, "myRanking = " + myRanking);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         ogs.openSocket();
 
         Game g = new Game();
@@ -260,40 +288,36 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
                     try {
                         JSONObject event = events.getJSONObject(i);
                         Log.w(TAG, event.toString());
-                        if (event.has("delete"))
-                        {
+                        if (event.has("delete")) {
                             final Challenge c = new Challenge(event.getInt("challenge_id"));
                             int index = challengeList.indexOf(c);
                             Log.w(TAG, "index=" + index);
                             if (index != -1) {
-//                                challengeList.remove(index);
+                                challengeList.remove(index);
                                 thisActivity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-//                                        adapter.clear();
-//                                        adapter.addAll(challengeList);
-                                        adapter.remove(c);
-                                        lv.postInvalidate();
+                                        adapter.notifyDataSetChanged();
                                     }
                                 });
                             }
-                        }
-                        else if (event.has("game_started"))
+                        } else if (event.has("game_started"))
                             ; // game started notificaton
                         else // new seek
                         {
                             final Challenge c = new Challenge(event);
                             Log.w(TAG, c.toString());
-//                            challengeList.add(c);
 
-                            thisActivity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    adapter.add(c);
-//                                    adapter.addAll(challengeList);
-                                    lv.postInvalidate();
-                                }
-                            });
+                            if (c.canAccept(myRanking)) {
+                                challengeList.add(c);
+				Collections.sort(challengeList);
+                                thisActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        adapter.notifyDataSetChanged();
+                                    }
+                                });
+                            }
 
                         }
                     } catch (JSONException e) {
