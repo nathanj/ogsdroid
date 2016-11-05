@@ -16,6 +16,8 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 public class OGS {
+    private static final String TAG = "OGS";
+
     private String getURL(String url) {
         try {
             Log.e("myApp", String.format("Getting %s", url));
@@ -129,53 +131,61 @@ public class OGS {
 
     public JSONObject listGames() throws JSONException {
         String str = getURL("https://online-go.com/api/v1/me/games/?started__isnull=False&ended__isnull=True&format=json");
-        Log.w("myApp", str);
+//        Log.w("myApp", str);
         return new JSONObject(str);
     }
 
     public JSONObject getGameDetails(int id) throws JSONException {
         String str = getURL("https://online-go.com/api/v1/games/" + id + "?format=json");
-        Log.w("myApp", str);
         return new JSONObject(str);
     }
 
     public JSONObject gameMove(int id, String move) throws JSONException {
-        Log.w("myApp", "doing game move " + move);
+//        Log.w("myApp", "doing game move " + move);
         String str = postURL("https://online-go.com/api/v1/games/" + id + "/move/?format=json", accessToken,
                 "{\"move\": \"" + "aa" + "\"}");
-        Log.w("myApp", str);
+//        Log.w("myApp", str);
         return new JSONObject(str);
     }
 
-    /** Opens the real time api socket. */
+    /**
+     * Opens the real time api socket.
+     */
     public void openSocket() {
-	    try {
-		    socket = IO.socket("https://ggs.online-go.com");
-	    } catch (URISyntaxException e) {
-		    e.printStackTrace();
-		    return;
-	    }
-	    socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+        try {
+            socket = IO.socket("https://ggs.online-go.com");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return;
+        }
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
-		    @Override
-		    public void call(Object... args) {
-			    Log.w("myApp", "socket connect");
-		    }
+            @Override
+            public void call(Object... args) {
+                Log.w("myApp", "socket connect");
+            }
 
-	    }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
 
-		    @Override
-		    public void call(Object... args) {
-			    Log.w("myApp", "socket disconnect");
-		    }
+            @Override
+            public void call(Object... args) {
+                Log.w("myApp", "socket disconnect");
+            }
 
-	    });
-	    socket.connect();
+        });
+        socket.connect();
     }
 
-    /** Uses the real time api to connect to a game. */
+    public SeekGraphConnection openSeekGraph() {
+        Log.w(TAG, "opening seek graph");
+        return new SeekGraphConnection(this, socket);
+    }
+
+    /**
+     * Uses the real time api to connect to a game.
+     */
     public OGSGameConnection openGameConnection(int gameId) {
-	    return new OGSGameConnection(this, socket, gameId, userId);
+        return new OGSGameConnection(this, socket, gameId, userId);
     }
 
     private String clientId;

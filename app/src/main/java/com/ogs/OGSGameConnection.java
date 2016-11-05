@@ -240,7 +240,7 @@ public class OGSGameConnection {
             obj.put("auth", gameAuth);
             obj.put("game_id", gameId);
             obj.put("player_id", userId);
-            obj.put("pass", true);
+            obj.put("move", "..");
             socket.emit("game/pass", obj);
         } catch (JSONException e) {
             e.printStackTrace();
