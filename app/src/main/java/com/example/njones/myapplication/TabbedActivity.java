@@ -2,12 +2,16 @@ package com.example.njones.myapplication;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
@@ -37,6 +41,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.prefs.Preferences;
 
 public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
@@ -110,11 +115,10 @@ public class TabbedActivity extends AppCompatActivity {
         }
     }
 
-    private class GetChallengeList extends AsyncTask<OGS, Void, Void> {
-        protected Void doInBackground(OGS... ogss) {
-            OGS ogs = ogss[0];
+    private class GetChallengeList extends AsyncTask<SeekGraphConnection, Void, Void> {
+        protected Void doInBackground(SeekGraphConnection... seeks) {
+            SeekGraphConnection seek = seeks[0];
 
-            SeekGraphConnection seek = ogs.openSeekGraph();
             Log.w(TAG, "created seek graph");
             seek.setCallbacks(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
                 @Override
@@ -122,7 +126,7 @@ public class TabbedActivity extends AppCompatActivity {
                     for (int i = 0; i < events.length(); i++) {
                         try {
                             final JSONObject event = events.getJSONObject(i);
-                            Log.w(TAG, event.toString());
+                            //Log.w(TAG, event.toString());
                             if (event.has("delete")) {
                                 mainActivity.runOnUiThread(new Runnable() {
                                     @Override
@@ -140,7 +144,7 @@ public class TabbedActivity extends AppCompatActivity {
                             else // new seek
                             {
                                 final Challenge c = new Challenge(event);
-                                Log.w(TAG, c.toString());
+                                //Log.w(TAG, c.toString());
 
                                 if (c.canAccept(myRanking)) {
                                     mainActivity.runOnUiThread(new Runnable() {
@@ -188,7 +192,7 @@ public class TabbedActivity extends AppCompatActivity {
                         g.myturn = false;
                         g.name = String.format("Opponent's move - %s vs %s", white, black);
                     }
-                    Log.w(TAG, "game name = " + g.name);
+                    //Log.w(TAG, "game name = " + g.name);
                     gameList.add(g);
                 }
                 Collections.sort(gameList);
@@ -235,6 +239,13 @@ public class TabbedActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.w(TAG, "onPause");
+        gameList.clear();
+        challengeList.clear();
+        challengeAdapter.notifyDataSetChanged();
+        gameAdapter.notifyDataSetChanged();
+
+        seek.disconnect();
+        ogs.closeSocket();
     }
 
     @Override
@@ -247,6 +258,37 @@ public class TabbedActivity extends AppCompatActivity {
     protected void onPostResume() {
         super.onPostResume();
         Log.w(TAG, "onPostResume");
+
+        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("accessToken", "ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
+        editor.apply();
+        String accessToken = pref.getString("accessToken", "");
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        String username = sharedPref.getString("pref_username", "");
+        String password = sharedPref.getString("pref_password", "");
+
+        Log.w(TAG, "username=" + username);
+        Log.w(TAG, "password=" + password);
+
+        ogs = new OGS("ee20259490eabd6e8fba",
+                "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
+        ogs.setAccessToken(accessToken);
+        ogs.openSocket();
+
+        try {
+            JSONObject me = ogs.me();
+            myRanking = me.getInt("ranking");
+            myId = me.getInt("id");
+            Log.w(TAG, "myRanking = " + myRanking);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        seek = ogs.openSeekGraph();
+
+        new GetGameList().execute(ogs);
+        new GetChallengeList().execute(seek);
     }
 
     @Override
@@ -255,6 +297,7 @@ public class TabbedActivity extends AppCompatActivity {
         Log.w(TAG, "onDestroy");
     }
 
+    SeekGraphConnection seek;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -288,82 +331,6 @@ public class TabbedActivity extends AppCompatActivity {
                 gameList);
 
         mainActivity = this;
-
-
-        ogs = new OGS("ee20259490eabd6e8fba",
-                "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
-        ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
-        ogs.openSocket();
-
-        /// /*
-        try {
-            JSONObject me = ogs.me();
-            myRanking = me.getInt("ranking");
-            myId = me.getInt("id");
-            Log.w(TAG, "myRanking = " + myRanking);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        new GetGameList().execute(ogs);
-        new GetChallengeList().execute(ogs);
-
-	/*
-
-	SeekGraphConnection seek = ogs.openSeekGraph();
-	Log.w(TAG, "created seek graph");
-	final Activity thisActivity = this;
-	seek.setCallbacks(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
-		@Override
-		public void event(JSONArray events) {
-			for (int i = 0; i < events.length(); i++) {
-				try {
-					final JSONObject event = events.getJSONObject(i);
-					Log.w(TAG, event.toString());
-					if (event.has("delete")) {
-						//final Challenge c = new Challenge(event.getInt("challenge_id"));
-						//int index = challengeList.indexOf(c);
-						//Log.w(TAG, "index=" + index);
-						//if (index != -1) {
-						//    challengeList.remove(index);
-						thisActivity.runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								try {
-									challengeAdapter.remove(new Challenge(event.getInt("challenge_id")));
-								} catch (JSONException e) {
-									e.printStackTrace();
-								}
-								challengeAdapter.notifyDataSetChanged();
-							}
-						});
-						//}
-					} else if (event.has("game_started"))
-						; // game started notificaton
-					else // new seek
-					{
-						final Challenge c = new Challenge(event);
-						Log.w(TAG, c.toString());
-
-						if (c.canAccept(myRanking)) {
-							challengeList.add(c);
-							Collections.sort(challengeList);
-							thisActivity.runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									challengeAdapter.notifyDataSetChanged();
-								}
-							});
-						}
-
-					}
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	});
-	// */
     }
 
 
@@ -384,6 +351,22 @@ public class TabbedActivity extends AppCompatActivity {
         Log.w(TAG, "id = " + id);
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(intent);
+        }
+
+        if (id == R.id.create_game) {
+            new AlertDialog.Builder(this)
+                    .setMessage("Not implemented yet, sorry!")
+                    .setCancelable(true)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+
+                        }
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+
             return true;
         }
 

@@ -32,13 +32,25 @@ public class SeekGraphConnection {
             @Override
             public void call(Object... args) {
                 JSONArray events = (JSONArray) args[0];
-                callbacks.event(events);
+                if (callbacks != null)
+                    callbacks.event(events);
             }
         });
         try {
             JSONObject args = new JSONObject();
             args.put("channel", "global");
             socket.emit("seek_graph/connect", args);
+            Log.w(TAG, "opened seek graph");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void disconnect() {
+        try {
+            JSONObject args = new JSONObject();
+            args.put("channel", "global");
+            socket.emit("seek_graph/disconnect", args);
             Log.w(TAG, "opened seek graph");
         } catch (JSONException e) {
             e.printStackTrace();

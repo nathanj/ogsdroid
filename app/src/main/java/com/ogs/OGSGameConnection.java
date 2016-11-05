@@ -98,6 +98,16 @@ public class OGSGameConnection {
         }
     }
 
+    public void disconnect() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("game_id", gameId);
+            socket.emit("game/disconnect", obj);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void gamedata(JSONObject obj) {
 //        try {
 //            Log.w(TAG, "on gamedata: " + obj.toString(2));

@@ -108,7 +108,6 @@ public class OGS {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("access token = " + accessToken);
     }
 
     public void setAccessToken(String token) {
@@ -174,6 +173,10 @@ public class OGS {
 
         });
         socket.connect();
+    }
+
+    public void closeSocket() {
+        socket.disconnect();
     }
 
     public SeekGraphConnection openSeekGraph() {
