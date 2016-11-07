@@ -20,10 +20,15 @@ public class OGSGameConnection {
 
     public static interface OGSGameConnectionCallbacks {
         public void move(int x, int y);
+
         public void clock(JSONObject clock);
-        public void phase(JSONObject phase);
+
+        public void phase(String p);
+
         public void removedStones(JSONObject obj);
+
         public void removedStonesAccepted(JSONObject obj);
+
         public void error(String msg);
     }
 
@@ -45,18 +50,21 @@ public class OGSGameConnection {
             @Override
             public void call(Object... args) {
                 JSONObject obj = (JSONObject) args[0];
+                Log.w(TAG, "got clock = " + obj);
                 clock(obj);
             }
         }).on("game/" + gameId + "/gamedata", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 JSONObject obj = (JSONObject) args[0];
+                Log.w(TAG, "got gamedata = " + obj);
                 gamedata(obj);
             }
         }).on("game/" + gameId + "/move", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 JSONObject obj = (JSONObject) args[0];
+                Log.w(TAG, "got move = " + obj);
                 move(obj);
             }
         }).on("game/" + gameId + "/removed_stones", new Emitter.Listener() {
@@ -80,8 +88,8 @@ public class OGSGameConnection {
         }).on("game/" + gameId + "/phase", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                JSONObject obj = (JSONObject) args[0];
-                phase(obj);
+                String p = (String) args[0];
+                phase(p);
             }
         });
         try {
@@ -118,7 +126,6 @@ public class OGSGameConnection {
 
     private void move(JSONObject obj) {
         try {
-            Log.w(TAG, "on move: " + obj.toString(2));
             if (callbacks != null) {
                 JSONArray a = obj.getJSONArray("move");
                 callbacks.move(a.getInt(0), a.getInt(1));
@@ -132,22 +139,18 @@ public class OGSGameConnection {
     private void clock(JSONObject obj) {
 //        try {
 //            Log.w(TAG, "on clock: " + obj.toString(2));
-            if (callbacks != null) {
-                callbacks.clock(obj);
-            }
+        if (callbacks != null) {
+            callbacks.clock(obj);
+        }
 //        } catch (JSONException e) {
 //            e.printStackTrace();
 //        }
     }
 
-    private void phase(JSONObject obj) {
-        try {
-            Log.w(TAG, "on phase: " + obj.toString(2));
-            if (callbacks != null) {
-                callbacks.phase(obj);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+    private void phase(String p) {
+        Log.w(TAG, "on phase: " + p);
+        if (callbacks != null) {
+            callbacks.phase(p);
         }
     }
 
@@ -174,9 +177,9 @@ public class OGSGameConnection {
     }
 
     private void error(String msg) {
-            if (callbacks != null) {
-                callbacks.error(msg);
-            }
+        if (callbacks != null) {
+            callbacks.error(msg);
+        }
     }
 
     public void makeMove(String coord) {
@@ -186,10 +189,8 @@ public class OGSGameConnection {
             obj.put("game_id", gameId);
             obj.put("player_id", userId);
             obj.put("move", coord);
-            Log.w(TAG, "json object: " + obj.toString());
-            Log.w(TAG, "socket = " + socket);
+            Log.w(TAG, "sending move = " + obj.toString());
             socket.emit("game/move", obj);
-            Log.w(TAG, "emitted game connect");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -251,7 +252,8 @@ public class OGSGameConnection {
             obj.put("game_id", gameId);
             obj.put("player_id", userId);
             obj.put("move", "..");
-            socket.emit("game/pass", obj);
+            Log.w(TAG, "doing pass = " + obj);
+            socket.emit("game/move", obj);
         } catch (JSONException e) {
             e.printStackTrace();
         }

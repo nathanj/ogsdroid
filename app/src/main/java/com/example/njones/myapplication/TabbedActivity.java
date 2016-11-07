@@ -89,9 +89,15 @@ public class TabbedActivity extends AppCompatActivity {
 
         @Override
         public String toString() {
-            return String.format("%s - %dx%d - %s (%s) - %s - %ds / move",
+            String handicapStr = handicap == -1 ? "Auto Handicap" : (handicap == 0 ? "No Handicap" : "");
+            if (handicap > 0)
+                handicapStr = String.format("%d Stones", handicap);
+
+            return String.format("%s - %dx%d - %s (%s) - %s - %s - %ds / move",
                     name, width, height, username, rankToString(rank),
-                    ranked ? "Ranked" : "Casual", timePerMove);
+                    ranked ? "Ranked" : "Casual",
+                    handicapStr,
+                    timePerMove);
         }
 
         @Override
@@ -112,59 +118,6 @@ public class TabbedActivity extends AppCompatActivity {
                 return rank - challenge.rank;
             }
             return timePerMove - challenge.timePerMove;
-        }
-    }
-
-    private class GetChallengeList extends AsyncTask<SeekGraphConnection, Void, Void> {
-        protected Void doInBackground(SeekGraphConnection... seeks) {
-            SeekGraphConnection seek = seeks[0];
-
-            Log.w(TAG, "created seek graph");
-            seek.setCallbacks(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
-                @Override
-                public void event(JSONArray events) {
-                    for (int i = 0; i < events.length(); i++) {
-                        try {
-                            final JSONObject event = events.getJSONObject(i);
-                            //Log.w(TAG, event.toString());
-                            if (event.has("delete")) {
-                                mainActivity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            challengeAdapter.remove(new Challenge(event.getInt("challenge_id")));
-                                            challengeAdapter.notifyDataSetChanged();
-                                        } catch (JSONException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                });
-                            } else if (event.has("game_started"))
-                                ; // game started notificaton
-                            else // new seek
-                            {
-                                final Challenge c = new Challenge(event);
-                                //Log.w(TAG, c.toString());
-
-                                if (c.canAccept(myRanking)) {
-                                    mainActivity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            challengeList.add(c);
-                                            Collections.sort(challengeList);
-                                            challengeAdapter.notifyDataSetChanged();
-                                        }
-                                    });
-                                }
-
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            });
-            return null;
         }
     }
 
@@ -230,7 +183,7 @@ public class TabbedActivity extends AppCompatActivity {
     static ArrayAdapter<Game> gameAdapter;
     static ArrayAdapter<Challenge> challengeAdapter;
     static Activity mainActivity;
-    private OGS ogs;
+    static OGS ogs;
 
     /**
      * Dispatch onPause() to fragments.
@@ -239,6 +192,13 @@ public class TabbedActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.w(TAG, "onPause");
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.w(TAG, "onStop");
         gameList.clear();
         challengeList.clear();
         challengeAdapter.notifyDataSetChanged();
@@ -246,12 +206,6 @@ public class TabbedActivity extends AppCompatActivity {
 
         seek.disconnect();
         ogs.closeSocket();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.w(TAG, "onStop");
     }
 
     @Override
@@ -285,10 +239,55 @@ public class TabbedActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        seek = ogs.openSeekGraph();
+        seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
+            @Override
+            public void event(JSONArray events) {
+                for (int i = 0; i < events.length(); i++) {
+                    try {
+                        final JSONObject event = events.getJSONObject(i);
+                        Log.w(TAG, event.toString());
+                        if (event.has("delete")) {
+                            mainActivity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        challengeAdapter.remove(new TabbedActivity.Challenge(event.getInt("challenge_id")));
+                                        challengeAdapter.notifyDataSetChanged();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                        } else if (event.has("game_started"))
+                            ; // game started notificaton
+                        else // new seek
+                        {
+                            final TabbedActivity.Challenge c = new TabbedActivity.Challenge(event);
+                            Log.w(TAG, c.toString());
+
+                            if (c.canAccept(myRanking)) {
+                                mainActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        challengeList.add(c);
+                                        Collections.sort(challengeList);
+                                        challengeAdapter.notifyDataSetChanged();
+                                    }
+                                });
+                            } else {
+                                Log.w(TAG, "could not accept " + c);
+                            }
+
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
 
         new GetGameList().execute(ogs);
-        new GetChallengeList().execute(seek);
+//        new GetChallengeList().execute(seek);
     }
 
     @Override
@@ -298,6 +297,7 @@ public class TabbedActivity extends AppCompatActivity {
     }
 
     SeekGraphConnection seek;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -420,7 +420,30 @@ public class TabbedActivity extends AppCompatActivity {
                     return rootView;
                 case 2:
                     lv.setAdapter(challengeAdapter);
-                    //lv.setOnItemClickListener(this);
+                    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                            final Challenge c = challengeList.get(i);
+
+                            new AlertDialog.Builder(mainActivity)
+                                    .setMessage(String.format("Are you sure you want to accept the challenge %s?", c))
+                                    .setCancelable(true)
+                                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            try {
+                                                int gameId = ogs.acceptChallenge(c.challengeId);
+                                                Intent intent = new Intent(context, Main3Activity.class);
+                                                intent.putExtra("id", gameId);
+                                                startActivity(intent);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    })
+                                    .setNegativeButton("No", null)
+                                    .show();
+                        }
+                    });
                     return rootView;
             }
             return null;

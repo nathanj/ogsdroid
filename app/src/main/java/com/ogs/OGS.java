@@ -128,6 +128,13 @@ public class OGS {
         return new JSONObject(str);
     }
 
+    public int acceptChallenge(int id) throws JSONException {
+        String str = postURL("https://online-go.com/api/v1/challenges/" + id + "/accept?format=json", accessToken, "");
+        Log.w(TAG, "acceptChallenge resp=" + str);
+        JSONObject obj = new JSONObject(str);
+        return obj.getInt("game");
+    }
+
     public JSONObject listGames() throws JSONException {
         String str = getURL("https://online-go.com/api/v1/me/games/?started__isnull=False&ended__isnull=True&format=json");
 //        Log.w("myApp", str);
@@ -179,9 +186,9 @@ public class OGS {
         socket.disconnect();
     }
 
-    public SeekGraphConnection openSeekGraph() {
+    public SeekGraphConnection openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks callbacks) {
         Log.w(TAG, "opening seek graph");
-        return new SeekGraphConnection(this, socket);
+        return new SeekGraphConnection(this, socket, callbacks);
     }
 
     /**

@@ -66,10 +66,10 @@ class Board {
         float midx = (j + 1) * spacing;
         float midy = (i + 1) * spacing;
 
-        float x = midx - spacing / 4;
-        float fx = midx + spacing / 4;
-        float y = midy - spacing / 4;
-        float fy = midy + spacing / 4;
+        float x = midx - spacing / 5;
+        float fx = midx + spacing / 5;
+        float y = midy - spacing / 5;
+        float fy = midy + spacing / 5;
         RectF r = new RectF();
         r.set(x, y, fx, fy);
 
@@ -284,9 +284,9 @@ class Board {
     }
 
     public void stoneRemoval(String coords, boolean removed) {
-        for (int i = 0; i < coords.length(); i++) {
-            int sx = (int) coords.charAt(i) - (int) 'a';
-            int sy = (int) coords.charAt(i+1) - (int) 'a';
+        for (int i = 0; i < coords.length()/2; i++) {
+            int sx = (int) coords.charAt(i*2) - (int) 'a';
+            int sy = (int) coords.charAt(i*2+1) - (int) 'a';
             if (removed)
                 board[sy][sx] |= REMOVED;
             else

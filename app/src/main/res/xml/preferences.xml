@@ -10,8 +10,8 @@
             android:defaultValue="" />
         <EditTextPreference
             android:key="pref_password"
-            android:summary="Application Specific Password"
-            android:title="Password"
+            android:summary="This is not your password that you normally log in with. Generate an Application Specific Password at the OGS settings web page and paste it here."
+            android:title="Application Specific Password"
             android:defaultValue="" />
     </PreferenceCategory>
 </PreferenceScreen>

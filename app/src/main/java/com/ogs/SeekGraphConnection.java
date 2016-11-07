@@ -20,20 +20,14 @@ public class SeekGraphConnection {
         void event(JSONArray events);
     }
 
-    public void setCallbacks(SeekGraphConnectionCallbacks callbacks) {
-        this.callbacks = callbacks;
-    }
-
-    private SeekGraphConnectionCallbacks callbacks;
-
-    SeekGraphConnection(OGS ogs, Socket socket) {
+    SeekGraphConnection(OGS ogs, Socket socket, final SeekGraphConnectionCallbacks callbacks) {
         this.socket = socket;
         socket.on("seekgraph/global", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 JSONArray events = (JSONArray) args[0];
-                if (callbacks != null)
-                    callbacks.event(events);
+                Log.w(TAG, "seekgraph calllback = " + events);
+                callbacks.event(events);
             }
         });
         try {

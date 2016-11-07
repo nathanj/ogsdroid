@@ -119,10 +119,10 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
         }
 
         public int compareTo(Challenge challenge) {
-		if (challenge.timePerMove == timePerMove) {
-			return rank - challenge.rank;
-		}
-		return timePerMove - challenge.timePerMove;
+            if (challenge.timePerMove == timePerMove) {
+                return rank - challenge.rank;
+            }
+            return timePerMove - challenge.timePerMove;
         }
     }
 
@@ -251,8 +251,6 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
         StrictMode.setThreadPolicy(policy);
 
 
-
-
         //*
         ogs = new OGS("ee20259490eabd6e8fba",
                 "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
@@ -287,10 +285,9 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
 
 //        new GetGameList().execute(ogs);
 //        new GetChallengeList().execute(ogs);
-
-        SeekGraphConnection seek = ogs.openSeekGraph();
         final Activity thisActivity = this;
-        seek.setCallbacks(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
+
+        SeekGraphConnection seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
             @Override
             public void event(JSONArray events) {
                 for (int i = 0; i < events.length(); i++) {
@@ -319,7 +316,7 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
 
                             if (c.canAccept(myRanking)) {
                                 challengeList.add(c);
-				Collections.sort(challengeList);
+                                Collections.sort(challengeList);
                                 thisActivity.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
