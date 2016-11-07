@@ -39,6 +39,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.prefs.Preferences;
@@ -214,9 +215,6 @@ public class TabbedActivity extends AppCompatActivity {
         Log.w(TAG, "onPostResume");
 
         SharedPreferences pref = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString("accessToken", "ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
-        editor.apply();
         String accessToken = pref.getString("accessToken", "");
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -226,9 +224,41 @@ public class TabbedActivity extends AppCompatActivity {
         Log.w(TAG, "username=" + username);
         Log.w(TAG, "password=" + password);
 
+        if (username.equals("") || password.equals("")) {
+            new AlertDialog.Builder(this)
+                    .setMessage("Username or password not set. Please go into Settings and enter them.")
+                    .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                            startActivity(intent);
+                        }
+                    })
+                    .show();
+        }
+
         ogs = new OGS("ee20259490eabd6e8fba",
                 "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
-        ogs.setAccessToken(accessToken);
+        if (accessToken.equals("")) {
+            try {
+                ogs.login(username, password);
+            } catch (IOException e) {
+                e.printStackTrace();
+                new AlertDialog.Builder(this)
+                        .setMessage("Login did not work. Check your username and password.")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                                startActivity(intent);
+                            }
+                        })
+                        .show();
+            }
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString("accessToken", ogs.getAccessToken());
+            editor.apply();
+        } else {
+            ogs.setAccessToken(accessToken);
+        }
         ogs.openSocket();
 
         try {
@@ -238,6 +268,17 @@ public class TabbedActivity extends AppCompatActivity {
             Log.w(TAG, "myRanking = " + myRanking);
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            SharedPreferences.Editor editor = pref.edit();
+            editor.remove("accessToken");
+            editor.apply();
+            new AlertDialog.Builder(this)
+                    .setMessage("Access token did not work. It may have expired. Restart the app. Make sure username and password are correct.")
+                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                        }
+                    })
+                    .show();
         }
         seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
             @Override
@@ -355,6 +396,7 @@ public class TabbedActivity extends AppCompatActivity {
             startActivity(intent);
         }
 
+        /*
         if (id == R.id.create_game) {
             new AlertDialog.Builder(this)
                     .setMessage("Not implemented yet, sorry!")
@@ -369,6 +411,7 @@ public class TabbedActivity extends AppCompatActivity {
 
             return true;
         }
+        */
 
         return super.onOptionsItemSelected(item);
     }

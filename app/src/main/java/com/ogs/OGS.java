@@ -2,6 +2,7 @@ package com.ogs;
 
 import android.util.Log;
 
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.io.*;
@@ -18,7 +19,7 @@ import io.socket.emitter.Emitter;
 public class OGS {
     private static final String TAG = "OGS";
 
-    private String getURL(String url) {
+    private String getURL(String url) throws JSONException, IOException {
         try {
             Log.e("myApp", String.format("Getting %s", url));
             String httpsURL = url;
@@ -37,19 +38,17 @@ public class OGS {
                 sb.append(inputLine);
             }
 
-//            System.out.println(sb.toString());
             JSONObject obj = new JSONObject(sb.toString());
-//            System.out.println(obj.toString(2));
 
             in.close();
             return sb.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
+        } catch (MalformedURLException e) {
+            // should never happen
+            throw new RuntimeException(e);
         }
     }
 
-    private String postURL(String url, String auth, String body) {
+    private String postURL(String url, String auth, String body) throws JSONException, IOException {
         try {
             Log.e("myApp", String.format("Posting to %s with body=%s", url, body));
             String httpsURL = url;
@@ -87,9 +86,9 @@ public class OGS {
 
             in.close();
             return sb.toString();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
+        } catch (MalformedURLException e) {
+            // should never happen
+            throw new RuntimeException(e);
         }
     }
 
@@ -98,14 +97,14 @@ public class OGS {
         this.clientSecret = clientSecret;
     }
 
-    public void login(String username, String password) {
+    public void login(String username, String password) throws IOException {
         String body = String.format("client_id=%s&client_secret=%s&grant_type=password&username=%s&password=%s",
                 clientId, clientSecret, username, password); // TODO url encode
-        String s = postURL("https://online-go.com/oauth2/access_token", "", body);
         try {
+            String s = postURL("https://online-go.com/oauth2/access_token", "", body);
             JSONObject obj = new JSONObject(s);
             accessToken = obj.getString("access_token");
-        } catch (Exception e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
@@ -114,7 +113,11 @@ public class OGS {
         accessToken = token;
     }
 
-    public JSONObject me() throws JSONException {
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public JSONObject me() throws JSONException, IOException {
         String str = getURL("https://online-go.com/api/v1/me/?format=json");
         JSONObject obj = new JSONObject(str);
         userId = obj.getInt("id");
@@ -124,34 +127,59 @@ public class OGS {
     }
 
     public JSONObject listServerChallenges() throws JSONException {
-        String str = getURL("https://online-go.com/api/v1/challenges/?format=json");
-        return new JSONObject(str);
+        try {
+            String str = getURL("https://online-go.com/api/v1/challenges/?format=json");
+            return new JSONObject(str);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public int acceptChallenge(int id) throws JSONException {
-        String str = postURL("https://online-go.com/api/v1/challenges/" + id + "/accept?format=json", accessToken, "");
-        Log.w(TAG, "acceptChallenge resp=" + str);
-        JSONObject obj = new JSONObject(str);
-        return obj.getInt("game");
+        try {
+            String str = postURL("https://online-go.com/api/v1/challenges/" + id + "/accept?format=json", accessToken, "");
+            Log.w(TAG, "acceptChallenge resp=" + str);
+            JSONObject obj = new JSONObject(str);
+            return obj.getInt("game");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 
     public JSONObject listGames() throws JSONException {
-        String str = getURL("https://online-go.com/api/v1/me/games/?started__isnull=False&ended__isnull=True&format=json");
+        try {
+            String str = getURL("https://online-go.com/api/v1/me/games/?started__isnull=False&ended__isnull=True&format=json");
 //        Log.w("myApp", str);
-        return new JSONObject(str);
+            return new JSONObject(str);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public JSONObject getGameDetails(int id) throws JSONException {
-        String str = getURL("https://online-go.com/api/v1/games/" + id + "?format=json");
-        return new JSONObject(str);
+        try {
+            String str = getURL("https://online-go.com/api/v1/games/" + id + "?format=json");
+            return new JSONObject(str);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public JSONObject gameMove(int id, String move) throws JSONException {
+        try {
 //        Log.w("myApp", "doing game move " + move);
-        String str = postURL("https://online-go.com/api/v1/games/" + id + "/move/?format=json", accessToken,
-                "{\"move\": \"" + "aa" + "\"}");
+            String str = postURL("https://online-go.com/api/v1/games/" + id + "/move/?format=json", accessToken,
+                    "{\"move\": \"" + "aa" + "\"}");
 //        Log.w("myApp", str);
-        return new JSONObject(str);
+            return new JSONObject(str);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**

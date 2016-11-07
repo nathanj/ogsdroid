@@ -256,13 +256,13 @@ public class ChallengeListActivity extends AppCompatActivity implements OnItemCl
                 "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
         ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
 
-        try {
-            JSONObject me = ogs.me();
-            myRanking = me.getInt("ranking");
-            Log.w(TAG, "myRanking = " + myRanking);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            JSONObject me = ogs.me();
+//            myRanking = me.getInt("ranking");
+//            Log.w(TAG, "myRanking = " + myRanking);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
         ogs.openSocket();
 
         Game g = new Game();
