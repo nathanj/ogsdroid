@@ -8,13 +8,18 @@
         android:title="@string/pass"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/accept_stones"
+        android:id="@+id/resign"
         android:orderInCategory="101"
+        android:title="@string/resign"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/accept_stones"
+        android:orderInCategory="102"
         android:title="@string/accept_stones"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/reject_stones"
-        android:orderInCategory="102"
+        android:orderInCategory="103"
         android:title="@string/reject_stones"
         app:showAsAction="ifRoom" />
 </menu>

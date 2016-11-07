@@ -314,6 +314,18 @@ class Board {
         return s.toString();
     }
 
+    public String getRemovedCoords() {
+	    StringBuilder s = new StringBuilder();
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if ((board[j][i] & REMOVED) == REMOVED) {
+                    s.append(toStringCoords(i, j));
+                }
+            }
+        }
+	return s.toString();
+    }
+
     void removeMarked() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {

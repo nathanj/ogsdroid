@@ -204,10 +204,8 @@ public class OGSGameConnection {
             obj.put("player_id", userId);
             obj.put("stones", coords);
             obj.put("removed", removed);
-            Log.w(TAG, "json object: " + obj.toString());
-            Log.w(TAG, "socket = " + socket);
+            Log.w(TAG, "doing set removed stones: " + obj.toString());
             socket.emit("game/removed_stones/set", obj);
-            Log.w(TAG, "emitted game removed_stones/set");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -221,10 +219,8 @@ public class OGSGameConnection {
             obj.put("player_id", userId);
             obj.put("stones", coords);
             obj.put("strict_seki_mode", false);
-            Log.w(TAG, "json object: " + obj.toString());
-            Log.w(TAG, "socket = " + socket);
+            Log.w(TAG, "doing accept removed stones " + obj.toString());
             socket.emit("game/removed_stones/accept", obj);
-            Log.w(TAG, "emitted game removed_stones/accept");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -236,10 +232,8 @@ public class OGSGameConnection {
             obj.put("auth", gameAuth);
             obj.put("game_id", gameId);
             obj.put("player_id", userId);
-            Log.w(TAG, "json object: " + obj.toString());
-            Log.w(TAG, "socket = " + socket);
+            Log.w(TAG, "doing reject removed stones: " + obj.toString());
             socket.emit("game/removed_stones/reject", obj);
-            Log.w(TAG, "emitted game removed_stones/reject");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -254,6 +248,19 @@ public class OGSGameConnection {
             obj.put("move", "..");
             Log.w(TAG, "doing pass = " + obj);
             socket.emit("game/move", obj);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void resign() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("auth", gameAuth);
+            obj.put("game_id", gameId);
+            obj.put("player_id", userId);
+            Log.w(TAG, "doing resign = " + obj);
+            socket.emit("game/resign", obj);
         } catch (JSONException e) {
             e.printStackTrace();
         }

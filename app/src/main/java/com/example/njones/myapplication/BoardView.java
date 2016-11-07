@@ -48,6 +48,10 @@ public class BoardView extends View {
         init();
     }
 
+    public Board getBoard() {
+        return board;
+    }
+
     private void init() {
         background = BitmapFactory.decodeResource(getResources(),
                 R.drawable.board);

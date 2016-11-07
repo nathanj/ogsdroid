@@ -25,7 +25,7 @@ public class OGS {
             String httpsURL = url;
             URL myurl = new URL(httpsURL);
             HttpsURLConnection con = (HttpsURLConnection) myurl.openConnection();
-            if (accessToken.length() > 0)
+            if (accessToken != null && accessToken.length() > 0)
                 con.setRequestProperty("Authorization", "Bearer " + accessToken);
             InputStream ins = con.getInputStream();
             InputStreamReader isr = new InputStreamReader(ins);
@@ -211,7 +211,7 @@ public class OGS {
     }
 
     public void closeSocket() {
-        socket.disconnect();
+        if (socket != null) socket.disconnect();
     }
 
     public SeekGraphConnection openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks callbacks) {

@@ -200,13 +200,19 @@ public class TabbedActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         Log.w(TAG, "onStop");
-        gameList.clear();
-        challengeList.clear();
-        challengeAdapter.notifyDataSetChanged();
-        gameAdapter.notifyDataSetChanged();
+        if (gameList != null)
+            gameList.clear();
+        if (challengeList != null)
+            challengeList.clear();
+        if (challengeAdapter != null)
+            challengeAdapter.notifyDataSetChanged();
+        if (gameAdapter != null)
+            gameAdapter.notifyDataSetChanged();
 
-        seek.disconnect();
-        ogs.closeSocket();
+        if (seek != null)
+            seek.disconnect();
+        if (ogs != null)
+            ogs.closeSocket();
     }
 
     @Override
@@ -227,13 +233,14 @@ public class TabbedActivity extends AppCompatActivity {
         if (username.equals("") || password.equals("")) {
             new AlertDialog.Builder(this)
                     .setMessage("Username or password not set. Please go into Settings and enter them.")
-                    .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
-                            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-                            startActivity(intent);
+//                            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+//                            startActivity(intent);
                         }
                     })
                     .show();
+            return;
         }
 
         ogs = new OGS("ee20259490eabd6e8fba",
@@ -247,11 +254,12 @@ public class TabbedActivity extends AppCompatActivity {
                         .setMessage("Login did not work. Check your username and password.")
                         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
-                                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-                                startActivity(intent);
+//                                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+//                                startActivity(intent);
                             }
                         })
                         .show();
+                return;
             }
             SharedPreferences.Editor editor = pref.edit();
             editor.putString("accessToken", ogs.getAccessToken());

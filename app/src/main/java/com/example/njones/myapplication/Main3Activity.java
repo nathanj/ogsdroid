@@ -33,7 +33,6 @@ import io.socket.emitter.Emitter;
 
 public class Main3Activity extends AppCompatActivity {
 
-    private SurfaceView sv;
     private OGS ogs;
     private OGSGameConnection gameCon;
     private int currentGameId;
@@ -41,6 +40,7 @@ public class Main3Activity extends AppCompatActivity {
 
     private static final String TAG = "Main3Activity";
     private AppCompatActivity activity;
+    BoardView bv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +49,7 @@ public class Main3Activity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final BoardView bv = (BoardView) findViewById(R.id.boardview);
+        bv = (BoardView) findViewById(R.id.boardview);
 
         Intent intent = getIntent();
         currentGameId = intent.getIntExtra("id", 0);
@@ -212,6 +212,7 @@ public class Main3Activity extends AppCompatActivity {
             MenuItem item = menu.getItem(i);
             switch (item.getItemId()) {
                 case R.id.pass:
+                case R.id.resign:
                     item.setVisible(phase.equals("playing"));
                     break;
                 case R.id.accept_stones:
@@ -237,6 +238,48 @@ public class Main3Activity extends AppCompatActivity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 gameCon.pass();
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+
+                return true;
+            case R.id.resign:
+                Log.w(TAG, "user chose resign");
+                new AlertDialog.Builder(this)
+                    .setMessage("Are you sure you want to resign?")
+                    .setCancelable(true)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            gameCon.resign();
+                        }
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+
+                return true;
+            case R.id.accept_stones:
+                Log.w(TAG, "user chose accept stones");
+                new AlertDialog.Builder(this)
+                    .setMessage("Are you sure you want to accept stones?")
+                    .setCancelable(true)
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            gameCon.acceptStones(bv.getBoard().getRemovedCoords());
+                        }
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+
+                return true;
+            case R.id.reject_stones:
+                Log.w(TAG, "user chose reject stones");
+                new AlertDialog.Builder(this)
+                        .setMessage("Are you sure you want to reject stones?")
+                        .setCancelable(true)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                gameCon.rejectStones();
                             }
                         })
                         .setNegativeButton("No", null)
