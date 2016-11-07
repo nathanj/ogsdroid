@@ -26,6 +26,8 @@ class Board {
     public int board[][];
     private int rows, cols;
 
+    private Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+
     Board(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
@@ -36,9 +38,9 @@ class Board {
         int dims = Math.min(c.getWidth(), c.getHeight());
         float spacing = dims / (Math.max(cols, rows) + 1);
 
-        Paint p = new Paint();
         p.setARGB(255, 0, 0, 0);
         p.setStrokeWidth(1);
+        p.setStyle(Paint.Style.FILL);
 
         // Vertical lines
         for (int i = 0; i < cols; i++) {
@@ -73,7 +75,6 @@ class Board {
         RectF r = new RectF();
         r.set(x, y, fx, fy);
 
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         if (v == WHITE_TERRITORY || v == (REMOVED | BLACK))
             p.setARGB(255, 255, 255, 255);
         else
@@ -103,7 +104,6 @@ class Board {
         RectF r = new RectF();
         r.set(x, y, fx, fy);
 
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
         if ((v & COLOR) == WHITE)
             p.setARGB(alpha, 255, 255, 255);
         else
@@ -120,7 +120,6 @@ class Board {
         c.drawOval(r, p);
 
         if (last) {
-            p = new Paint(Paint.ANTI_ALIAS_FLAG);
             if ((v & COLOR) == WHITE)
                 p.setARGB(255, 0, 0, 0);
             else
