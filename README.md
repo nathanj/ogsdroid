@@ -21,3 +21,4 @@ Todo
   * Zoom board for playing on smaller devices
   * Game chat
   * Notifications
+  * Landscape

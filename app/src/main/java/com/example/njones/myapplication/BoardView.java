@@ -101,9 +101,11 @@ public class BoardView extends View {
         r2.set(0, 0, canvas.getWidth(), canvas.getHeight());
         canvas.drawBitmap(background, null, r2, null);
 
-        board.draw(canvas);
-        clockWhite.draw(canvas, 500, 500);
-        clockBlack.draw(canvas, 300, 300);
+        int dimension = Math.min(canvas.getWidth(), canvas.getHeight());
+
+        board.draw(canvas, dimension);
+        clockWhite.draw(canvas, 0, dimension + 20);
+        clockBlack.draw(canvas, 100, dimension + 20);
     }
 
     @Override

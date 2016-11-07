@@ -34,9 +34,8 @@ class Board {
         board = new int[rows][cols];
     }
 
-    private void drawGrid(Canvas c) {
-        int dims = Math.min(c.getWidth(), c.getHeight());
-        float spacing = dims / (Math.max(cols, rows) + 1);
+    private void drawGrid(Canvas c, int dimension) {
+        float spacing = dimension / (Math.max(cols, rows) + 1);
 
         p.setARGB(255, 0, 0, 0);
         p.setStrokeWidth(1);
@@ -61,9 +60,8 @@ class Board {
         }
     }
 
-    private void drawTerritory(Canvas c, int i, int j, int v) {
-        int dims = Math.min(c.getWidth(), c.getHeight());
-        float spacing = dims / (Math.max(cols, rows) + 1);
+    private void drawTerritory(Canvas c, int i, int j, int v, int dimension) {
+        float spacing = dimension / (Math.max(cols, rows) + 1);
 
         float midx = (j + 1) * spacing;
         float midy = (i + 1) * spacing;
@@ -84,9 +82,8 @@ class Board {
         c.drawOval(r, p);
     }
 
-    private void drawStone(Canvas c, int i, int j, int v, boolean last) {
-        int dims = Math.min(c.getWidth(), c.getHeight());
-        float spacing = dims / (Math.max(cols, rows) + 1);
+    private void drawStone(Canvas c, int i, int j, int v, boolean last, int dimension) {
+        float spacing = dimension / (Math.max(cols, rows) + 1);
         boolean removed = (v & REMOVED) == REMOVED;
         int alpha = 255;
 
@@ -135,22 +132,22 @@ class Board {
         }
     }
 
-    private void drawStones(Canvas c) {
+    private void drawStones(Canvas c, int dimension) {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if ((board[i][j] & COLOR) > 0) {
-                    drawStone(c, i, j, board[i][j], i == lastY && j == lastX);
+                    drawStone(c, i, j, board[i][j], i == lastY && j == lastX, dimension);
                 }
                 if ((board[i][j] & TERRITORY) > 0 || (board[i][j] & REMOVED) > 0) {
-                    drawTerritory(c, i, j, board[i][j]);
+                    drawTerritory(c, i, j, board[i][j], dimension);
                 }
             }
         }
     }
 
-    public void draw(Canvas c) {
-        drawGrid(c);
-        drawStones(c);
+    public void draw(Canvas c, int dimension) {
+        drawGrid(c, dimension);
+        drawStones(c, dimension);
     }
 
     void unremoveGroup(int x, int y, int color) {
