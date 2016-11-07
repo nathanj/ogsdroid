@@ -34,12 +34,13 @@ public class BoardView extends View {
     public Board board;
     private Bitmap background;
     private Rect r, r2;
-    private Clock clockWhite, clockBlack;
+    public Clock clockWhite, clockBlack;
 
     public String phase;
     public OGSGameConnection gameConnection;
 
     public Timer timer;
+    public boolean blacksMove;
 
     public BoardView(Context context) {
         super(context);
@@ -63,12 +64,17 @@ public class BoardView extends View {
 
         final BoardView bv = this;
 
+        clockWhite = new Clock();
+        clockBlack = new Clock();
+
         timer = new Timer("OGS board clock timer");
         timer.schedule(
                 new TimerTask() {
                     public void run() {
-                        clockWhite.tick();
-                        clockBlack.tick();
+                        if (blacksMove)
+                            clockBlack.tick();
+                        else
+                            clockWhite.tick();
                         bv.postInvalidate();
                     }
                 },
@@ -77,6 +83,14 @@ public class BoardView extends View {
 
     public void initBoard(int rows, int cols) {
         board = new Board(rows, cols);
+    }
+
+    public void setClockWhite(JSONObject clock) {
+        clockWhite.set(clock);
+    }
+
+    public void setClockBlack(JSONObject clock) {
+        clockBlack.set(clock);
     }
 
     @Override

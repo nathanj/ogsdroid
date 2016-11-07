@@ -154,6 +154,37 @@ public class Main3Activity extends AppCompatActivity {
                         Log.w(TAG, clock.toString());
                         final int whoseTurn = clock.getInt("current_player");
 
+                        Object whiteTime = clock.get("white_time");
+                        Object blackTime = clock.get("black_time");
+                        if (clock.get("white_time") instanceof Number) {
+                            bv.whiteClock.setTime(clock.getInt("white_time"), 0, 0);
+                            bv.blackClock.setTime(clock.getInt("black_time"), 0, 0);
+                        } else {
+                            int thinkingTime = 0, periods = 0, periodTime = 0;
+                            try {
+                                JSONObject c = clock.getJSONObject("white_time");
+                                thinkingTime = c.getInt("thinking_time");
+                                periods = c.getInt("periods");
+                                periodTime = c.getInt("period_time");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            bv.whiteClock.setTime(thinkingTime, periods, periodTime);
+
+                            thinkingTime = 0; periods = 0; periodTime = 0;
+                            try {
+                                JSONObject c = clock.getJSONObject("black_time");
+                                thinkingTime = c.getInt("thinking_time");
+                                periods = c.getInt("periods");
+                                periodTime = c.getInt("period_time");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            bv.blackClock.setTime(thinkingTime, periods, periodTime);
+                        }
+
+                        bv.blacksMove = whoseTurn == blackId;
+
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
                                 if (whoseTurn == blackId)

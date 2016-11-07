@@ -35,6 +35,21 @@ class Clock {
         }
     }
 
+    public void setTime(int thinkingTime, int periods, int periodTime) {
+        this.thinkingTime = thinkingTime;
+        this.periods = periods;
+        this.periodTime = periodTime;
+    }
+
+    public void set(JSONObject clock) {
+        try {
+            clock.getInt("thinking_time");
+            clock.getInt("periods");
+            clock.getInt("periodTime");
+        } catch (JSONException e) {
+        }
+    }
+
     public void draw(Canvas canvas, float x, float y) {
         Log.w(TAG, "draw");
 
