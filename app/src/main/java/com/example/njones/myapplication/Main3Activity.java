@@ -7,11 +7,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -95,27 +97,15 @@ public class Main3Activity extends AppCompatActivity {
             int width = gameDetails.getJSONObject("gamedata").getInt("width");
             bv.initBoard(height, width);
             phase = gameDetails.getJSONObject("gamedata").getString("phase");
+            Log.w(TAG, "phase = " + phase);
             JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
+
+
             final String whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
             int whiteId = gameDetails.getJSONObject("players").getJSONObject("white").getInt("id");
             final String blackPlayer = gameDetails.getJSONObject("players").getJSONObject("black").getString("username");
             final int blackId = gameDetails.getJSONObject("players").getJSONObject("black").getInt("id");
-            int whoseTurn = gameDetails.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
-
-            if (phase.equals("play")) {
-                if (whoseTurn == blackId)
-                    setTitle(String.format("%s vs %s - Black to play", whitePlayer, blackPlayer));
-                else
-                    setTitle(String.format("%s vs %s - White to play", whitePlayer, blackPlayer));
-            } else if (phase.equals("finished")) {
-                int winner = gameDetails.getJSONObject("gamedata").getInt("winner");
-                if (winner == blackId)
-                    setTitle(String.format("%s vs %s - Black won", whitePlayer, blackPlayer));
-                else
-                    setTitle(String.format("%s vs %s - White won", whitePlayer, blackPlayer));
-            } else if (phase.equals("stone removal")) {
-                setTitle(String.format("%s vs %s - Stone removal", whitePlayer, blackPlayer));
-            }
+            final int whoseTurn = gameDetails.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
 
             final String auth = gameDetails.getString("auth");
             Log.w(TAG, moves.toString(2));
@@ -125,7 +115,7 @@ public class Main3Activity extends AppCompatActivity {
                 int x = move.getInt(0);
                 int y = move.getInt(1);
                 if (x == -1)
-                    ;
+                    bv.board.pass();
                 else
                     bv.board.addStone(move.getInt(0), move.getInt(1));
             }
@@ -140,7 +130,7 @@ public class Main3Activity extends AppCompatActivity {
                 @Override
                 public void move(int x, int y) {
                     if (x == -1)
-                        ; // pass
+                        bv.board.pass();
                     else
                         bv.board.addStone(x, y);
                     bv.postInvalidate();
@@ -151,61 +141,120 @@ public class Main3Activity extends AppCompatActivity {
                 public void clock(JSONObject clock) {
                     try {
 
-                        Log.w(TAG, clock.toString());
+                        Log.w("njclock", clock.toString());
                         final int whoseTurn = clock.getInt("current_player");
 
-                        Object whiteTime = clock.get("white_time");
-                        Object blackTime = clock.get("black_time");
                         if (clock.get("white_time") instanceof Number) {
-                            bv.whiteClock.setTime(clock.getInt("white_time"), 0, 0);
-                            bv.blackClock.setTime(clock.getInt("black_time"), 0, 0);
+                            long now = System.currentTimeMillis();
+                            long now_delta = now - clock.getLong("now");
+                            long base_time = clock.getLong("last_move") + now_delta;
+                            Log.w("njclock", "now = " + now);
+                            Log.w("njclock", "now_delta = " + now_delta);
+                            Log.w("njclock", "base_time = " + base_time);
+                            Log.w("njclock", "white time = " + clock.getLong("white_time"));
+                            Log.w("njclock", "delta = " + (clock.getLong("white_time") - System.currentTimeMillis()));
+                            bv.clockWhite.setTime((int) (clock.getLong("white_time") - System.currentTimeMillis()) / 1000, 0, 0);
+                            bv.clockBlack.setTime((int) (clock.getLong("black_time") - System.currentTimeMillis()) / 1000, 0, 0);
                         } else {
                             int thinkingTime = 0, periods = 0, periodTime = 0;
                             try {
                                 JSONObject c = clock.getJSONObject("white_time");
+                                Log.w("njclock", "white = " + c);
                                 thinkingTime = c.getInt("thinking_time");
                                 periods = c.getInt("periods");
                                 periodTime = c.getInt("period_time");
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                            bv.whiteClock.setTime(thinkingTime, periods, periodTime);
+                            bv.clockWhite.setTime(thinkingTime, periods, periodTime);
 
-                            thinkingTime = 0; periods = 0; periodTime = 0;
+                            thinkingTime = 0;
+                            periods = 0;
+                            periodTime = 0;
                             try {
                                 JSONObject c = clock.getJSONObject("black_time");
+                                Log.w("njclock", "black = " + c);
                                 thinkingTime = c.getInt("thinking_time");
                                 periods = c.getInt("periods");
                                 periodTime = c.getInt("period_time");
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                            bv.blackClock.setTime(thinkingTime, periods, periodTime);
+                            bv.clockBlack.setTime(thinkingTime, periods, periodTime);
                         }
 
                         bv.blacksMove = whoseTurn == blackId;
-
-                        activity.runOnUiThread(new Runnable() {
-                            public void run() {
-                                if (whoseTurn == blackId)
-                                    setTitle(String.format("%s vs %s - Black to play", whitePlayer, blackPlayer));
-                                else
-                                    setTitle(String.format("%s vs %s - White to play", whitePlayer, blackPlayer));
-
-                            }
-                        });
-
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
-
                 }
 
                 @Override
                 public void phase(String p) {
                     bv.phase = p;
+                    if (p.equals("play"))
+                        bv.board.unmarkTerritory();
+                    else
+                        bv.board.markTerritory();
+
                     invalidateOptionsMenu();
+                }
+
+                @Override
+                public void gamedata(final JSONObject obj) {
+
+                    try {
+                        if (phase != obj.getString("phase")) {
+                            phase = obj.getString("phase");
+                            invalidateOptionsMenu();
+                        }
+
+                        Log.w(TAG, "phase = " + phase);
+                        bv.phase = phase;
+                        if (phase.equals("play"))
+                            bv.board.unmarkTerritory();
+                        else
+                            bv.board.markTerritory();
+
+
+
+
+                        final String whitePlayer = obj.getJSONObject("players").getJSONObject("white").getString("username");
+                        int whiteId = obj.getJSONObject("players").getJSONObject("white").getInt("id");
+                        final String blackPlayer = obj.getJSONObject("players").getJSONObject("black").getString("username");
+                        final int blackId = obj.getJSONObject("players").getJSONObject("black").getInt("id");
+                        //final int whoseTurn = obj.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
+                        final int whoseTurn = 1;
+
+
+
+                        activity.runOnUiThread(new Runnable() {
+                            public void run() {
+                                try {
+                                    if (phase.equals("play")) {
+                                        if (whoseTurn == blackId)
+                                            setTitle(String.format("%s vs %s - Black to play", whitePlayer, blackPlayer));
+                                        else
+                                            setTitle(String.format("%s vs %s - White to play", whitePlayer, blackPlayer));
+                                    } else if (phase.equals("finished")) {
+                                        int winner = obj.getJSONObject("gamedata").getInt("winner");
+                                        if (winner == blackId)
+                                            setTitle(String.format("%s vs %s - Black won", whitePlayer, blackPlayer));
+                                        else
+                                            setTitle(String.format("%s vs %s - White won", whitePlayer, blackPlayer));
+                                    } else if (phase.equals("stone removal")) {
+                                        setTitle(String.format("%s vs %s - Stone removal", whitePlayer, blackPlayer));
+                                    }
+                                }catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 @Override
@@ -238,13 +287,14 @@ public class Main3Activity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.w(TAG, "options menu phase = " + phase);
         getMenuInflater().inflate(R.menu.menu_main, menu);
         for (int i = 0; i < menu.size(); i++) {
             MenuItem item = menu.getItem(i);
             switch (item.getItemId()) {
                 case R.id.pass:
                 case R.id.resign:
-                    item.setVisible(phase.equals("playing"));
+                    item.setVisible(phase.equals("play"));
                     break;
                 case R.id.accept_stones:
                 case R.id.reject_stones:
@@ -278,29 +328,29 @@ public class Main3Activity extends AppCompatActivity {
             case R.id.resign:
                 Log.w(TAG, "user chose resign");
                 new AlertDialog.Builder(this)
-                    .setMessage("Are you sure you want to resign?")
-                    .setCancelable(true)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            gameCon.resign();
-                        }
-                    })
-                    .setNegativeButton("No", null)
-                    .show();
+                        .setMessage("Are you sure you want to resign?")
+                        .setCancelable(true)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                gameCon.resign();
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
 
                 return true;
             case R.id.accept_stones:
                 Log.w(TAG, "user chose accept stones");
                 new AlertDialog.Builder(this)
-                    .setMessage("Are you sure you want to accept stones?")
-                    .setCancelable(true)
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            gameCon.acceptStones(bv.getBoard().getRemovedCoords());
-                        }
-                    })
-                    .setNegativeButton("No", null)
-                    .show();
+                        .setMessage("Are you sure you want to accept stones?")
+                        .setCancelable(true)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                gameCon.acceptStones(bv.getBoard().getRemovedCoords());
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
 
                 return true;
             case R.id.reject_stones:

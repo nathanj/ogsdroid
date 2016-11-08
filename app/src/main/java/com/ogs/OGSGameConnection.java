@@ -30,6 +30,8 @@ public class OGSGameConnection {
         public void removedStonesAccepted(JSONObject obj);
 
         public void error(String msg);
+
+        public void gamedata(JSONObject obj);
     }
 
     private Socket socket;
@@ -117,11 +119,8 @@ public class OGSGameConnection {
     }
 
     private void gamedata(JSONObject obj) {
-//        try {
-//            Log.w(TAG, "on gamedata: " + obj.toString(2));
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
+        Log.w(TAG, "on gamedata: " + obj.toString());
+        callbacks.gamedata(obj);
     }
 
     private void move(JSONObject obj) {

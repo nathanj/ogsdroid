@@ -1,6 +1,11 @@
 package com.example.njones.myapplication;
 
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.util.Log;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 class Clock {
     private final static String TAG = "Clock";
@@ -12,6 +17,10 @@ class Clock {
 
     private Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
 
+    Clock() {
+        this("simple");
+    }
+
     Clock(String system) {
         this.system = system;
 
@@ -21,17 +30,14 @@ class Clock {
     }
 
     public void tick() {
-        Log.w(TAG, "tick");
         if (thinkingTime > 0) {
             thinkingTime--;
             return;
         }
 
-        if (system.equals("byo-yomi")) {
-            if (periods > 0) {
-                periods--;
-                thinkingTime = periodTime;
-            }
+        if (periods > 0) {
+            periods--;
+            thinkingTime = periodTime;
         }
     }
 
@@ -50,10 +56,10 @@ class Clock {
         }
     }
 
-    public void draw(Canvas canvas, float x, float y) {
-        Log.w(TAG, "draw");
-
-        canvas.drawText(toString(), x, y, p);
+    public void draw(Canvas canvas, String header, float x, float y) {
+        if (thinkingTime < 0)
+            return;
+        canvas.drawText(header + ": " + toString(), x, y, p);
     }
 
     protected String formatTime(int seconds) {
@@ -68,12 +74,10 @@ class Clock {
 
         if (days > 1) {
             s.append(String.format("%d days", days));
-        } else if (days == 1) {
-            s.append(String.format("%d day", days));
         } else if (hours > 0) {
-            s.append(String.format("%d:%d:%d", hours, minutes, seconds));
+            s.append(String.format("%d:%02d:%02d", hours, minutes, seconds));
         } else if (minutes > 0) {
-            s.append(String.format("%d:%d", minutes, seconds));
+            s.append(String.format("%d:%02d", minutes, seconds));
         } else {
             s.append(String.format("%d", seconds));
         }
@@ -81,7 +85,7 @@ class Clock {
     }
 
     public String toString() {
-        if (system.equals("byo-yomi")) {
+        if (periods > 0) {
             return String.format("%s + %dx%s", formatTime(thinkingTime), periods, formatTime(periodTime));
         } else {
             return formatTime(thinkingTime);

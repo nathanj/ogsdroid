@@ -66,20 +66,24 @@ class Board {
         float midx = (j + 1) * spacing;
         float midy = (i + 1) * spacing;
 
-        float x = midx - spacing / 5;
-        float fx = midx + spacing / 5;
-        float y = midy - spacing / 5;
-        float fy = midy + spacing / 5;
+        float x = midx - spacing / 6;
+        float fx = midx + spacing / 6;
+        float y = midy - spacing / 6;
+        float fy = midy + spacing / 6;
         RectF r = new RectF();
         r.set(x, y, fx, fy);
 
-        if (v == WHITE_TERRITORY || v == (REMOVED | BLACK))
+        if (v == WHITE_TERRITORY || v == (REMOVED | BLACK)) {
             p.setARGB(255, 255, 255, 255);
-        else
+            p.setStrokeWidth(0);
+            p.setStyle(Paint.Style.FILL);
+            c.drawOval(r, p);
+        } else if (v == BLACK_TERRITORY || v == (REMOVED | WHITE)) {
             p.setARGB(255, 0, 0, 0);
-        p.setStrokeWidth(0);
-        p.setStyle(Paint.Style.FILL);
-        c.drawOval(r, p);
+            p.setStrokeWidth(0);
+            p.setStyle(Paint.Style.FILL);
+            c.drawOval(r, p);
+        }
     }
 
     private void drawStone(Canvas c, int i, int j, int v, boolean last, int dimension) {
@@ -221,7 +225,7 @@ class Board {
             return 0;
         // stone, return that color
         if ((board[y][x] & REMOVED) != REMOVED && (board[y][x] & COLOR) > 0) {
-            Log.w("trace", String.format("returning y=%d x=%d color=%x", y, x, board[y][x]));
+            //Log.w("trace", String.format("returning y=%d x=%d color=%x", y, x, board[y][x]));
             return board[y][x];
         }
         // removed stone and empty space, mark and keep traversing
@@ -233,9 +237,7 @@ class Board {
                         determineTerritory(x, y + 1);
     }
 
-    void markTerritory() {
-        Log.w("removal", "marking terrotiry");
-        // remove all previous territory markers
+    public void unmarkTerritory() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 board[j][i] &= ~WHITE_TERRITORY;
@@ -243,6 +245,12 @@ class Board {
                 board[j][i] &= ~NEUTRAL_TERRITORY;
             }
         }
+    }
+
+    public void markTerritory() {
+        Log.w("removal", "marking terrotiry");
+        unmarkTerritory();
+
         traceBoard("before determine territory");
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -263,6 +271,7 @@ class Board {
     }
 
     void traceBoard(String header) {
+        /*
         for (int r = 0; r < rows; r++) {
             Log.w("trace", String.format("%30s: %3x %3x %3x %3x %3x %3x %3x %3x %3x",
                     header,
@@ -277,6 +286,7 @@ class Board {
                     board[r][8]
             ));
         }
+        */
     }
 
     public void stoneRemoval(String coords, boolean removed) {
@@ -372,7 +382,7 @@ class Board {
             return "";
         if (sx < 0 || sy >= rows)
             return "";
-        board[sy][sx] = 1;
+        //board[sy][sx] = 1;
         Log.w("myApp", String.format("created stone at %d/%d", sx, sy));
         String moveStr = "";
         int c1 = (int) 'a' + sx;
@@ -389,6 +399,10 @@ class Board {
             return 2;
         else
             return 1;
+    }
+
+    public void pass() {
+        lastV = oppositeColor(lastV);
     }
 
     public void addStone(int x, int y) {

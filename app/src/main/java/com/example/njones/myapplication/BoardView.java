@@ -25,6 +25,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -104,8 +107,8 @@ public class BoardView extends View {
         int dimension = Math.min(canvas.getWidth(), canvas.getHeight());
 
         board.draw(canvas, dimension);
-        clockWhite.draw(canvas, 0, dimension + 20);
-        clockBlack.draw(canvas, 100, dimension + 20);
+        clockWhite.draw(canvas, "White Time", 0, dimension + 20);
+        clockBlack.draw(canvas, "Black Time", 0, dimension + 40);
     }
 
     @Override

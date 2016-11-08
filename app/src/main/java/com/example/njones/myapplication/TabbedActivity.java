@@ -483,9 +483,17 @@ public class TabbedActivity extends AppCompatActivity {
                                         public void onClick(DialogInterface dialog, int id) {
                                             try {
                                                 int gameId = ogs.acceptChallenge(c.challengeId);
-                                                Intent intent = new Intent(context, Main3Activity.class);
-                                                intent.putExtra("id", gameId);
-                                                startActivity(intent);
+                                                if (gameId == 0) {
+                                                    new AlertDialog.Builder(mainActivity)
+                                                            .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))
+                                                            .setCancelable(true)
+                                                            .setPositiveButton("Ok", null)
+                                                            .show();
+                                                } else {
+                                                    Intent intent = new Intent(context, Main3Activity.class);
+                                                    intent.putExtra("id", gameId);
+                                                    startActivity(intent);
+                                                }
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
