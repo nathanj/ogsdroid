@@ -14,8 +14,7 @@ Screenshots
 Todo
 ----
 
-  * Display clock
-  * Better stone graphics
+  * Make the board look nicer
   * Light/dark themes
   * Create a challenge
   * Zoom board for playing on smaller devices

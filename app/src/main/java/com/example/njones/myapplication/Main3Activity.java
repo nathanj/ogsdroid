@@ -34,15 +34,75 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 public class Main3Activity extends AppCompatActivity {
+    private static final String TAG = "Main3Activity";
 
     private OGS ogs;
     private OGSGameConnection gameCon;
     private int currentGameId;
     private String phase = "play";
 
-    private static final String TAG = "Main3Activity";
     private AppCompatActivity activity;
-    BoardView bv;
+    private BoardView bv;
+    private Board board = new Board();
+
+
+    private class GameDetails() {
+        public int height, width;
+        public String phase;
+        public JSONArray moves;
+        public String whitePlayer, blackPlayer;
+        public int whiteId, blackId;
+        public int whoseTurn;
+        public String gameAuth;
+
+        GameDetails(JSONObject obj) {
+            try {
+                height = gameDetails.getJSONObject("gamedata").getInt("height");
+                width = gameDetails.getJSONObject("gamedata").getInt("width");
+                phase = gameDetails.getJSONObject("gamedata").getString("phase");
+                moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
+
+                whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
+                whiteId = gameDetails.getJSONObject("players").getJSONObject("white").getInt("id");
+                blackPlayer = gameDetails.getJSONObject("players").getJSONObject("black").getString("username");
+                blackId = gameDetails.getJSONObject("players").getJSONObject("black").getInt("id");
+                whoseTurn = gameDetails.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
+
+                gameAuth = gameDetails.getString("auth");
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private class GameData() {
+        public String phase;
+        public String whitePlayer, blackPlayer;
+        public int whiteId, blackId;
+        public int whoseTurn;
+        public int winner;
+
+        GameData(JSONObject obj) {
+            try {
+                phase = obj.getString("phase");
+
+                whitePlayer = obj.getJSONObject("players").getJSONObject("white").getString("username");
+                whiteId = obj.getJSONObject("players").getJSONObject("white").getInt("id");
+                blackPlayer = obj.getJSONObject("players").getJSONObject("black").getString("username");
+                blackId = obj.getJSONObject("players").getJSONObject("black").getInt("id");
+                // TODO - are these always there?
+                //whoseTurn = obj.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
+                whoseTurn = 1;
+                //int winner = obj.getJSONObject("gamedata").getInt("winner");
+                int winner = 1;
+
+                gameAuth = obj.getString("auth");
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,63 +115,30 @@ public class Main3Activity extends AppCompatActivity {
 
         Intent intent = getIntent();
         currentGameId = intent.getIntExtra("id", 0);
-        Log.w("AAAAAAAAAAA", "the id was " + currentGameId);
 
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        //sv = (SurfaceView) findViewById(R.id.surfaceView);
-        //SurfaceHolder sh = sv.getHolder();
-        //sh.addCallback(this);
         activity = this;
-
-        //sv.setOnClickListener(this);
-        //sv.setOnTouchListener(this);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
         //*
         try {
+            // TODO - global ogs and global me
             ogs = new OGS("ee20259490eabd6e8fba",
                     "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
             ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
-            //ogs.login("nathanj439", "691c9d7a8986c29d80a0c13cb509d986");
             JSONObject obj = ogs.me();
             Log.w(TAG, obj.toString(2));
-            //            obj = ogs.listServerChallenges();
-
-            //            JSONArray results = obj.getJSONArray("results");
-            //            Log.w("myApp", "challenge length = " + results.length());
-            //            JSONObject obj2 = results.getJSONObject(0);
-            //            Log.w("myApp", obj2.toString(2));
-
-            //            JSONObject games = ogs.listGames();
-            //            Log.w("myApp", "games length = " + games.length());
-            //            JSONArray results = games.getJSONArray("results");
-            //            JSONObject game = results.getJSONObject(0);
-            //            currentGameId = game.getInt("id");
-//            currentGameId = 6790027;
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
-            int height = gameDetails.getJSONObject("gamedata").getInt("height");
-            int width = gameDetails.getJSONObject("gamedata").getInt("width");
-            bv.initBoard(height, width);
-            phase = gameDetails.getJSONObject("gamedata").getString("phase");
-            Log.w(TAG, "phase = " + phase);
-            JSONArray moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
+            GameDetails details = new GameDetails(gameDetails);
+            board = new Board(details.height, details.width);
+            bv.setBoard(board);
 
-
-            final String whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
-            int whiteId = gameDetails.getJSONObject("players").getJSONObject("white").getInt("id");
-            final String blackPlayer = gameDetails.getJSONObject("players").getJSONObject("black").getString("username");
-            final int blackId = gameDetails.getJSONObject("players").getJSONObject("black").getInt("id");
-            final int whoseTurn = gameDetails.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
-
-            final String auth = gameDetails.getString("auth");
-            Log.w(TAG, moves.toString(2));
-
-            for (int i = 0; i < moves.length(); i++) {
-                JSONArray move = moves.getJSONArray(i);
+            for (int i = 0; i < details.moves.length(); i++) {
+                JSONArray move = details.moves.getJSONArray(i);
                 int x = move.getInt(0);
                 int y = move.getInt(1);
                 if (x == -1)
@@ -134,7 +161,6 @@ public class Main3Activity extends AppCompatActivity {
                     else
                         bv.board.addStone(x, y);
                     bv.postInvalidate();
-                    //surfaceCreated(sv.getHolder());
                 }
 
                 @Override
@@ -191,70 +217,52 @@ public class Main3Activity extends AppCompatActivity {
 
                 @Override
                 public void phase(String p) {
-                    bv.phase = p;
+                    if (!phase.equals(p)) {
+                        phase = p;
+                        bv.phase = p;
+                        invalidateOptionsMenu();
+                    }
                     if (p.equals("play"))
                         bv.board.unmarkTerritory();
                     else
                         bv.board.markTerritory();
-
-                    invalidateOptionsMenu();
                 }
 
                 @Override
-                public void gamedata(final JSONObject obj) {
-
-                    try {
-                        if (phase != obj.getString("phase")) {
-                            phase = obj.getString("phase");
+                public void gamedata(JSONObject obj) {
+                        GameData gamedata = new GameData(obj);
+                        if (!phase.equals(gamedata.phase)) {
+                            phase = gamedata.phase;
+                            bv.phase = gamedata.phase;
                             invalidateOptionsMenu();
                         }
 
-                        Log.w(TAG, "phase = " + phase);
-                        bv.phase = phase;
                         if (phase.equals("play"))
                             bv.board.unmarkTerritory();
                         else
                             bv.board.markTerritory();
 
+                        String title = "";
 
-
-
-                        final String whitePlayer = obj.getJSONObject("players").getJSONObject("white").getString("username");
-                        int whiteId = obj.getJSONObject("players").getJSONObject("white").getInt("id");
-                        final String blackPlayer = obj.getJSONObject("players").getJSONObject("black").getString("username");
-                        final int blackId = obj.getJSONObject("players").getJSONObject("black").getInt("id");
-                        //final int whoseTurn = obj.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
-                        final int whoseTurn = 1;
-
-
+                        if (phase.equals("play")) {
+                            if (gamedata.whoseTurn == gamedata.blackId)
+                                title = String.format("%s vs %s - Black to play", gamedata.whitePlayer, gamedata.blackPlayer);
+                            else
+                                title = String.format("%s vs %s - White to play", gamedata.whitePlayer, gamedata.blackPlayer);
+                        } else if (phase.equals("finished")) {
+                            if (winner == blackId)
+                                title = String.format("%s vs %s - Black won", gamedata.whitePlayer, gamedata.blackPlayer);
+                            else
+                                title = String.format("%s vs %s - White won", gamedata.whitePlayer, gamedata.blackPlayer);
+                        } else if (phase.equals("stone removal")) {
+                            title = String.format("%s vs %s - Stone removal", gamedata.whitePlayer, gamedata.blackPlayer);
+                        }
 
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
-                                try {
-                                    if (phase.equals("play")) {
-                                        if (whoseTurn == blackId)
-                                            setTitle(String.format("%s vs %s - Black to play", whitePlayer, blackPlayer));
-                                        else
-                                            setTitle(String.format("%s vs %s - White to play", whitePlayer, blackPlayer));
-                                    } else if (phase.equals("finished")) {
-                                        int winner = obj.getJSONObject("gamedata").getInt("winner");
-                                        if (winner == blackId)
-                                            setTitle(String.format("%s vs %s - Black won", whitePlayer, blackPlayer));
-                                        else
-                                            setTitle(String.format("%s vs %s - White won", whitePlayer, blackPlayer));
-                                    } else if (phase.equals("stone removal")) {
-                                        setTitle(String.format("%s vs %s - Stone removal", whitePlayer, blackPlayer));
-                                    }
-                                }catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
+                                setTitle(title);
                             }
                         });
-
-
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
                 }
 
                 @Override
@@ -285,6 +293,7 @@ public class Main3Activity extends AppCompatActivity {
 
     }
 
+    // {{{ options
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.w(TAG, "options menu phase = " + phase);
@@ -370,4 +379,6 @@ public class Main3Activity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    // }}}
 }

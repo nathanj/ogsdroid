@@ -24,9 +24,6 @@ class Clock {
     Clock(String system) {
         this.system = system;
 
-        p.setARGB(255, 0, 0, 0);
-        p.setStrokeWidth(1);
-        p.setTextSize(20);
     }
 
     public void tick() {
@@ -56,10 +53,30 @@ class Clock {
         }
     }
 
-    public void draw(Canvas canvas, String header, float x, float y) {
+    public void draw(Canvas canvas, boolean black, String username, float sx, float sy, float w, float h) {
         if (thinkingTime < 0)
             return;
-        canvas.drawText(header + ": " + toString(), x, y, p);
+
+        if (black) {
+            p.setARGB(255, 0, 0, 0);
+            p.setStrokeWidth(1);
+        } else {
+            p.setARGB(255, 255, 255, 255);
+            p.setStrokeWidth(1);
+        }
+        canvas.drawRoundRect(sx, sy, sx + w, sy + h, 5, 5);
+        if (black) {
+            p.setARGB(255, 255, 255, 255);
+            p.setStrokeWidth(1);
+        } else {
+            p.setARGB(255, 0, 0, 0);
+            p.setStrokeWidth(1);
+        }
+        p.setTextAlign(Paint.Align.CENTER);
+        p.setTextSize(h / 4);
+        p.setTypeface(Typeface.MONOSPACE);
+        canvas.drawText(username, (sx + w) / 2, (sy + h) / 4, p);
+        canvas.drawText(toString(), (sx + w) / 2, (sy + h) * 3 / 4, p);
     }
 
     protected String formatTime(int seconds) {

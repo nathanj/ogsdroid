@@ -55,8 +55,8 @@ public class BoardView extends View {
         init();
     }
 
-    public Board getBoard() {
-        return board;
+    public Board setBoard(Board board) {
+        this.board = board;
     }
 
     private void init() {
@@ -84,16 +84,17 @@ public class BoardView extends View {
                 1000, 1000);
     }
 
-    public void initBoard(int rows, int cols) {
-        board = new Board(rows, cols);
-    }
-
     public void setClockWhite(JSONObject clock) {
         clockWhite.set(clock);
     }
 
     public void setClockBlack(JSONObject clock) {
         clockBlack.set(clock);
+    }
+
+    @Override
+    protected void onDestroy(Canvas canvas) {
+        timer.cancel();
     }
 
     @Override
@@ -107,8 +108,8 @@ public class BoardView extends View {
         int dimension = Math.min(canvas.getWidth(), canvas.getHeight());
 
         board.draw(canvas, dimension);
-        clockWhite.draw(canvas, "White Time", 0, dimension + 20);
-        clockBlack.draw(canvas, "Black Time", 0, dimension + 40);
+        clockWhite.draw(canvas, false, "White", 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
+        clockBlack.draw(canvas, true, "Black", 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
     }
 
     @Override
