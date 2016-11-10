@@ -55,7 +55,7 @@ public class BoardView extends View {
         init();
     }
 
-    public Board setBoard(Board board) {
+    public void setBoard(Board board) {
         this.board = board;
     }
 
@@ -74,11 +74,13 @@ public class BoardView extends View {
         timer.schedule(
                 new TimerTask() {
                     public void run() {
-                        if (blacksMove)
-                            clockBlack.tick();
-                        else
-                            clockWhite.tick();
-                        bv.postInvalidate();
+                        if (phase.equals("play")) {
+                            if (blacksMove)
+                                clockBlack.tick();
+                            else
+                                clockWhite.tick();
+                            bv.postInvalidate();
+                        }
                     }
                 },
                 1000, 1000);
@@ -93,11 +95,6 @@ public class BoardView extends View {
     }
 
     @Override
-    protected void onDestroy(Canvas canvas) {
-        timer.cancel();
-    }
-
-    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
@@ -109,7 +106,7 @@ public class BoardView extends View {
 
         board.draw(canvas, dimension);
         clockWhite.draw(canvas, false, "White", 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
-        clockBlack.draw(canvas, true, "Black", 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
+        clockBlack.draw(canvas, true, "Black", canvas.getWidth() / 2, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
     }
 
     @Override

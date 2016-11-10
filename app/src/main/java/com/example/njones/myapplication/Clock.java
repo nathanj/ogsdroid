@@ -2,6 +2,7 @@ package com.example.njones.myapplication;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -50,13 +51,11 @@ class Clock {
             clock.getInt("periods");
             clock.getInt("periodTime");
         } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
     public void draw(Canvas canvas, boolean black, String username, float sx, float sy, float w, float h) {
-        if (thinkingTime < 0)
-            return;
-
         if (black) {
             p.setARGB(255, 0, 0, 0);
             p.setStrokeWidth(1);
@@ -64,7 +63,7 @@ class Clock {
             p.setARGB(255, 255, 255, 255);
             p.setStrokeWidth(1);
         }
-        canvas.drawRoundRect(sx, sy, sx + w, sy + h, 5, 5);
+        canvas.drawRect(sx + 5, sy, sx + w - 5, sy + h - 5, p);
         if (black) {
             p.setARGB(255, 255, 255, 255);
             p.setStrokeWidth(1);
@@ -75,8 +74,8 @@ class Clock {
         p.setTextAlign(Paint.Align.CENTER);
         p.setTextSize(h / 4);
         p.setTypeface(Typeface.MONOSPACE);
-        canvas.drawText(username, (sx + w) / 2, (sy + h) / 4, p);
-        canvas.drawText(toString(), (sx + w) / 2, (sy + h) * 3 / 4, p);
+        canvas.drawText(username, sx + w / 2, sy + h / 3, p);
+        canvas.drawText(toString(), sx + w / 2, sy + h * 2 / 3, p);
     }
 
     protected String formatTime(int seconds) {
@@ -102,6 +101,8 @@ class Clock {
     }
 
     public String toString() {
+        if (thinkingTime <= 0 && periods == 0)
+            return "";
         if (periods > 0) {
             return String.format("%s + %dx%s", formatTime(thinkingTime), periods, formatTime(periodTime));
         } else {

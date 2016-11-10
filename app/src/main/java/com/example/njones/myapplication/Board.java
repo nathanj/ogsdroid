@@ -1,3 +1,24 @@
+
+
+/*
+ *
+11-09 20:02:43.982 15194-15194/com.example.njones.myapplication W/OGSGameConnection: doing accept removed stones {"auth":"c039202bd6993ab89065d0f6f06232e3","game_id":6843714,"player_id":212470,"stones":"aaabbabbbcbdbhcacccecgchcidcdddieaffgfggghgihchhiaigii","strict_seki_mode":false}
+11-09 20:02:43.982 15194-15194/com.example.njones.myapplication D/ViewRootImpl: #3 mView = null
+11-09 20:02:43.992 15194-15194/com.example.njones.myapplication E/ViewRootImpl: sendUserActionEvent() mView == null
+11-09 20:02:44.072 15194-11183/com.example.njones.myapplication W/OGSGameConnection: on removed_stones_accepted: {
+                                                                                       "player_id": 212470,
+                                                                                       "stones": "aabacaeaiaabbbbcccdchcbdddceffgfcgggigbhchghhhcidigiii",
+                                                                                       "strict_seki_mode": false
+                                                                                     }
+11-09 20:02:48.022 15194-11315/com.example.njones.myapplication W/OGSGameConnection: on removed_stones_accepted: {
+                                                                                       "player_id": 212470,
+                                                                                       "stones": "aabacaeaiaabbbbcccdchcbdddfdceffgfcgggigbhchghhhcidigiii",
+                                                                                       "strict_seki_mode": false
+                                                                                     }
+
+*/
+
+
 package com.example.njones.myapplication;
 
 import android.graphics.Canvas;
