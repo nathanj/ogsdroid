@@ -2,7 +2,68 @@
 
 /*
  *
-11-09 20:02:43.982 15194-15194/com.example.njones.myapplication W/OGSGameConnection: doing accept removed stones {"auth":"c039202bd6993ab89065d0f6f06232e3","game_id":6843714,"player_id":212470,"stones":"aaabbabbbcbdbhcacccecgchcidcdddieaffgfggghgihchhiaigii","strict_seki_mode":false}
+11-09 20:02:43.982 15194-15194/com.example.njones.myapplication W/OGSGameConnection: doing accept removed stones {
+"auth":"c039202bd6993ab89065d0f6f06232e3",
+"game_id":6843714,
+"player_id":212470,
+"stones":
+aa
+ab
+ba
+bb
+bc
+bd
+bh
+ca
+cc
+ce
+cg
+ch
+ci
+dc
+dd
+di
+ea
+ff
+gf
+gg
+gh
+gi
+hc
+hh
+ia
+ig
+ii
+"stones":
+aa
+ab
+ba
+bb
+bc
+bd
+bh
+ca
+cc
+ce
+cg
+ch
+ci
+dc
+dd
+di
+ea
+ff
+gf
+gg
+gh
+gi
+hc
+hh
+ia
+ig
+ii
+"strict_seki_mode":false
+}
 11-09 20:02:43.982 15194-15194/com.example.njones.myapplication D/ViewRootImpl: #3 mView = null
 11-09 20:02:43.992 15194-15194/com.example.njones.myapplication E/ViewRootImpl: sendUserActionEvent() mView == null
 11-09 20:02:44.072 15194-11183/com.example.njones.myapplication W/OGSGameConnection: on removed_stones_accepted: {
@@ -342,9 +403,9 @@ class Board {
     }
 
     public String getRemovedCoords() {
-	    StringBuilder s = new StringBuilder();
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
+        StringBuilder s = new StringBuilder();
+        for (int j = 0; j < cols; j++) {
+            for (int i = 0; i < rows; i++) {
                 if ((board[j][i] & REMOVED) == REMOVED) {
                     s.append(toStringCoords(i, j));
                 }
