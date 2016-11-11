@@ -180,8 +180,8 @@ public class Main3Activity extends AppCompatActivity {
                             Log.w("njclock", "now = " + now);
                             Log.w("njclock", "now_delta = " + now_delta);
                             Log.w("njclock", "base_time = " + base_time);
-                            Log.w("njclock", "white time = " + clock.getLong("white_time"));
-                            Log.w("njclock", "delta = " + (clock.getLong("white_time") - System.currentTimeMillis()));
+                            Log.w("njclock", "black time = " + clock.getLong("black_time"));
+                            Log.w("njclock", "delta = " + (clock.getLong("black_time") - System.currentTimeMillis()));
                             bv.clockWhite.setTime((int) (clock.getLong("white_time") - System.currentTimeMillis()) / 1000, 0, 0);
                             bv.clockBlack.setTime((int) (clock.getLong("black_time") - System.currentTimeMillis()) / 1000, 0, 0);
                         } else {

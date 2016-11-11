@@ -220,53 +220,12 @@ public class TabbedActivity extends AppCompatActivity {
         super.onPostResume();
         Log.w(TAG, "onPostResume");
 
-        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = pref.getString("accessToken", "");
+        Log.w(TAG, "accessToken = " + accessToken);
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        String username = sharedPref.getString("pref_username", "");
-        String password = sharedPref.getString("pref_password", "");
-
-        Log.w(TAG, "username=" + username);
-        Log.w(TAG, "password=" + password);
-
-        if (username.equals("") || password.equals("")) {
-            new AlertDialog.Builder(this)
-                    .setMessage("Username or password not set. Please go into Settings and enter them.")
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-//                            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-//                            startActivity(intent);
-                        }
-                    })
-                    .show();
-            return;
-        }
-
-        ogs = new OGS("ee20259490eabd6e8fba",
-                "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
-        if (accessToken.equals("")) {
-            try {
-                ogs.login(username, password);
-            } catch (IOException e) {
-                e.printStackTrace();
-                new AlertDialog.Builder(this)
-                        .setMessage("Login did not work. Check your username and password.")
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-//                                Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-//                                startActivity(intent);
-                            }
-                        })
-                        .show();
-                return;
-            }
-            SharedPreferences.Editor editor = pref.edit();
-            editor.putString("accessToken", ogs.getAccessToken());
-            editor.apply();
-        } else {
-            ogs.setAccessToken(accessToken);
-        }
+        ogs = new OGS("ee20259490eabd6e8fba", "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
+        ogs.setAccessToken(accessToken);
         ogs.openSocket();
 
         try {
@@ -281,12 +240,14 @@ public class TabbedActivity extends AppCompatActivity {
             editor.remove("accessToken");
             editor.apply();
             new AlertDialog.Builder(this)
-                    .setMessage("Access token did not work. It may have expired. Restart the app. Make sure username and password are correct.")
+                    .setMessage("Access token did not work. It may have expired. Restart the app and login again.")
                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
+                            finish();
                         }
                     })
                     .show();
+            return;
         }
         seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
             @Override
@@ -386,7 +347,7 @@ public class TabbedActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_tabbed, menu);
+        //getMenuInflater().inflate(R.menu.menu_tabbed, menu);
         return true;
     }
 

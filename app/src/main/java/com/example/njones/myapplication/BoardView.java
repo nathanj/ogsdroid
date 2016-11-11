@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -69,6 +70,7 @@ public class BoardView extends View {
 
         clockWhite = new Clock();
         clockBlack = new Clock();
+        phase = "";
 
         timer = new Timer("OGS board clock timer");
         timer.schedule(
@@ -98,6 +100,15 @@ public class BoardView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        canvas.save();
+
+        if (mx != 0) {
+            Matrix m = new Matrix();
+            m.postTranslate(-mx/2, -my/2);
+            m.postScale(2, 2);
+            canvas.setMatrix(m);
+        }
+
         r.set(0, 0, background.getWidth(), background.getHeight());
         r2.set(0, 0, canvas.getWidth(), canvas.getHeight());
         canvas.drawBitmap(background, null, r2, null);
@@ -105,12 +116,32 @@ public class BoardView extends View {
         int dimension = Math.min(canvas.getWidth(), canvas.getHeight());
 
         board.draw(canvas, dimension);
+
+        canvas.restore();
+
         clockWhite.draw(canvas, false, "White", 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
         clockBlack.draw(canvas, true, "Black", canvas.getWidth() / 2, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
+
     }
+
+    private float mx, my;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Log.w("asdf", "event = " + event);
+        Log.w("asdf", "x=" + (event.getX() / 2 - 0));
+        Log.w("asdf", "y=" + (event.getY() / 2 - 0));
+
+        if ((event.getAction() & MotionEvent.ACTION_MOVE) > 0) {
+            mx = event.getX();
+            my = event.getY();
+        } else {
+            mx = 0;
+            my = 0;
+        }
+        invalidate();
+        return true;
+        /*
         if (phase.equals("play")) {
             if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
                 String moveStr = board.addStoneAtTouch(getWidth(),
@@ -131,6 +162,7 @@ public class BoardView extends View {
             Log.w(TAG, "unknown phase " + phase);
         }
         return true;
+        */
     }
 
 }

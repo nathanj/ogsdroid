@@ -47,9 +47,9 @@ class Clock {
 
     public void set(JSONObject clock) {
         try {
-            clock.getInt("thinking_time");
-            clock.getInt("periods");
-            clock.getInt("periodTime");
+            setTime(clock.getInt("thinking_time"),
+                    clock.getInt("periods"),
+                    clock.getInt("periodTime"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -79,8 +79,6 @@ class Clock {
     }
 
     protected String formatTime(int seconds) {
-        int days = seconds / (60 * 60 * 24);
-        seconds %= (60 * 60 * 24);
         int hours = seconds / (60 * 60);
         seconds %= (60 * 60);
         int minutes = seconds / 60;
@@ -88,9 +86,7 @@ class Clock {
 
         StringBuilder s = new StringBuilder();
 
-        if (days > 1) {
-            s.append(String.format("%d days", days));
-        } else if (hours > 0) {
+        if (hours > 0) {
             s.append(String.format("%d:%02d:%02d", hours, minutes, seconds));
         } else if (minutes > 0) {
             s.append(String.format("%d:%02d", minutes, seconds));
