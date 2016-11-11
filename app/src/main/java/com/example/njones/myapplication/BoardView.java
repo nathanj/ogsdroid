@@ -60,6 +60,8 @@ public class BoardView extends View {
         this.board = board;
     }
 
+    public String zoom;
+
     private void init() {
         background = BitmapFactory.decodeResource(getResources(),
                 R.drawable.board);
@@ -86,6 +88,8 @@ public class BoardView extends View {
                     }
                 },
                 1000, 1000);
+
+
     }
 
     public void setClockWhite(JSONObject clock) {
@@ -96,18 +100,15 @@ public class BoardView extends View {
         clockBlack.set(clock);
     }
 
+    private Matrix m = new Matrix();
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
         canvas.save();
 
-        if (mx != 0) {
-            Matrix m = new Matrix();
-            m.postTranslate(-mx/2, -my/2);
-            m.postScale(2, 2);
-            canvas.setMatrix(m);
-        }
+        canvas.concat(m);
 
         r.set(0, 0, background.getWidth(), background.getHeight());
         r2.set(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -125,33 +126,74 @@ public class BoardView extends View {
     }
 
     private float mx, my;
+    public boolean zoomed = false;
+
+    public void unZoom() {
+        mx = 0;
+        my = 0;
+        zoomed = false;
+        m.reset();
+        invalidate();
+    }
+
+    private boolean shouldZoom() {
+        if (zoom.equals("1") && board.cols >= 9)
+            return true;
+        if (zoom.equals("2") && board.cols >= 13)
+            return true;
+        if (zoom.equals("3") && board.cols >= 19)
+            return true;
+        return false;
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.w("asdf", "event = " + event);
-        Log.w("asdf", "x=" + (event.getX() / 2 - 0));
-        Log.w("asdf", "y=" + (event.getY() / 2 - 0));
-
-        if ((event.getAction() & MotionEvent.ACTION_MOVE) > 0) {
-            mx = event.getX();
-            my = event.getY();
-        } else {
-            mx = 0;
-            my = 0;
-        }
-        invalidate();
-        return true;
-        /*
         if (phase.equals("play")) {
-            if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
+            if (shouldZoom()) {
+                if (zoomed) {
+                    if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
+                        Log.w(TAG, "placing stone at " + event.toString());
+                        float x = event.getX();
+                        float y = event.getY();
+                        float[] pts = {x, y};
+
+                        Matrix inverse = new Matrix();
+                        m.invert(inverse);
+                        inverse.mapPoints(pts);
+
+                        Log.w(TAG, String.format("got touch at %f,%f maps to %f,%f", x, y, pts[0], pts[1]));
+
+                        String moveStr = board.addStoneAtTouch(getWidth(),
+                                getHeight(), pts[0], pts[1]);
+                        Log.w(TAG, "moveStr = " + moveStr);
+                        if (gameConnection != null)
+                            gameConnection.makeMove(moveStr);
+
+                        unZoom();
+                    }
+                } else {
+                    if ((event.getAction() & MotionEvent.ACTION_MOVE) > 0) {
+                        mx = event.getX();
+                        my = event.getY();
+
+                        m.reset();
+                        m.postTranslate(-mx / 2, -my / 2);
+                        m.postScale(2, 2);
+
+                        invalidate();
+                    } else if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
+                        zoomed = true;
+                    }
+                }
+            } else {
                 String moveStr = board.addStoneAtTouch(getWidth(),
                         getHeight(), event.getX(), event.getY());
-                Log.w(TAG, moveStr);
+                Log.w(TAG, "moveStr = " + moveStr);
                 if (gameConnection != null)
                     gameConnection.makeMove(moveStr);
             }
         } else if (phase.equals("stone removal")) {
-            if ((event.getAction() & MotionEvent.ACTION_POINTER_DOWN) > 0) {
+            if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
                 String coords = board.stoneRemovalAtTouch(getWidth(),
                         getHeight(), event.getX(), event.getY());
                 Log.w(TAG, "coords=" + coords);
@@ -162,7 +204,6 @@ public class BoardView extends View {
             Log.w(TAG, "unknown phase " + phase);
         }
         return true;
-        */
     }
 
 }

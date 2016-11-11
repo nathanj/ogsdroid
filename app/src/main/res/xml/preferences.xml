@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="Login Info"
-        android:key="pref_key_storage_settings">
-        <EditTextPreference
-            android:key="pref_username"
-            android:summary="Your username"
-            android:title="Username"
-            android:defaultValue="" />
-        <EditTextPreference
-            android:key="pref_password"
-            android:summary="This is not your password that you normally log in with. Generate an Application Specific Password at the OGS settings web page and paste it here."
-            android:title="Application Specific Password"
-            android:defaultValue="" />
+        android:key="pref_key_storage_settings"
+        android:title="Gameplay">
+        <ListPreference
+            android:entries="@array/zoom_data"
+            android:entryValues="@array/zoom_values"
+            android:key="pref_zoom"
+            android:title="Zoom"
+            android:summary="The minimum board size where the first click will zoom the board and the second will place a stone."
+            android:defaultValue="3"/>
     </PreferenceCategory>
 </PreferenceScreen>

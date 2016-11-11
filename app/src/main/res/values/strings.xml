@@ -23,4 +23,18 @@
     <string name="prompt_username">Username</string>
     <string name="title_activity_tabbed">OGS</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    
+    <string-array name="zoom_data">
+        <item>Do not zoom</item>
+        <item>Zoom for 9x9 and above</item>
+        <item>Zoom for 13x13 and above</item>
+        <item>Zoom for 19x19 and above</item>
+    </string-array>
+
+    <string-array name="zoom_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
 </resources>

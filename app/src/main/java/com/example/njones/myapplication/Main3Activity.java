@@ -2,6 +2,7 @@ package com.example.njones.myapplication;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -10,11 +11,13 @@ import android.graphics.Rect;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.Time;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -140,6 +143,9 @@ public class Main3Activity extends AppCompatActivity {
             board = new Board(details.height, details.width);
             bv.setBoard(board);
 
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+            bv.zoom = pref.getString("pref_zoom", "0");
+
             for (int i = 0; i < details.moves.length(); i++) {
                 JSONArray move = details.moves.getJSONArray(i);
                 int x = move.getInt(0);
@@ -225,9 +231,10 @@ public class Main3Activity extends AppCompatActivity {
                         bv.phase = p;
                         invalidateOptionsMenu();
                     }
-                    if (p.equals("play"))
+                    if (p.equals("play")) {
                         bv.board.unmarkTerritory();
-                    else
+                        bv.board.unmarkRemoved();
+                    } else
                         bv.board.markTerritory();
                 }
 
@@ -290,6 +297,17 @@ public class Main3Activity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+            if (bv.zoomed) {
+                bv.unZoom();
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     // {{{ options

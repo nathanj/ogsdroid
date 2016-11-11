@@ -106,7 +106,7 @@ class Board {
     private static int TERRITORY = (BLACK_TERRITORY | WHITE_TERRITORY);
 
     public int board[][];
-    private int rows, cols;
+    public int rows, cols;
 
     private Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -325,6 +325,14 @@ class Board {
                 board[j][i] &= ~WHITE_TERRITORY;
                 board[j][i] &= ~BLACK_TERRITORY;
                 board[j][i] &= ~NEUTRAL_TERRITORY;
+            }
+        }
+    }
+
+    public void unmarkRemoved() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                board[j][i] &= ~REMOVED;
             }
         }
     }
