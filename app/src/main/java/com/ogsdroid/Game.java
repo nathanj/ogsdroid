@@ -1,4 +1,4 @@
-package com.example.njones.myapplication;
+package com.ogsdroid;
 
 /**
  * Created by njones on 11/5/16.

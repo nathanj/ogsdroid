@@ -1,4 +1,4 @@
-package com.example.njones.myapplication;
+package com.ogsdroid;
 
 import android.content.DialogInterface;
 import android.content.Intent;

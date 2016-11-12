@@ -1,4 +1,4 @@
-package com.example.njones.myapplication;
+package com.ogsdroid;
 
 import org.junit.Test;
 

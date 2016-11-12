@@ -1,4 +1,4 @@
-package com.example.njones.myapplication;
+package com.ogsdroid;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;

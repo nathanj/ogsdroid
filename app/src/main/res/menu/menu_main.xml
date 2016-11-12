@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.example.njones.myapplication.MainActivity3">
+    tools:context="com.ogsdroid.MainActivity3">
     <item
         android:id="@+id/pass"
         android:orderInCategory="100"

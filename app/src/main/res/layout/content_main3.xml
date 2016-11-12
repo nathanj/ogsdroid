@@ -6,10 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.example.njones.myapplication.Main3Activity"
+    tools:context="com.ogsdroid.Main3Activity"
     tools:showIn="@layout/activity_main3">
 
-    <com.example.njones.myapplication.BoardView
+    <com.ogsdroid.BoardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
