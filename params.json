@@ -1,0 +1,6 @@
+{
+  "name": "Ogsdroid",
+  "tagline": "Android client for online-go.com",
+  "body": "OGS Android\r\n===========\r\n\r\nThis is an android application to play games on online-go.com . It is still\r\nearly in development so be prepared for bugs and half-implemented features.\r\n\r\nScreenshots\r\n-----------\r\n\r\n![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/1.png \"Your Games\")\r\n![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/2.png \"Find a Game\")\r\n![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/3.jpg \"The Game\")\r\n\r\n\r\nTodo\r\n----\r\n\r\n  * Make the board look nicer\r\n  * Light/dark themes\r\n  * Create a challenge\r\n  * Improve clock\r\n  * Game chat\r\n  * Notifications\r\n  * Landscape\r\n  * Refresh token\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
