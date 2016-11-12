@@ -7,9 +7,10 @@ early in development so be prepared for bugs and half-implemented features.
 Screenshots
 -----------
 
-![screenshot](http://localhost/1.png "Your Games")
-![screenshot](http://localhost/2.png "Find a Game")
-![screenshot](http://localhost/3.png "The Game")
+![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/1.png "Your Games")
+![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/2.png "Find a Game")
+![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/3.jpg "The Game")
+
 
 Todo
 ----
@@ -17,6 +18,7 @@ Todo
   * Make the board look nicer
   * Light/dark themes
   * Create a challenge
+  * Improve clock
   * Game chat
   * Notifications
   * Landscape
