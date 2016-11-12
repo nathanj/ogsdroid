@@ -21,7 +21,7 @@ public class OGS {
 
     private String getURL(String url) throws JSONException, IOException {
         try {
-            Log.e("myApp", String.format("Getting %s", url));
+            Log.d("myApp", String.format("Getting %s", url));
             String httpsURL = url;
             URL myurl = new URL(httpsURL);
             HttpsURLConnection con = (HttpsURLConnection) myurl.openConnection();
@@ -50,7 +50,6 @@ public class OGS {
 
     private String postURL(String url, String auth, String body) throws JSONException, IOException {
         try {
-            Log.e("myApp", String.format("Posting to %s with body=%s", url, body));
             String httpsURL = url;
             URL myurl = new URL(httpsURL);
             HttpsURLConnection con = (HttpsURLConnection) myurl.openConnection();

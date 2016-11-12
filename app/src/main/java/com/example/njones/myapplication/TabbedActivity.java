@@ -193,13 +193,6 @@ public class TabbedActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop");
         if (gameList != null)
             gameList.clear();
         if (challengeList != null)
@@ -216,13 +209,18 @@ public class TabbedActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
+    }
+
+    @Override
     protected void onPostResume() {
         super.onPostResume();
         Log.d(TAG, "onPostResume");
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = pref.getString("accessToken", "");
-        Log.d(TAG, "accessToken = " + accessToken);
 
         ogs = new OGS("ee20259490eabd6e8fba", "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
         ogs.setAccessToken(accessToken);

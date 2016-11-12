@@ -131,10 +131,13 @@ public class Main3Activity extends AppCompatActivity {
 
         //*
         try {
+            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+            String accessToken = pref.getString("accessToken", "");
+
             // TODO - global ogs and global me
             ogs = new OGS("ee20259490eabd6e8fba",
                     "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
-            ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
+            ogs.setAccessToken(accessToken);
             JSONObject obj = ogs.me();
             Log.d(TAG, obj.toString());
 
@@ -143,7 +146,6 @@ public class Main3Activity extends AppCompatActivity {
             board = new Board(details.height, details.width);
             bv.setBoard(board);
 
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
             bv.zoom = pref.getString("pref_zoom", "0");
 
             for (int i = 0; i < details.moves.length(); i++) {
