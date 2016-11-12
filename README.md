@@ -17,7 +17,6 @@ Todo
   * Make the board look nicer
   * Light/dark themes
   * Create a challenge
-  * Zoom board for playing on smaller devices
   * Game chat
   * Notifications
   * Landscape

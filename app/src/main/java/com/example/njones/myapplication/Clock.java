@@ -75,6 +75,8 @@ class Clock {
         p.setTextSize(h / 4);
         p.setTypeface(Typeface.MONOSPACE);
         canvas.drawText(username, sx + w / 2, sy + h / 3, p);
+        if (urgent())
+            p.setARGB(255, 255, 0, 0);
         canvas.drawText(toString(), sx + w / 2, sy + h * 2 / 3, p);
     }
 
@@ -104,5 +106,9 @@ class Clock {
         } else {
             return formatTime(thinkingTime);
         }
+    }
+
+    public boolean urgent() {
+        return (thinkingTime < 10 && periods == 0);
     }
 }

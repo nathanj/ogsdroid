@@ -186,11 +186,13 @@ public class BoardView extends View {
                     }
                 }
             } else {
-                String moveStr = board.addStoneAtTouch(getWidth(),
-                        getHeight(), event.getX(), event.getY());
-                Log.w(TAG, "moveStr = " + moveStr);
-                if (gameConnection != null)
-                    gameConnection.makeMove(moveStr);
+                if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
+                    String moveStr = board.addStoneAtTouch(getWidth(),
+                            getHeight(), event.getX(), event.getY());
+                    Log.w(TAG, "moveStr = " + moveStr);
+                    if (gameConnection != null)
+                        gameConnection.makeMove(moveStr);
+                }
             }
         } else if (phase.equals("stone removal")) {
             if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
