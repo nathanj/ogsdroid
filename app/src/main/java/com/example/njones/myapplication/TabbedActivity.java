@@ -146,7 +146,7 @@ public class TabbedActivity extends AppCompatActivity {
                         g.myturn = false;
                         g.name = String.format("Opponent's move - %s vs %s", white, black);
                     }
-                    //Log.w(TAG, "game name = " + g.name);
+                    //Log.d(TAG, "game name = " + g.name);
                     gameList.add(g);
                 }
                 Collections.sort(gameList);
@@ -192,14 +192,14 @@ public class TabbedActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Log.w(TAG, "onPause");
+        Log.d(TAG, "onPause");
 
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.w(TAG, "onStop");
+        Log.d(TAG, "onStop");
         if (gameList != null)
             gameList.clear();
         if (challengeList != null)
@@ -218,11 +218,11 @@ public class TabbedActivity extends AppCompatActivity {
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        Log.w(TAG, "onPostResume");
+        Log.d(TAG, "onPostResume");
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = pref.getString("accessToken", "");
-        Log.w(TAG, "accessToken = " + accessToken);
+        Log.d(TAG, "accessToken = " + accessToken);
 
         ogs = new OGS("ee20259490eabd6e8fba", "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
         ogs.setAccessToken(accessToken);
@@ -232,7 +232,7 @@ public class TabbedActivity extends AppCompatActivity {
             JSONObject me = ogs.me();
             myRanking = me.getInt("ranking");
             myId = me.getInt("id");
-            Log.w(TAG, "myRanking = " + myRanking);
+            Log.d(TAG, "myRanking = " + myRanking);
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -255,7 +255,7 @@ public class TabbedActivity extends AppCompatActivity {
                 for (int i = 0; i < events.length(); i++) {
                     try {
                         final JSONObject event = events.getJSONObject(i);
-                        Log.w(TAG, event.toString());
+                        Log.d(TAG, event.toString());
                         if (event.has("delete")) {
                             mainActivity.runOnUiThread(new Runnable() {
                                 @Override
@@ -273,7 +273,7 @@ public class TabbedActivity extends AppCompatActivity {
                         else // new seek
                         {
                             final TabbedActivity.Challenge c = new TabbedActivity.Challenge(event);
-                            Log.w(TAG, c.toString());
+                            Log.d(TAG, c.toString());
 
                             if (c.canAccept(myRanking)) {
                                 mainActivity.runOnUiThread(new Runnable() {
@@ -285,7 +285,7 @@ public class TabbedActivity extends AppCompatActivity {
                                     }
                                 });
                             } else {
-                                Log.w(TAG, "could not accept " + c);
+                                Log.d(TAG, "could not accept " + c);
                             }
 
                         }
@@ -303,7 +303,7 @@ public class TabbedActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.w(TAG, "onDestroy");
+        Log.d(TAG, "onDestroy");
     }
 
     SeekGraphConnection seek;
@@ -311,7 +311,7 @@ public class TabbedActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.w(TAG, "onCreate");
+        Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_tabbed);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -358,7 +358,7 @@ public class TabbedActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        Log.w(TAG, "id = " + id);
+        Log.d(TAG, "id = " + id);
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);

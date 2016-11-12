@@ -26,7 +26,7 @@ public class SeekGraphConnection {
             @Override
             public void call(Object... args) {
                 JSONArray events = (JSONArray) args[0];
-                Log.w(TAG, "seekgraph calllback = " + events);
+                Log.d(TAG, "seekgraph calllback = " + events);
                 callbacks.event(events);
             }
         });
@@ -34,7 +34,7 @@ public class SeekGraphConnection {
             JSONObject args = new JSONObject();
             args.put("channel", "global");
             socket.emit("seek_graph/connect", args);
-            Log.w(TAG, "opened seek graph");
+            Log.d(TAG, "opened seek graph");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -45,7 +45,7 @@ public class SeekGraphConnection {
             JSONObject args = new JSONObject();
             args.put("channel", "global");
             socket.emit("seek_graph/disconnect", args);
-            Log.w(TAG, "opened seek graph");
+            Log.d(TAG, "opened seek graph");
         } catch (JSONException e) {
             e.printStackTrace();
         }

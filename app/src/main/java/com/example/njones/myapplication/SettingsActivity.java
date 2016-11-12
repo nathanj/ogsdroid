@@ -12,7 +12,7 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.w("SettingsActivity", "onCreate");
+        Log.d("SettingsActivity", "onCreate");
         addPreferencesFromResource(R.xml.preferences);
     }
 }

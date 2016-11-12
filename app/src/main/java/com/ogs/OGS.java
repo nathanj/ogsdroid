@@ -139,7 +139,7 @@ public class OGS {
     public int acceptChallenge(int id) throws JSONException {
         try {
             String str = postURL("https://online-go.com/api/v1/challenges/" + id + "/accept?format=json", accessToken, "");
-            Log.w(TAG, "acceptChallenge resp=" + str);
+            Log.d(TAG, "acceptChallenge resp=" + str);
             JSONObject obj = new JSONObject(str);
             return obj.getInt("game");
         } catch (IOException e) {
@@ -151,7 +151,7 @@ public class OGS {
     public JSONObject listGames() throws JSONException {
         try {
             String str = getURL("https://online-go.com/api/v1/me/games/?started__isnull=False&ended__isnull=True&format=json");
-//        Log.w("myApp", str);
+//        Log.d("myApp", str);
             return new JSONObject(str);
         } catch (IOException e) {
             e.printStackTrace();
@@ -171,10 +171,10 @@ public class OGS {
 
     public JSONObject gameMove(int id, String move) throws JSONException {
         try {
-//        Log.w("myApp", "doing game move " + move);
+//        Log.d("myApp", "doing game move " + move);
             String str = postURL("https://online-go.com/api/v1/games/" + id + "/move/?format=json", accessToken,
                     "{\"move\": \"" + "aa" + "\"}");
-//        Log.w("myApp", str);
+//        Log.d("myApp", str);
             return new JSONObject(str);
         } catch (IOException e) {
             e.printStackTrace();
@@ -196,14 +196,14 @@ public class OGS {
 
             @Override
             public void call(Object... args) {
-                Log.w("myApp", "socket connect");
+                Log.d("myApp", "socket connect");
             }
 
         }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
 
             @Override
             public void call(Object... args) {
-                Log.w("myApp", "socket disconnect");
+                Log.d("myApp", "socket disconnect");
             }
 
         });
@@ -215,7 +215,7 @@ public class OGS {
     }
 
     public SeekGraphConnection openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks callbacks) {
-        Log.w(TAG, "opening seek graph");
+        Log.d(TAG, "opening seek graph");
         return new SeekGraphConnection(this, socket, callbacks);
     }
 

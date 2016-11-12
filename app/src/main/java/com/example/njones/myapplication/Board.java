@@ -254,7 +254,7 @@ class Board {
     }
 
     String removeGroup(int x, int y, int color) {
-        //Log.w("remov", "checking marking group at x=" + x + " y=" + y + " color=" + color);
+        //Log.d("remov", "checking marking group at x=" + x + " y=" + y + " color=" + color);
         if (y < 0 || y >= rows)
             return "";
         if (x < 0 || x >= cols)
@@ -263,7 +263,7 @@ class Board {
         if ((board[y][x] & MARKED) == MARKED)
             return "";
         if (board[y][x] == color) {
-            //Log.w("remov", "really marking group at x=" + x + " y=" + y + " color=" + color);
+            //Log.d("remov", "really marking group at x=" + x + " y=" + y + " color=" + color);
 
             board[y][x] |= MARKED;
             removeGroup(x - 1, y, color);
@@ -307,7 +307,7 @@ class Board {
             return 0;
         // stone, return that color
         if ((board[y][x] & REMOVED) != REMOVED && (board[y][x] & COLOR) > 0) {
-            //Log.w("trace", String.format("returning y=%d x=%d color=%x", y, x, board[y][x]));
+            //Log.d("trace", String.format("returning y=%d x=%d color=%x", y, x, board[y][x]));
             return board[y][x];
         }
         // removed stone and empty space, mark and keep traversing
@@ -338,7 +338,7 @@ class Board {
     }
 
     public void markTerritory() {
-        Log.w("removal", "marking terrotiry");
+        Log.d("removal", "marking terrotiry");
         unmarkTerritory();
 
         traceBoard("before determine territory");
@@ -346,7 +346,7 @@ class Board {
             for (int j = 0; j < cols; j++) {
                 if (board[j][i] == EMPTY) {
                     int mask = determineTerritory(i, j);
-                    Log.w("removal", String.format("r=%d c=%d mask=%x", j, i, mask));
+                    Log.d("removal", String.format("r=%d c=%d mask=%x", j, i, mask));
                     traceBoard("before setting territory");
                     if (mask == WHITE)
                         setTerritory(i, j, WHITE_TERRITORY);
@@ -363,7 +363,7 @@ class Board {
     void traceBoard(String header) {
         /*
         for (int r = 0; r < rows; r++) {
-            Log.w("trace", String.format("%30s: %3x %3x %3x %3x %3x %3x %3x %3x %3x",
+            Log.d("trace", String.format("%30s: %3x %3x %3x %3x %3x %3x %3x %3x %3x",
                     header,
                     board[r][0],
                     board[r][1],
@@ -431,7 +431,7 @@ class Board {
     }
 
     public String stoneRemovalAtTouch(int width, int height, float x, float y) {
-        Log.w("removal", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
+        Log.d("removal", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
         int dims = Math.min(width, height);
         float spacing = dims / (Math.max(cols, rows) + 1);
 
@@ -462,7 +462,7 @@ class Board {
     }
 
     public String addStoneAtTouch(int width, int height, float x, float y) {
-        Log.w("myApp", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
+        Log.d("myApp", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
         int dims = Math.min(width, height);
         float spacing = dims / (Math.max(cols, rows) + 1);
 
@@ -473,14 +473,14 @@ class Board {
         if (sx < 0 || sy >= rows)
             return "";
         //board[sy][sx] = 1;
-        Log.w("myApp", String.format("created stone at %d/%d", sx, sy));
+        Log.d("myApp", String.format("created stone at %d/%d", sx, sy));
         String moveStr = "";
         int c1 = (int) 'a' + sx;
         int c2 = (int) 'a' + sy;
-        Log.w("myApp", String.format("c1=%d c2=%d", c1, c2));
+        Log.d("myApp", String.format("c1=%d c2=%d", c1, c2));
         moveStr = moveStr + (char) c1;
         moveStr = moveStr + (char) c2;
-        Log.w("myApp", "moveStr = " + moveStr);
+        Log.d("myApp", "moveStr = " + moveStr);
         return moveStr;
     }
 
@@ -513,7 +513,7 @@ class Board {
         char c2 = coords.charAt(1);
         lastV = oppositeColor(lastV);
         board[(int) c2][(int) c1] = lastV;
-        Log.w("myApp", "added stone at " + coords);
+        Log.d("myApp", "added stone at " + coords);
     }
 
     private boolean hasLiberty(int x, int y, int color) {
@@ -561,7 +561,7 @@ class Board {
             return;
         if (board[y][x] == color) {
             boolean has = hasLiberty(x, y, color);
-            Log.w("capture", "x = " + x + ", y = " + y + ", hasLiberty = " + has);
+            Log.d("capture", "x = " + x + ", y = " + y + ", hasLiberty = " + has);
             // remove marks
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < cols; j++) {
@@ -569,7 +569,7 @@ class Board {
                 }
             }
             if (!has) {
-                Log.w("capture", "capturing stones");
+                Log.d("capture", "capturing stones");
                 captureStones(x, y, color);
             }
         }

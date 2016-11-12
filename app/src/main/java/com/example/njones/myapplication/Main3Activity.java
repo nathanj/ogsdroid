@@ -86,7 +86,7 @@ public class Main3Activity extends AppCompatActivity {
 
         GameData(JSONObject obj) {
             try {
-                Log.w(TAG, "gamedata = " + obj.toString());
+                Log.d(TAG, "gamedata = " + obj.toString());
                 phase = obj.getString("phase");
 
                 whitePlayer = obj.getJSONObject("players").getJSONObject("white").getString("username");
@@ -136,7 +136,7 @@ public class Main3Activity extends AppCompatActivity {
                     "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
             ogs.setAccessToken("ec2ce38a81fbd2b708eb069cee764f907dbbe3e4");
             JSONObject obj = ogs.me();
-            Log.w(TAG, obj.toString());
+            Log.d(TAG, obj.toString());
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             final GameDetails details = new GameDetails(gameDetails);
@@ -176,25 +176,25 @@ public class Main3Activity extends AppCompatActivity {
                 public void clock(JSONObject clock) {
                     try {
 
-                        Log.w("njclock", clock.toString());
+                        Log.d("njclock", clock.toString());
                         final int whoseTurn = clock.getInt("current_player");
 
                         if (clock.get("white_time") instanceof Number) {
                             long now = System.currentTimeMillis();
                             long now_delta = now - clock.getLong("now");
                             long base_time = clock.getLong("last_move") + now_delta;
-                            Log.w("njclock", "now = " + now);
-                            Log.w("njclock", "now_delta = " + now_delta);
-                            Log.w("njclock", "base_time = " + base_time);
-                            Log.w("njclock", "black time = " + clock.getLong("black_time"));
-                            Log.w("njclock", "delta = " + (clock.getLong("black_time") - System.currentTimeMillis()));
+                            Log.d("njclock", "now = " + now);
+                            Log.d("njclock", "now_delta = " + now_delta);
+                            Log.d("njclock", "base_time = " + base_time);
+                            Log.d("njclock", "black time = " + clock.getLong("black_time"));
+                            Log.d("njclock", "delta = " + (clock.getLong("black_time") - System.currentTimeMillis()));
                             bv.clockWhite.setTime((int) (clock.getLong("white_time") - System.currentTimeMillis()) / 1000, 0, 0);
                             bv.clockBlack.setTime((int) (clock.getLong("black_time") - System.currentTimeMillis()) / 1000, 0, 0);
                         } else {
                             int thinkingTime = 0, periods = 0, periodTime = 0;
                             try {
                                 JSONObject c = clock.getJSONObject("white_time");
-                                Log.w("njclock", "white = " + c);
+                                Log.d("njclock", "white = " + c);
                                 thinkingTime = c.getInt("thinking_time");
                                 periods = c.getInt("periods");
                                 periodTime = c.getInt("period_time");
@@ -208,7 +208,7 @@ public class Main3Activity extends AppCompatActivity {
                             periodTime = 0;
                             try {
                                 JSONObject c = clock.getJSONObject("black_time");
-                                Log.w("njclock", "black = " + c);
+                                Log.d("njclock", "black = " + c);
                                 thinkingTime = c.getInt("thinking_time");
                                 periods = c.getInt("periods");
                                 periodTime = c.getInt("period_time");
@@ -313,7 +313,7 @@ public class Main3Activity extends AppCompatActivity {
     // {{{ options
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.w(TAG, "options menu phase = " + phase);
+        Log.d(TAG, "options menu phase = " + phase);
         getMenuInflater().inflate(R.menu.menu_main, menu);
         for (int i = 0; i < menu.size(); i++) {
             MenuItem item = menu.getItem(i);
@@ -337,7 +337,7 @@ public class Main3Activity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.pass:
-                Log.w(TAG, "user chose pass");
+                Log.d(TAG, "user chose pass");
 
                 new AlertDialog.Builder(this)
                         .setMessage("Are you sure you want to pass?")
@@ -352,7 +352,7 @@ public class Main3Activity extends AppCompatActivity {
 
                 return true;
             case R.id.resign:
-                Log.w(TAG, "user chose resign");
+                Log.d(TAG, "user chose resign");
                 new AlertDialog.Builder(this)
                         .setMessage("Are you sure you want to resign?")
                         .setCancelable(true)
@@ -366,7 +366,7 @@ public class Main3Activity extends AppCompatActivity {
 
                 return true;
             case R.id.accept_stones:
-                Log.w(TAG, "user chose accept stones");
+                Log.d(TAG, "user chose accept stones");
                 new AlertDialog.Builder(this)
                         .setMessage("Are you sure you want to accept stones?")
                         .setCancelable(true)
@@ -380,7 +380,7 @@ public class Main3Activity extends AppCompatActivity {
 
                 return true;
             case R.id.reject_stones:
-                Log.w(TAG, "user chose reject stones");
+                Log.d(TAG, "user chose reject stones");
                 new AlertDialog.Builder(this)
                         .setMessage("Are you sure you want to reject stones?")
                         .setCancelable(true)

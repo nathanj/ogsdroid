@@ -78,7 +78,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = pref.getString("accessToken", "");
 //        accessToken = "";
-        Log.w("login", "accessToken = " + accessToken);
+        Log.d("login", "accessToken = " + accessToken);
         if (!accessToken.equals("")) {
             Intent intent = new Intent(getApplicationContext(), TabbedActivity.class);
             startActivity(intent);
@@ -325,7 +325,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             SharedPreferences.Editor editor = pref.edit();
             editor.putString("accessToken", ogs.getAccessToken());
             editor.apply();
-            Log.w("login", "put accessToken = " + ogs.getAccessToken());
+            Log.d("login", "put accessToken = " + ogs.getAccessToken());
             return true;
         }
 

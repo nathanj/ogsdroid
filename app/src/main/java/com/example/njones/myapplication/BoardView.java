@@ -152,7 +152,7 @@ public class BoardView extends View {
             if (shouldZoom()) {
                 if (zoomed) {
                     if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
-                        Log.w(TAG, "placing stone at " + event.toString());
+                        Log.d(TAG, "placing stone at " + event.toString());
                         float x = event.getX();
                         float y = event.getY();
                         float[] pts = {x, y};
@@ -161,11 +161,11 @@ public class BoardView extends View {
                         m.invert(inverse);
                         inverse.mapPoints(pts);
 
-                        Log.w(TAG, String.format("got touch at %f,%f maps to %f,%f", x, y, pts[0], pts[1]));
+                        Log.d(TAG, String.format("got touch at %f,%f maps to %f,%f", x, y, pts[0], pts[1]));
 
                         String moveStr = board.addStoneAtTouch(getWidth(),
                                 getHeight(), pts[0], pts[1]);
-                        Log.w(TAG, "moveStr = " + moveStr);
+                        Log.d(TAG, "moveStr = " + moveStr);
                         if (gameConnection != null)
                             gameConnection.makeMove(moveStr);
 
@@ -189,7 +189,7 @@ public class BoardView extends View {
                 if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
                     String moveStr = board.addStoneAtTouch(getWidth(),
                             getHeight(), event.getX(), event.getY());
-                    Log.w(TAG, "moveStr = " + moveStr);
+                    Log.d(TAG, "moveStr = " + moveStr);
                     if (gameConnection != null)
                         gameConnection.makeMove(moveStr);
                 }
@@ -198,12 +198,12 @@ public class BoardView extends View {
             if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
                 String coords = board.stoneRemovalAtTouch(getWidth(),
                         getHeight(), event.getX(), event.getY());
-                Log.w(TAG, "coords=" + coords);
+                Log.d(TAG, "coords=" + coords);
                 if (gameConnection != null)
                     gameConnection.removeStones(coords, true);
             }
         } else {
-            Log.w(TAG, "unknown phase " + phase);
+            Log.d(TAG, "unknown phase " + phase);
         }
         return true;
     }
