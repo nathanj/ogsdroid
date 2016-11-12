@@ -6,31 +6,26 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.ogs.OGS;
 import com.ogs.SeekGraphConnection;
@@ -42,127 +37,16 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.prefs.Preferences;
 
 public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
-
-
-    public static class Challenge implements Comparable<Challenge> {
-        int challengeId;
-        String name;
-        String username;
-        boolean ranked;
-        int rank;
-        int minRank, maxRank;
-        int handicap;
-        int timePerMove;
-        int width, height;
-
-        Challenge(int id) {
-            challengeId = id;
-        }
-
-        Challenge(JSONObject obj) {
-            try {
-                challengeId = obj.getInt("challenge_id");
-                username = obj.getString("username");
-                name = obj.getString("name");
-                timePerMove = obj.getInt("time_per_move");
-                ranked = obj.getBoolean("ranked");
-                rank = obj.getInt("rank");
-                minRank = obj.getInt("min_rank");
-                maxRank = obj.getInt("max_rank");
-                handicap = obj.getInt("handicap");
-                width = obj.getInt("width");
-                height = obj.getInt("height");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private String rankToString(int rank) {
-            if (rank < 30)
-                return String.format("%d Kyu", 30 - rank);
-            else
-                return String.format("%d Dan", rank - 30 + 1);
-        }
-
-        @Override
-        public String toString() {
-            String handicapStr = handicap == -1 ? "Auto Handicap" : (handicap == 0 ? "No Handicap" : "");
-            if (handicap > 0)
-                handicapStr = String.format("%d Stones", handicap);
-
-            return String.format("%s - %dx%d - %s (%s) - %s - %s - %ds / move",
-                    name, width, height, username, rankToString(rank),
-                    ranked ? "Ranked" : "Casual",
-                    handicapStr,
-                    timePerMove);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            Challenge other = (Challenge) obj;
-            if (other == null)
-                return false;
-
-            return other.challengeId == challengeId;
-        }
-
-        public boolean canAccept(int myRanking) {
-            return myRanking >= minRank && myRanking <= maxRank && (!ranked || Math.abs(myRanking - rank) <= 9);
-        }
-
-        public int compareTo(Challenge challenge) {
-            if (challenge.timePerMove == timePerMove) {
-                return rank - challenge.rank;
-            }
-            return timePerMove - challenge.timePerMove;
-        }
-    }
-
-    private class GetGameList extends AsyncTask<OGS, Void, ArrayList<Game>> {
-        protected ArrayList<Game> doInBackground(OGS... ogss) {
-            OGS ogs = ogss[0];
-            ArrayList<Game> gameList = new ArrayList<>();
-
-            try {
-                JSONObject games = ogs.listGames();
-                JSONArray results = games.getJSONArray("results");
-                for (int i = 0; i < results.length(); i++) {
-                    JSONObject game = results.getJSONObject(i);
-                    int id = game.getInt("id");
-                    JSONObject details = ogs.getGameDetails(id);
-                    Game g = new Game();
-                    g.id = id;
-                    String white = game.getJSONObject("players").getJSONObject("white").getString("username");
-                    String black = game.getJSONObject("players").getJSONObject("black").getString("username");
-                    int currentPlayer = details.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
-                    if (myId == currentPlayer) {
-                        g.myturn = true;
-                        g.name = String.format("Your move - %s vs %s", white, black);
-                    } else {
-                        g.myturn = false;
-                        g.name = String.format("Opponent's move - %s vs %s", white, black);
-                    }
-                    //Log.d(TAG, "game name = " + g.name);
-                    gameList.add(g);
-                }
-                Collections.sort(gameList);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return gameList;
-        }
-
-        protected void onPostExecute(ArrayList<Game> list) {
-            gameAdapter.addAll(list);
-            gameAdapter.notifyDataSetChanged();
-        }
-    }
-
-
+    static ArrayList<Game> gameList = new ArrayList<>();
+    static ArrayList<Challenge> challengeList = new ArrayList<>();
+    static ArrayAdapter<Game> gameAdapter;
+    static ArrayAdapter<Challenge> challengeAdapter;
+    static Activity mainActivity;
+    static OGS ogs;
+    SeekGraphConnection seek;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -172,19 +56,11 @@ public class TabbedActivity extends AppCompatActivity {
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
-
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
-
     private int myRanking, myId;
-    static ArrayList<Game> gameList = new ArrayList<>();
-    static ArrayList<Challenge> challengeList = new ArrayList<>();
-    static ArrayAdapter<Game> gameAdapter;
-    static ArrayAdapter<Challenge> challengeAdapter;
-    static Activity mainActivity;
-    static OGS ogs;
 
     /**
      * Dispatch onPause() to fragments.
@@ -303,8 +179,6 @@ public class TabbedActivity extends AppCompatActivity {
         Log.d(TAG, "onDestroy");
     }
 
-    SeekGraphConnection seek;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -339,7 +213,6 @@ public class TabbedActivity extends AppCompatActivity {
 
         mainActivity = this;
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -380,6 +253,80 @@ public class TabbedActivity extends AppCompatActivity {
         */
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public static class Challenge implements Comparable<Challenge> {
+        int challengeId;
+        String name;
+        String username;
+        boolean ranked;
+        int rank;
+        int minRank, maxRank;
+        int handicap;
+        int timePerMove;
+        int width, height;
+
+        Challenge(int id) {
+            challengeId = id;
+        }
+
+        Challenge(JSONObject obj) {
+            try {
+                challengeId = obj.getInt("challenge_id");
+                username = obj.getString("username");
+                name = obj.getString("name");
+                timePerMove = obj.getInt("time_per_move");
+                ranked = obj.getBoolean("ranked");
+                rank = obj.getInt("rank");
+                minRank = obj.getInt("min_rank");
+                maxRank = obj.getInt("max_rank");
+                handicap = obj.getInt("handicap");
+                width = obj.getInt("width");
+                height = obj.getInt("height");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private String rankToString(int rank) {
+            if (rank < 30)
+                return String.format("%d Kyu", 30 - rank);
+            else
+                return String.format("%d Dan", rank - 30 + 1);
+        }
+
+        @Override
+        public String toString() {
+            String handicapStr = handicap == -1 ? "Auto Handicap" : (handicap == 0 ? "No Handicap" : "");
+            if (handicap > 0)
+                handicapStr = String.format("%d Stones", handicap);
+
+            return String.format("%s - %dx%d - %s (%s) - %s - %s - %ds / move",
+                    name, width, height, username, rankToString(rank),
+                    ranked ? "Ranked" : "Casual",
+                    handicapStr,
+                    timePerMove);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            Challenge other = (Challenge) obj;
+            if (other == null)
+                return false;
+
+            return other.challengeId == challengeId;
+        }
+
+        public boolean canAccept(int myRanking) {
+            return myRanking >= minRank && myRanking <= maxRank && (!ranked || Math.abs(myRanking - rank) <= 9);
+        }
+
+        public int compareTo(Challenge challenge) {
+            if (challenge.timePerMove == timePerMove) {
+                return rank - challenge.rank;
+            }
+            return timePerMove - challenge.timePerMove;
+        }
     }
 
     /**
@@ -464,6 +411,46 @@ public class TabbedActivity extends AppCompatActivity {
                     return rootView;
             }
             return null;
+        }
+    }
+
+    private class GetGameList extends AsyncTask<OGS, Void, ArrayList<Game>> {
+        protected ArrayList<Game> doInBackground(OGS... ogss) {
+            OGS ogs = ogss[0];
+            ArrayList<Game> gameList = new ArrayList<>();
+
+            try {
+                JSONObject games = ogs.listGames();
+                JSONArray results = games.getJSONArray("results");
+                for (int i = 0; i < results.length(); i++) {
+                    JSONObject game = results.getJSONObject(i);
+                    int id = game.getInt("id");
+                    JSONObject details = ogs.getGameDetails(id);
+                    Game g = new Game();
+                    g.id = id;
+                    String white = game.getJSONObject("players").getJSONObject("white").getString("username");
+                    String black = game.getJSONObject("players").getJSONObject("black").getString("username");
+                    int currentPlayer = details.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
+                    if (myId == currentPlayer) {
+                        g.myturn = true;
+                        g.name = String.format("Your move - %s vs %s", white, black);
+                    } else {
+                        g.myturn = false;
+                        g.name = String.format("Opponent's move - %s vs %s", white, black);
+                    }
+                    //Log.d(TAG, "game name = " + g.name);
+                    gameList.add(g);
+                }
+                Collections.sort(gameList);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return gameList;
+        }
+
+        protected void onPostExecute(ArrayList<Game> list) {
+            gameAdapter.addAll(list);
+            gameAdapter.notifyDataSetChanged();
         }
     }
 

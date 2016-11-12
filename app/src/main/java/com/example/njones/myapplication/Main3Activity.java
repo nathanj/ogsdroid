@@ -3,27 +3,16 @@ package com.example.njones.myapplication;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
-import android.view.View;
 
 import com.ogs.OGS;
 import com.ogs.OGSGameConnection;
@@ -31,10 +20,6 @@ import com.ogs.OGSGameConnection;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import io.socket.client.IO;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 
 public class Main3Activity extends AppCompatActivity {
     private static final String TAG = "Main3Activity";
@@ -47,68 +32,6 @@ public class Main3Activity extends AppCompatActivity {
     private AppCompatActivity activity;
     private BoardView bv;
     private Board board;
-
-    private class GameDetails {
-        public int height, width;
-        public String phase;
-        public JSONArray moves;
-        public String whitePlayer, blackPlayer;
-        public int whiteId, blackId;
-        public int whoseTurn;
-        public String gameAuth;
-
-        GameDetails(JSONObject gameDetails) {
-            try {
-                height = gameDetails.getJSONObject("gamedata").getInt("height");
-                width = gameDetails.getJSONObject("gamedata").getInt("width");
-                phase = gameDetails.getJSONObject("gamedata").getString("phase");
-                moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
-
-                whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
-                whiteId = gameDetails.getJSONObject("players").getJSONObject("white").getInt("id");
-                blackPlayer = gameDetails.getJSONObject("players").getJSONObject("black").getString("username");
-                blackId = gameDetails.getJSONObject("players").getJSONObject("black").getInt("id");
-                whoseTurn = gameDetails.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
-
-                gameAuth = gameDetails.getString("auth");
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private class GameData {
-        public String phase;
-        public String whitePlayer, blackPlayer;
-        public int whiteId, blackId;
-        public int whoseTurn;
-        public int winner;
-
-        GameData(JSONObject obj) {
-            try {
-                Log.d(TAG, "gamedata = " + obj.toString());
-                phase = obj.getString("phase");
-
-                whitePlayer = obj.getJSONObject("players").getJSONObject("white").getString("username");
-                whiteId = obj.getJSONObject("players").getJSONObject("white").getInt("id");
-                blackPlayer = obj.getJSONObject("players").getJSONObject("black").getString("username");
-                blackId = obj.getJSONObject("players").getJSONObject("black").getInt("id");
-                try {
-                    whoseTurn = obj.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
-                } catch (JSONException e) {
-                    whoseTurn = 1;
-                }
-                try {
-                    winner = obj.getJSONObject("gamedata").getInt("winner");
-                } catch (JSONException e) {
-                    winner = 1;
-                }
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -396,6 +319,67 @@ public class Main3Activity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private class GameDetails {
+        public int height, width;
+        public String phase;
+        public JSONArray moves;
+        public String whitePlayer, blackPlayer;
+        public int whiteId, blackId;
+        public int whoseTurn;
+        public String gameAuth;
+
+        GameDetails(JSONObject gameDetails) {
+            try {
+                height = gameDetails.getJSONObject("gamedata").getInt("height");
+                width = gameDetails.getJSONObject("gamedata").getInt("width");
+                phase = gameDetails.getJSONObject("gamedata").getString("phase");
+                moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
+
+                whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
+                whiteId = gameDetails.getJSONObject("players").getJSONObject("white").getInt("id");
+                blackPlayer = gameDetails.getJSONObject("players").getJSONObject("black").getString("username");
+                blackId = gameDetails.getJSONObject("players").getJSONObject("black").getInt("id");
+                whoseTurn = gameDetails.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
+
+                gameAuth = gameDetails.getString("auth");
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private class GameData {
+        public String phase;
+        public String whitePlayer, blackPlayer;
+        public int whiteId, blackId;
+        public int whoseTurn;
+        public int winner;
+
+        GameData(JSONObject obj) {
+            try {
+                Log.d(TAG, "gamedata = " + obj.toString());
+                phase = obj.getString("phase");
+
+                whitePlayer = obj.getJSONObject("players").getJSONObject("white").getString("username");
+                whiteId = obj.getJSONObject("players").getJSONObject("white").getInt("id");
+                blackPlayer = obj.getJSONObject("players").getJSONObject("black").getString("username");
+                blackId = obj.getJSONObject("players").getJSONObject("black").getInt("id");
+                try {
+                    whoseTurn = obj.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
+                } catch (JSONException e) {
+                    whoseTurn = 1;
+                }
+                try {
+                    winner = obj.getJSONObject("gamedata").getInt("winner");
+                } catch (JSONException e) {
+                    winner = 1;
+                }
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     // }}}

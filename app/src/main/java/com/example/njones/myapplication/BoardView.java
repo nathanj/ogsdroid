@@ -5,46 +5,33 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.Rect;
-import android.os.Bundle;
-import android.os.StrictMode;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 
-import com.ogs.OGS;
 import com.ogs.OGSGameConnection;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
-
 public class BoardView extends View {
     private static final String TAG = "BoardView";
     public Board board;
-    private Bitmap background;
-    private Rect r, r2;
     public Clock clockWhite, clockBlack;
-
     public String phase;
     public OGSGameConnection gameConnection;
-
     public Timer timer;
     public boolean blacksMove;
+    public String zoom;
+    public boolean zoomed = false;
+    private Bitmap background;
+    private Rect r, r2;
+    private Matrix m = new Matrix();
+    private float mx, my;
 
     public BoardView(Context context) {
         super(context);
@@ -59,8 +46,6 @@ public class BoardView extends View {
     public void setBoard(Board board) {
         this.board = board;
     }
-
-    public String zoom;
 
     private void init() {
         background = BitmapFactory.decodeResource(getResources(),
@@ -100,8 +85,6 @@ public class BoardView extends View {
         clockBlack.set(clock);
     }
 
-    private Matrix m = new Matrix();
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -124,9 +107,6 @@ public class BoardView extends View {
         clockBlack.draw(canvas, true, "Black", canvas.getWidth() / 2, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
 
     }
-
-    private float mx, my;
-    public boolean zoomed = false;
 
     public void unZoom() {
         mx = 0;

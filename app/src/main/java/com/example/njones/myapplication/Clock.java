@@ -3,7 +3,6 @@ package com.example.njones.myapplication;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;

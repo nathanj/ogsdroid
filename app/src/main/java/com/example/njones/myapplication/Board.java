@@ -1,5 +1,3 @@
-
-
 /*
  *
 11-09 20:02:43.982 15194-15194/com.example.njones.myapplication W/OGSGameConnection: doing accept removed stones {
@@ -109,6 +107,7 @@ class Board {
     public int rows, cols;
 
     private Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private int lastY, lastX, lastV = 2;
 
     Board(int rows, int cols) {
         this.rows = rows;
@@ -380,9 +379,9 @@ class Board {
     }
 
     public void stoneRemoval(String coords, boolean removed) {
-        for (int i = 0; i < coords.length()/2; i++) {
-            int sx = (int) coords.charAt(i*2) - (int) 'a';
-            int sy = (int) coords.charAt(i*2+1) - (int) 'a';
+        for (int i = 0; i < coords.length() / 2; i++) {
+            int sx = (int) coords.charAt(i * 2) - (int) 'a';
+            int sy = (int) coords.charAt(i * 2 + 1) - (int) 'a';
             if (removed)
                 board[sy][sx] |= REMOVED;
             else
@@ -419,7 +418,7 @@ class Board {
                 }
             }
         }
-	return s.toString();
+        return s.toString();
     }
 
     void removeMarked() {
@@ -447,8 +446,6 @@ class Board {
         String coords = markedToCoords();
         removeMarked();
         return coords;
-
-
 
 
         //traceBoard("before mark");
@@ -575,6 +572,4 @@ class Board {
         }
 
     }
-
-    private int lastY, lastX, lastV = 2;
 }
