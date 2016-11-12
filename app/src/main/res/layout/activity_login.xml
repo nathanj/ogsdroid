@@ -42,7 +42,7 @@
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:text="nathanj439" />
+                    android:text="" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -61,7 +61,7 @@
                     android:inputType="textLongMessage"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:text="691c9d7a8986c29d80a0c13cb509d986" />
+                    android:text="" />
 
             </android.support.design.widget.TextInputLayout>
 

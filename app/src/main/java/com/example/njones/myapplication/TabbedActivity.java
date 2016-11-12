@@ -221,8 +221,7 @@ public class TabbedActivity extends AppCompatActivity {
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = pref.getString("accessToken", "");
-
-        ogs = new OGS("ee20259490eabd6e8fba", "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
+        OGS ogs = new OGS("82ff83f2631a55273c31", "cd42d95fd978348d57dc909a9aecd68d36b17bd2");
         ogs.setAccessToken(accessToken);
         ogs.openSocket();
 

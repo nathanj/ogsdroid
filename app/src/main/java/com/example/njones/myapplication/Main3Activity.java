@@ -135,8 +135,7 @@ public class Main3Activity extends AppCompatActivity {
             String accessToken = pref.getString("accessToken", "");
 
             // TODO - global ogs and global me
-            ogs = new OGS("ee20259490eabd6e8fba",
-                    "31ce3312e5dd2b0a189c8249c3d66fd661834f32");
+            OGS ogs = new OGS("82ff83f2631a55273c31", "cd42d95fd978348d57dc909a9aecd68d36b17bd2");
             ogs.setAccessToken(accessToken);
             JSONObject obj = ogs.me();
             Log.d(TAG, obj.toString());

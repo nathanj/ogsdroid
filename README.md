@@ -20,3 +20,4 @@ Todo
   * Game chat
   * Notifications
   * Landscape
+  * Refresh token
