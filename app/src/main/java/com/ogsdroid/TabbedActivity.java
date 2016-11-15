@@ -1,13 +1,13 @@
 package com.ogsdroid;
 
 import android.app.Activity;
+import android.app.IntentService;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -90,87 +90,22 @@ public class TabbedActivity extends AppCompatActivity {
         Log.d(TAG, "onStop");
     }
 
+    private SharedPreferences pref;
+
     @Override
     protected void onPostResume() {
         super.onPostResume();
         Log.d(TAG, "onPostResume");
 
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        pref = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = pref.getString("accessToken", "");
         OGS ogs = new OGS("82ff83f2631a55273c31", "cd42d95fd978348d57dc909a9aecd68d36b17bd2");
         ogs.setAccessToken(accessToken);
         ogs.openSocket();
 
-        try {
-            JSONObject me = ogs.me();
-            myRanking = me.getInt("ranking");
-            myId = me.getInt("id");
-            Log.d(TAG, "myRanking = " + myRanking);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            SharedPreferences.Editor editor = pref.edit();
-            editor.remove("accessToken");
-            editor.apply();
-            new AlertDialog.Builder(this)
-                    .setMessage("Access token did not work. It may have expired. Restart the app and login again.")
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            finish();
-                        }
-                    })
-                    .show();
-            return;
-        }
-        seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
-            @Override
-            public void event(JSONArray events) {
-                for (int i = 0; i < events.length(); i++) {
-                    try {
-                        final JSONObject event = events.getJSONObject(i);
-                        Log.d(TAG, event.toString());
-                        if (event.has("delete")) {
-                            mainActivity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        challengeAdapter.remove(new TabbedActivity.Challenge(event.getInt("challenge_id")));
-                                        challengeAdapter.notifyDataSetChanged();
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            });
-                        } else if (event.has("game_started"))
-                            ; // game started notificaton
-                        else // new seek
-                        {
-                            final TabbedActivity.Challenge c = new TabbedActivity.Challenge(event);
-                            Log.d(TAG, c.toString());
+        GetMe getme = new GetMe(ogs);
+        getme.execute((Void) null);
 
-                            if (c.canAccept(myRanking)) {
-                                mainActivity.runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        challengeList.add(c);
-                                        Collections.sort(challengeList);
-                                        challengeAdapter.notifyDataSetChanged();
-                                    }
-                                });
-                            } else {
-                                Log.d(TAG, "could not accept " + c);
-                            }
-
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-
-        new GetGameList().execute(ogs);
-//        new GetChallengeList().execute(seek);
     }
 
     @Override
@@ -179,14 +114,26 @@ public class TabbedActivity extends AppCompatActivity {
         Log.d(TAG, "onDestroy");
     }
 
+
+    public static class MyService extends IntentService {
+        MyService() {
+            super("MyService");
+        }
+
+        @Override
+        protected void onHandleIntent(Intent intent) {
+            String data = intent.getDataString();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_tabbed);
 
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+        //StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        //StrictMode.setThreadPolicy(policy);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -411,6 +358,101 @@ public class TabbedActivity extends AppCompatActivity {
                     return rootView;
             }
             return null;
+        }
+    }
+
+    private class GetMe extends AsyncTask<Void, Void, Boolean> {
+        private final OGS ogs;
+
+        GetMe(OGS ogs) {
+            Log.d(TAG, "GetMe()");
+            this.ogs = ogs;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            Log.d(TAG, "GetMe.doInBackground()");
+            try {
+                JSONObject me = ogs.me();
+                myRanking = me.getInt("ranking");
+                myId = me.getInt("id");
+                Log.d(TAG, "myRanking = " + myRanking);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return false;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            Log.d(TAG, String.format("GetMe.onPostExecute(%s)", success ? "true" : "false"));
+            if (!success) {
+                SharedPreferences.Editor editor = pref.edit();
+                editor.remove("accessToken");
+                editor.apply();
+                new AlertDialog.Builder(mainActivity)
+                        .setMessage("Access token did not work. It may have expired. Restart the app and login again.")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                            }
+                        })
+                        .show();
+                return;
+            }
+
+            new GetGameList().execute(ogs);
+
+            seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
+                @Override
+                public void event(JSONArray events) {
+                    for (int i = 0; i < events.length(); i++) {
+                        try {
+                            final JSONObject event = events.getJSONObject(i);
+                            Log.d(TAG, event.toString());
+                            if (event.has("delete")) {
+                                mainActivity.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            challengeAdapter.remove(new TabbedActivity.Challenge(event.getInt("challenge_id")));
+                                            challengeAdapter.notifyDataSetChanged();
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                            } else if (event.has("game_started"))
+                                ; // game started notificaton
+                            else // new seek
+                            {
+                                final TabbedActivity.Challenge c = new TabbedActivity.Challenge(event);
+                                Log.d(TAG, c.toString());
+
+                                if (c.canAccept(myRanking)) {
+                                    mainActivity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            challengeList.add(c);
+                                            Collections.sort(challengeList);
+                                            challengeAdapter.notifyDataSetChanged();
+                                        }
+                                    });
+                                } else {
+                                    Log.d(TAG, "could not accept " + c);
+                                }
+
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
         }
     }
 
