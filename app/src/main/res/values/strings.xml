@@ -23,7 +23,8 @@
     <string name="prompt_username">Username</string>
     <string name="title_activity_tabbed">OGS</string>
     <string name="section_format">Hello World from section: %1$d</string>
-    
+    <string name="crash_toast_text">Oops.. OGS has crashed. Please email me the crash log.</string>
+
     <string-array name="zoom_data">
         <item>Do not zoom</item>
         <item>Zoom for 9x9 and above</item>
