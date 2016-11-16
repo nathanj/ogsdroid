@@ -82,6 +82,7 @@ package com.ogsdroid;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 
@@ -186,19 +187,20 @@ class Board {
         RectF r = new RectF();
         r.set(x, y, fx, fy);
 
+        p.setStrokeWidth(0);
+        p.setStyle(Paint.Style.FILL);
+
+        if (!removed) {
+            r.offset(spacing / 15, spacing / 15);
+            p.setARGB(50, 0, 0, 0);
+            c.drawOval(r, p);
+        }
+
+        r.offset(-spacing / 15, -spacing / 15);
         if ((v & COLOR) == WHITE)
             p.setARGB(alpha, 255, 255, 255);
         else
             p.setARGB(alpha, 0, 0, 0);
-        p.setStrokeWidth(0);
-        p.setStyle(Paint.Style.FILL);
-        c.drawOval(r, p);
-        if ((v & COLOR) == WHITE)
-            p.setARGB(alpha, 150, 150, 150);
-        else
-            p.setARGB(alpha, 30, 30, 30);
-        p.setStrokeWidth(1);
-        p.setStyle(Paint.Style.STROKE);
         c.drawOval(r, p);
 
         if (last) {
