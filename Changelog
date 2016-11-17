@@ -1,0 +1,6 @@
+0.2
+---
+- Add ACRA for crash reporting
+- Make the board look a little nicer
+  - Added drop shadows and star points
+- Support handicap stones
