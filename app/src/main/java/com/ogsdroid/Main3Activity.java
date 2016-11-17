@@ -65,7 +65,7 @@ public class Main3Activity extends AppCompatActivity {
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             final GameDetails details = new GameDetails(gameDetails);
-            board = new Board(details.height, details.width);
+            board = new Board(details.handicap, details.height, details.width);
             bv.setBoard(board);
 
             bv.zoom = pref.getString("pref_zoom", "0");
@@ -213,8 +213,21 @@ public class Main3Activity extends AppCompatActivity {
                 }
 
                 @Override
-                public void error(String msg) {
+                public void error(final String msg) {
                     Log.e(TAG, "got ogs error: " + msg);
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            new AlertDialog.Builder(activity)
+                                    .setMessage("OGS error: " + msg)
+                                    .setCancelable(true)
+                                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                        }
+                                    })
+                                    .show();
+                        }
+                    });
                 }
             });
         } catch (Exception e) {
@@ -323,6 +336,7 @@ public class Main3Activity extends AppCompatActivity {
 
     private class GameDetails {
         public int height, width;
+        public int handicap;
         public String phase;
         public JSONArray moves;
         public String whitePlayer, blackPlayer;
@@ -336,6 +350,7 @@ public class Main3Activity extends AppCompatActivity {
                 width = gameDetails.getJSONObject("gamedata").getInt("width");
                 phase = gameDetails.getJSONObject("gamedata").getString("phase");
                 moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
+                handicap = gameDetails.getJSONObject("gamedata").getInt("handicap");
 
                 whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
                 whiteId = gameDetails.getJSONObject("players").getJSONObject("white").getInt("id");

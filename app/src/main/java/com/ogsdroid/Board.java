@@ -1,88 +1,7 @@
-/*
- *
-11-09 20:02:43.982 15194-15194/com.example.njones.myapplication W/OGSGameConnection: doing accept removed stones {
-"auth":"c039202bd6993ab89065d0f6f06232e3",
-"game_id":6843714,
-"player_id":212470,
-"stones":
-aa
-ab
-ba
-bb
-bc
-bd
-bh
-ca
-cc
-ce
-cg
-ch
-ci
-dc
-dd
-di
-ea
-ff
-gf
-gg
-gh
-gi
-hc
-hh
-ia
-ig
-ii
-"stones":
-aa
-ab
-ba
-bb
-bc
-bd
-bh
-ca
-cc
-ce
-cg
-ch
-ci
-dc
-dd
-di
-ea
-ff
-gf
-gg
-gh
-gi
-hc
-hh
-ia
-ig
-ii
-"strict_seki_mode":false
-}
-11-09 20:02:43.982 15194-15194/com.example.njones.myapplication D/ViewRootImpl: #3 mView = null
-11-09 20:02:43.992 15194-15194/com.example.njones.myapplication E/ViewRootImpl: sendUserActionEvent() mView == null
-11-09 20:02:44.072 15194-11183/com.example.njones.myapplication W/OGSGameConnection: on removed_stones_accepted: {
-                                                                                       "player_id": 212470,
-                                                                                       "stones": "aabacaeaiaabbbbcccdchcbdddceffgfcgggigbhchghhhcidigiii",
-                                                                                       "strict_seki_mode": false
-                                                                                     }
-11-09 20:02:48.022 15194-11315/com.example.njones.myapplication W/OGSGameConnection: on removed_stones_accepted: {
-                                                                                       "player_id": 212470,
-                                                                                       "stones": "aabacaeaiaabbbbcccdchcbdddfdceffgfcgggigbhchghhhcidigiii",
-                                                                                       "strict_seki_mode": false
-                                                                                     }
-
-*/
-
-
 package com.ogsdroid;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.Log;
 
@@ -109,13 +28,78 @@ class Board {
 
     private Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private int lastY, lastX, lastV = 2;
+    private RectF r = new RectF();
 
-    Board(int rows, int cols) {
+
+    private int handicap;
+    static private int[][][] handicapStoneList9x9 = {
+            {},
+            {},
+            {{6, 2}, {2, 6}},
+            {{6, 2}, {2, 6}, {6, 6}},
+            {{6, 2}, {2, 6}, {6, 6}, {2, 2}},
+            {{6, 2}, {2, 6}, {6, 6}, {2, 2}, {4, 4}},
+            {{6, 2}, {2, 6}, {6, 6}, {2, 2}, {2, 4}, {6, 4}},
+            {{6, 2}, {2, 6}, {6, 6}, {2, 2}, {2, 4}, {6, 4}, {4, 4}},
+            {{6, 2}, {2, 6}, {6, 6}, {2, 2}, {2, 4}, {6, 4}, {4, 2}, {4, 6}},
+            {{6, 2}, {2, 6}, {6, 6}, {2, 2}, {2, 4}, {6, 4}, {4, 2}, {4, 6}, {4, 4}},
+    };
+    static private int[][][] handicapStoneList13x13 = {
+            {},
+            {},
+            {{9, 3}, {3, 9}},
+            {{9, 3}, {3, 9}, {9, 9}},
+            {{9, 3}, {3, 9}, {9, 9}, {3, 3}},
+            {{9, 3}, {3, 9}, {9, 9}, {3, 3}, {6, 6}},
+            {{9, 3}, {3, 9}, {9, 9}, {3, 3}, {3, 6}, {9, 6}},
+            {{9, 3}, {3, 9}, {9, 9}, {3, 3}, {3, 6}, {9, 6}, {6, 6}},
+            {{9, 3}, {3, 9}, {9, 9}, {3, 3}, {3, 6}, {9, 6}, {6, 3}, {6, 9}},
+            {{9, 3}, {3, 9}, {9, 9}, {3, 3}, {3, 6}, {9, 6}, {6, 3}, {6, 9}, {6, 6}},
+    };
+    static private int[][][] handicapStoneList19x19 = {
+            {},
+            {},
+            {{15, 3}, {3, 15}},
+            {{15, 3}, {3, 15}, {15, 15}},
+            {{15, 3}, {3, 15}, {15, 15}, {3, 3}},
+            {{15, 3}, {3, 15}, {15, 15}, {3, 3}, {9, 9}},
+            {{15, 3}, {3, 15}, {15, 15}, {3, 3}, {3, 9}, {15, 9}},
+            {{15, 3}, {3, 15}, {15, 15}, {3, 3}, {3, 9}, {15, 9}, {9, 9}},
+            {{15, 3}, {3, 15}, {15, 15}, {3, 3}, {3, 9}, {15, 9}, {9, 3}, {9, 15}},
+            {{15, 3}, {3, 15}, {15, 15}, {3, 3}, {3, 9}, {15, 9}, {9, 3}, {9, 15}, {9, 9}},
+    };
+
+    Board(int handicap, int rows, int cols) {
+        this.handicap = handicap;
         this.rows = rows;
         this.cols = cols;
         board = new int[rows][cols];
+        if (rows == 9 && cols == 9 && handicap > 1) {
+            for (int[] stone : handicapStoneList9x9[handicap]) {
+                board[stone[1]][stone[0]] = BLACK;
+            }
+            lastV = 1;
+        }
+        if (rows == 13 && cols == 13 && handicap > 1) {
+            for (int[] stone : handicapStoneList13x13[handicap]) {
+                board[stone[1]][stone[0]] = BLACK;
+            }
+            lastV = 1;
+        }
+        if (rows == 19 && cols == 19 && handicap > 1) {
+            for (int[] stone : handicapStoneList19x19[handicap]) {
+                board[stone[1]][stone[0]] = BLACK;
+            }
+            lastV = 1;
+        }
     }
 
+    private void drawStar(Canvas c, float spacing, int y, int x) {
+        x++;
+        y++;
+        r.set(x * spacing - 4, y * spacing - 4, x * spacing + 4, y * spacing + 4);
+        c.drawOval(r, p);
+    }
     private void drawGrid(Canvas c, int dimension) {
         float spacing = dimension / (Math.max(cols, rows) + 1);
 
@@ -140,6 +124,31 @@ class Board {
             float fy = y;
             c.drawLine(x, y, fx, fy, p);
         }
+
+        // Draw star points
+        if (rows == 19 && cols == 19) {
+            drawStar(c, spacing, 3, 3);
+            drawStar(c, spacing, 3, 9);
+            drawStar(c, spacing, 3, 15);
+            drawStar(c, spacing, 9, 3);
+            drawStar(c, spacing, 9, 9);
+            drawStar(c, spacing, 9, 15);
+            drawStar(c, spacing, 15, 3);
+            drawStar(c, spacing, 15, 9);
+            drawStar(c, spacing, 15, 15);
+        } else if (rows == 13 && cols == 13) {
+            drawStar(c, spacing, 3, 3);
+            drawStar(c, spacing, 3, 9);
+            drawStar(c, spacing, 6, 6);
+            drawStar(c, spacing, 9, 3);
+            drawStar(c, spacing, 9, 9);
+        } else if (rows == 9 && cols == 9) {
+            drawStar(c, spacing, 2, 2);
+            drawStar(c, spacing, 2, 6);
+            drawStar(c, spacing, 4, 4);
+            drawStar(c, spacing, 6, 2);
+            drawStar(c, spacing, 6, 6);
+        }
     }
 
     private void drawTerritory(Canvas c, int i, int j, int v, int dimension) {
@@ -152,7 +161,6 @@ class Board {
         float fx = midx + spacing / 6;
         float y = midy - spacing / 6;
         float fy = midy + spacing / 6;
-        RectF r = new RectF();
         r.set(x, y, fx, fy);
 
         if (v == WHITE_TERRITORY || v == (REMOVED | BLACK)) {
