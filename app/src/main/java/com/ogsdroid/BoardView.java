@@ -8,6 +8,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -32,6 +33,7 @@ public class BoardView extends View {
     private Rect r, r2;
     private Matrix m = new Matrix();
     private float mx, my;
+    String blackPlayer = "", whitePlayer = "";
 
     public BoardView(Context context) {
         super(context);
@@ -103,8 +105,8 @@ public class BoardView extends View {
 
         canvas.restore();
 
-        clockWhite.draw(canvas, false, "White", 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
-        clockBlack.draw(canvas, true, "Black", canvas.getWidth() / 2, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
+        clockWhite.draw(canvas, false, whitePlayer, 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
+        clockBlack.draw(canvas, true, blackPlayer, canvas.getWidth() / 2, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
 
     }
 
@@ -176,11 +178,12 @@ public class BoardView extends View {
             }
         } else if (phase.equals("stone removal")) {
             if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
-                String coords = board.stoneRemovalAtTouch(getWidth(),
+                Pair<String, Boolean> pair = board.stoneRemovalAtTouch(getWidth(),
                         getHeight(), event.getX(), event.getY());
-                Log.d(TAG, "coords=" + coords);
-                if (gameConnection != null)
-                    gameConnection.removeStones(coords, true);
+                Log.d(TAG, "coords=" + pair.first);
+                Log.d(TAG, "remove=" + pair.second);
+                if (!pair.first.equals("") && gameConnection != null)
+                    gameConnection.removeStones(pair.first, pair.second);
             }
         } else {
             Log.d(TAG, "unknown phase " + phase);

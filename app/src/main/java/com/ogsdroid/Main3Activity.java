@@ -32,6 +32,8 @@ public class Main3Activity extends AppCompatActivity {
     private AppCompatActivity activity;
     private BoardView bv;
     private Board board;
+    private String prefix = "";
+    private GameData gamedata = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +81,13 @@ public class Main3Activity extends AppCompatActivity {
                 else
                     bv.board.addStone(move.getInt(0), move.getInt(1));
             }
+
+            if (details.removed != null) {
+                bv.board.stoneRemoval(details.removed, true);
+            }
+
+            bv.blackPlayer = details.blackPlayer;
+            bv.whitePlayer = details.whitePlayer;
 
             ogs.openSocket();
             gameCon = ogs.openGameConnection(currentGameId);
@@ -142,6 +151,10 @@ public class Main3Activity extends AppCompatActivity {
                             bv.clockBlack.setTime(thinkingTime, periods, periodTime);
                         }
 
+                        if (gamedata != null) {
+                            gamedata.whoseTurn = whoseTurn;
+                            changeTitle();
+                        }
                         bv.blacksMove = whoseTurn == details.blackId;
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -160,11 +173,35 @@ public class Main3Activity extends AppCompatActivity {
                         bv.board.unmarkRemoved();
                     } else
                         bv.board.markTerritory();
+
+                    changeTitle();
+                }
+
+                void changeTitle() {
+                    if (gamedata == null)
+                        return;
+                    activity.runOnUiThread(new Runnable() {
+                        public void run() {
+                            if (phase.equals("play")) {
+                                if (gamedata.whoseTurn == gamedata.blackId)
+                                    setTitle(String.format("%s - Black to play", prefix));
+                                else
+                                    setTitle(String.format("%s - White to play", prefix));
+                            } else if (phase.equals("finished")) {
+                                if (gamedata.winner == gamedata.blackId)
+                                    setTitle(String.format("%s - Black wins by %s", prefix, gamedata.outcome));
+                                else
+                                    setTitle(String.format("%s - White wins by %s", prefix, gamedata.outcome));
+                            } else if (phase.equals("stone removal")) {
+                                setTitle(String.format("%s - Stone removal", prefix));
+                            }
+                        }
+                    });
                 }
 
                 @Override
                 public void gamedata(JSONObject obj) {
-                    final GameData gamedata = new GameData(obj);
+                    gamedata = new GameData(obj);
                     if (!phase.equals(gamedata.phase)) {
                         phase = gamedata.phase;
                         bv.phase = gamedata.phase;
@@ -176,23 +213,8 @@ public class Main3Activity extends AppCompatActivity {
                     else
                         bv.board.markTerritory();
 
-                    activity.runOnUiThread(new Runnable() {
-                        public void run() {
-                            if (phase.equals("play")) {
-                                if (gamedata.whoseTurn == gamedata.blackId)
-                                    setTitle(String.format("%s vs %s - Black to play", gamedata.whitePlayer, gamedata.blackPlayer));
-                                else
-                                    setTitle(String.format("%s vs %s - White to play", gamedata.whitePlayer, gamedata.blackPlayer));
-                            } else if (phase.equals("finished")) {
-                                if (gamedata.winner == gamedata.blackId)
-                                    setTitle(String.format("%s vs %s - Black won", gamedata.whitePlayer, gamedata.blackPlayer));
-                                else
-                                    setTitle(String.format("%s vs %s - White won", gamedata.whitePlayer, gamedata.blackPlayer));
-                            } else if (phase.equals("stone removal")) {
-                                setTitle(String.format("%s vs %s - Stone removal", gamedata.whitePlayer, gamedata.blackPlayer));
-                            }
-                        }
-                    });
+                    prefix = String.format("White:%s Black:%s", gamedata.whitePlayer, gamedata.blackPlayer);
+                    changeTitle();
                 }
 
                 @Override
@@ -343,6 +365,7 @@ public class Main3Activity extends AppCompatActivity {
         public int whiteId, blackId;
         public int whoseTurn;
         public String gameAuth;
+        public String removed;
 
         GameDetails(JSONObject gameDetails) {
             try {
@@ -351,6 +374,11 @@ public class Main3Activity extends AppCompatActivity {
                 phase = gameDetails.getJSONObject("gamedata").getString("phase");
                 moves = gameDetails.getJSONObject("gamedata").getJSONArray("moves");
                 handicap = gameDetails.getJSONObject("gamedata").getInt("handicap");
+                try {
+                    removed = gameDetails.getJSONObject("gamedata").getString("removed");
+                } catch (JSONException e) {
+
+                }
 
                 whitePlayer = gameDetails.getJSONObject("players").getJSONObject("white").getString("username");
                 whiteId = gameDetails.getJSONObject("players").getJSONObject("white").getInt("id");
@@ -371,6 +399,7 @@ public class Main3Activity extends AppCompatActivity {
         public int whiteId, blackId;
         public int whoseTurn;
         public int winner;
+        public String outcome;
 
         GameData(JSONObject obj) {
             try {
@@ -387,9 +416,12 @@ public class Main3Activity extends AppCompatActivity {
                     whoseTurn = 1;
                 }
                 try {
-                    winner = obj.getJSONObject("gamedata").getInt("winner");
+                    winner = obj.getInt("winner");
+                    outcome = obj.getString("outcome");
                 } catch (JSONException e) {
+                    Log.d(TAG, "something", e);
                     winner = 1;
+                    outcome = "";
                 }
             } catch (JSONException e) {
                 throw new RuntimeException(e);

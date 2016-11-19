@@ -71,7 +71,7 @@ class Clock {
             p.setStrokeWidth(1);
         }
         p.setTextAlign(Paint.Align.CENTER);
-        p.setTextSize(h / 4);
+        p.setTextSize(h / 8);
         p.setTypeface(Typeface.MONOSPACE);
         canvas.drawText(username, sx + w / 2, sy + h / 3, p);
         if (urgent())

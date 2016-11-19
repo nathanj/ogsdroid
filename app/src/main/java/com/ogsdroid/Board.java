@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.Log;
+import android.util.Pair;
 
 /**
  * Created by njones on 10/26/16.
@@ -100,6 +101,7 @@ class Board {
         r.set(x * spacing - 4, y * spacing - 4, x * spacing + 4, y * spacing + 4);
         c.drawOval(r, p);
     }
+
     private void drawGrid(Canvas c, int dimension) {
         float spacing = dimension / (Math.max(cols, rows) + 1);
 
@@ -157,22 +159,22 @@ class Board {
         float midx = (j + 1) * spacing;
         float midy = (i + 1) * spacing;
 
-        float x = midx - spacing / 6;
-        float fx = midx + spacing / 6;
-        float y = midy - spacing / 6;
-        float fy = midy + spacing / 6;
+        float x = midx - spacing / 8;
+        float fx = midx + spacing / 8;
+        float y = midy - spacing / 8;
+        float fy = midy + spacing / 8;
         r.set(x, y, fx, fy);
 
         if (v == WHITE_TERRITORY || v == (REMOVED | BLACK)) {
             p.setARGB(255, 255, 255, 255);
             p.setStrokeWidth(0);
             p.setStyle(Paint.Style.FILL);
-            c.drawOval(r, p);
+            c.drawRect(r, p);
         } else if (v == BLACK_TERRITORY || v == (REMOVED | WHITE)) {
             p.setARGB(255, 0, 0, 0);
             p.setStrokeWidth(0);
             p.setStyle(Paint.Style.FILL);
-            c.drawOval(r, p);
+            c.drawRect(r, p);
         }
     }
 
@@ -202,9 +204,9 @@ class Board {
             r.offset(spacing / 15, spacing / 15);
             p.setARGB(50, 0, 0, 0);
             c.drawOval(r, p);
+	    r.offset(-spacing / 15, -spacing / 15);
         }
 
-        r.offset(-spacing / 15, -spacing / 15);
         if ((v & COLOR) == WHITE)
             p.setARGB(alpha, 255, 255, 255);
         else
@@ -439,7 +441,42 @@ class Board {
         }
     }
 
-    public String stoneRemovalAtTouch(int width, int height, float x, float y) {
+    void removeMarkedEmpty() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if ((board[j][i] & COLOR) == EMPTY)
+                    board[j][i] &= ~MARKED;
+            }
+        }
+    }
+
+    private void markGroup(int x, int y, int color) {
+        Log.d("markGroup", "checking marking group at x=" + x + " y=" + y + " color=" + color);
+        if (y < 0 || y >= rows)
+            return;
+        if (x < 0 || x >= cols)
+            return;
+        // already removed, nothing to do
+        if ((board[y][x] & MARKED) == MARKED)
+            return;
+        if ((board[y][x] & COLOR) == color) {
+            Log.d("markGroup", "really marking group at x=" + x + " y=" + y + " color=" + color);
+            board[y][x] |= MARKED;
+        } else if ((board[y][x] & COLOR) == EMPTY) {
+            Log.d("markGroup", "empty space at x=" + x + " y=" + y + " color=" + color);
+            board[y][x] |= MARKED;
+        } else {
+            Log.d("markGroup", "other color at x=" + x + " y=" + y + " color=" + color);
+            return;
+        }
+
+        markGroup(x - 1, y, color);
+        markGroup(x + 1, y, color);
+        markGroup(x, y - 1, color);
+        markGroup(x, y + 1, color);
+    }
+
+    public Pair<String, Boolean> stoneRemovalAtTouch(int width, int height, float x, float y) {
         Log.d("removal", String.format("w=%d h=%d x=%f y=%f", width, height, x, y));
         int dims = Math.min(width, height);
         float spacing = dims / (Math.max(cols, rows) + 1);
@@ -447,15 +484,17 @@ class Board {
         int sx = (int) ((x - spacing / 2) / spacing);
         int sy = (int) ((y - spacing / 2) / spacing);
         if (sx < 0 || sx >= cols)
-            return "";
+            return null;
         if (sx < 0 || sy >= rows)
-            return "";
-        int color = board[sy][sx];
+            return null;
+        int color = board[sy][sx] & COLOR;
+        boolean removed = (board[sy][sx] & REMOVED) == REMOVED;
 
-        removeGroup(sx, sy, color);
+        markGroup(sx, sy, color);
+        removeMarkedEmpty();
         String coords = markedToCoords();
         removeMarked();
-        return coords;
+        return Pair.create(coords, !removed);
 
 
         //traceBoard("before mark");
