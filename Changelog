@@ -1,6 +1,7 @@
 0.3
 ---
 - Improve the stone removal stage
+- Fix a crash when accepting a challenge
 
 0.2
 ---
