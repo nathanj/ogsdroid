@@ -7,11 +7,11 @@
         android:orderInCategory="101"
         android:title="@string/action_settings"
         app:showAsAction="never" />
-<!--
+    <!--
     <item
         android:id="@+id/create_game"
         android:orderInCategory="100"
         android:title="Create Game"
         app:showAsAction="ifRoom" />
-	-->
+        -->
 </menu>

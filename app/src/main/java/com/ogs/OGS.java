@@ -2,15 +2,20 @@ package com.ogs;
 
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.io.*;
 
 import javax.net.ssl.HttpsURLConnection;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -48,11 +53,13 @@ public class OGS {
         }
     }
 
-    private String postURL(String url, String auth, String body) throws JSONException, IOException {
+    private String postURL(String url, String auth, String body, boolean json) throws JSONException, IOException {
         try {
             String httpsURL = url;
             URL myurl = new URL(httpsURL);
             HttpsURLConnection con = (HttpsURLConnection) myurl.openConnection();
+            if (json)
+                con.setRequestProperty("Content-Type", "application/json");
             if (auth.length() > 0)
                 con.setRequestProperty("Authorization", "Bearer " + auth);
 
@@ -67,6 +74,39 @@ public class OGS {
 
             out.write(body);
             out.close();
+
+            InputStream ins = con.getInputStream();
+            InputStreamReader isr = new InputStreamReader(ins);
+            BufferedReader in = new BufferedReader(isr);
+
+            String inputLine;
+            StringBuilder sb = new StringBuilder();
+
+            while ((inputLine = in.readLine()) != null) {
+                sb.append(inputLine);
+            }
+
+            System.out.println(sb.toString());
+            JSONObject obj = new JSONObject(sb.toString());
+            System.out.println(obj.toString(2));
+
+            in.close();
+            return sb.toString();
+        } catch (MalformedURLException e) {
+            // should never happen
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String deleteURL(String url, String auth) throws JSONException, IOException {
+        try {
+            String httpsURL = url;
+            URL myurl = new URL(httpsURL);
+            HttpsURLConnection con = (HttpsURLConnection) myurl.openConnection();
+            if (auth.length() > 0)
+                con.setRequestProperty("Authorization", "Bearer " + auth);
+
+            con.setRequestMethod("DELETE");
 
             InputStream ins = con.getInputStream();
             InputStreamReader isr = new InputStreamReader(ins);
@@ -100,7 +140,7 @@ public class OGS {
         String body = String.format("client_id=%s&client_secret=%s&grant_type=password&username=%s&password=%s",
                 clientId, clientSecret, username, password); // TODO url encode
         try {
-            String s = postURL("https://online-go.com/oauth2/access_token", "", body);
+            String s = postURL("https://online-go.com/oauth2/access_token", "", body, false);
             JSONObject obj = new JSONObject(s);
             accessToken = obj.getString("access_token");
         } catch (JSONException e) {
@@ -137,7 +177,7 @@ public class OGS {
 
     public int acceptChallenge(int id) throws JSONException {
         try {
-            String str = postURL("https://online-go.com/api/v1/challenges/" + id + "/accept?format=json", accessToken, "");
+            String str = postURL("https://online-go.com/api/v1/challenges/" + id + "/accept?format=json", accessToken, "", false);
             Log.d(TAG, "acceptChallenge resp=" + str);
             JSONObject obj = new JSONObject(str);
             return obj.getInt("game");
@@ -172,12 +212,62 @@ public class OGS {
         try {
 //        Log.d("myApp", "doing game move " + move);
             String str = postURL("https://online-go.com/api/v1/games/" + id + "/move/?format=json", accessToken,
-                    "{\"move\": \"" + "aa" + "\"}");
+                    "{\"move\": \"" + "aa" + "\"}", false);
 //        Log.d("myApp", str);
             return new JSONObject(str);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public JSONObject createChallenge(String name, boolean ranked, int width, int height,
+                                      int mainTime, int periodTime, int periods) {
+        try {
+            JSONObject post = new JSONObject();
+            JSONObject game = new JSONObject();
+            game.put("name", name);
+            game.put("rules", "japanese");
+            game.put("ranked", ranked);
+            game.put("handicap", 0);
+            game.put("pause_on_weekends", false);
+            game.put("width", width);
+            game.put("height", height);
+            game.put("disable_analysis", true);
+            game.put("time_control", "byoyomi");
+            JSONObject time = new JSONObject();
+            time.put("time_control", "byoyomi");
+            time.put("main_time", mainTime);
+            time.put("period_time", periodTime);
+            time.put("periods", periods);
+            game.put("time_control_parameters", time);
+            game.put("challenger_color", "black");
+            post.put("game", game);
+
+            post.put("challenger_color", "automatic");
+            post.put("min_ranking", -1000);
+            post.put("max_ranking", 1000);
+
+//            Log.d(TAG, post.toString(2));
+            String str = postURL("https://online-go.com/api/v1/challenges/", accessToken, post.toString(), true);
+//            Log.d(TAG, str);
+            return new JSONObject(str);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void deleteChallenge(int challenge) {
+        try {
+            deleteURL(String.format("https://online-go.com/api/v1/challenges/%d", challenge), accessToken);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

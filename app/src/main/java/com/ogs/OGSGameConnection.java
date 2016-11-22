@@ -10,7 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
@@ -34,14 +33,23 @@ public class OGSGameConnection {
         public void gamedata(JSONObject obj);
     }
 
+    public interface OGSGameConnectionResetCallback {
+        void reset();
+    }
+
     private Socket socket;
     private String gameAuth;
     private OGSGameConnectionCallbacks callbacks;
+    private OGSGameConnectionResetCallback resetCallback;
     private int gameId;
     private int userId;
 
     public void setCallbacks(OGSGameConnectionCallbacks callbacks) {
         this.callbacks = callbacks;
+    }
+
+    public void setResetCallback(OGSGameConnectionResetCallback callback) {
+        this.resetCallback = callback;
     }
 
     OGSGameConnection(OGS ogs, Socket socket, int gameId, int userId) {
@@ -93,6 +101,11 @@ public class OGSGameConnection {
                 String p = (String) args[0];
                 phase(p);
             }
+        }).on("game/" + gameId + "/reset", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                reset();
+            }
         });
         try {
             JSONObject gameDetails = ogs.getGameDetails(gameId);
@@ -133,6 +146,11 @@ public class OGSGameConnection {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    private void reset() {
+        if (resetCallback != null)
+            resetCallback.reset();
     }
 
     private void clock(JSONObject obj) {
@@ -260,6 +278,16 @@ public class OGSGameConnection {
             obj.put("player_id", userId);
             Log.d(TAG, "doing resign = " + obj);
             socket.emit("game/resign", obj);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void waitForStart() {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("game_id", gameId);
+            socket.emit("game/wait", obj);
         } catch (JSONException e) {
             e.printStackTrace();
         }

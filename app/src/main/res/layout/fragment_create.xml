@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="32dp">
+
+    <ScrollView
+        android:id="@+id/create_form"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <LinearLayout
+            android:id="@+id/create_form_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <AutoCompleteTextView
+                    android:id="@+id/name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Game Name"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:text="Friendly Match" />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ranked" />
+
+            <RadioGroup
+                android:id="@+id/ranked_group"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:checkedButton="@+id/ranked"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/casual"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Casual" />
+
+                <RadioButton
+                    android:id="@+id/ranked"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Ranked" />
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Size" />
+
+            <RadioGroup
+                android:id="@+id/size_group"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+
+                android:checkedButton="@+id/size19x19"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/size9x9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="9x9" />
+
+                <RadioButton
+                    android:id="@+id/size13x13"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="13x13" />
+
+                <RadioButton
+                    android:id="@+id/size19x19"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="19x19" />
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/main_time_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Main Time" />
+
+            <SeekBar
+                android:id="@+id/main_time"
+                style="@style/Widget.AppCompat.SeekBar.Discrete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="5"
+                android:progress="3" />
+
+            <TextView
+                android:id="@+id/byo_yomi_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Byo-Yomi" />
+
+            <SeekBar
+                android:id="@+id/byo_yomi"
+                style="@style/Widget.AppCompat.SeekBar.Discrete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="5"
+                android:progress="3" />
+
+            <Button
+                android:id="@+id/challenge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Challenge" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

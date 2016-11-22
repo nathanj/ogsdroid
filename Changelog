@@ -1,5 +1,6 @@
 0.3
 ---
+- Add ability to create challenges
 - Improve the stone removal stage
 - Fix a crash when accepting a challenge
 
