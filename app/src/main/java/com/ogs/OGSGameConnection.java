@@ -119,6 +119,10 @@ public class OGSGameConnection {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+
+        //GameChatConnection chat = new GameChatConnection(ogs, socket, "");
+
     }
 
     public void disconnect() {
@@ -292,5 +296,4 @@ public class OGSGameConnection {
             e.printStackTrace();
         }
     }
-
 }

@@ -9,9 +9,6 @@ import org.json.JSONObject;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
-/**
- * Created by njones on 11/4/16.
- */
 public class SeekGraphConnection {
     private static final String TAG = "SeekGraphConnection";
     private final Socket socket;

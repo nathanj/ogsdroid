@@ -493,14 +493,15 @@ public class TabbedActivity extends AppCompatActivity {
                         final int periods = 5;
                         Log.d(TAG, "clicked on the challenge button");
                         Log.d(TAG, "byo yomi selected = " + byoYomiTimes[byoYomiTime.getProgress()]);
-                        JSONObject result = ogs.createChallenge(gameNameText.getText().toString(), ranked,
-                                width, height,
-                                mainTimesTimes[mainTime.getProgress()],
-                                byoYomiTimesTimes[byoYomiTime.getProgress()],
-                                periods);
-                        if (result == null) {
+                        try {
+                            JSONObject result = ogs.createChallenge(gameNameText.getText().toString(), ranked,
+                                    width, height,
+                                    mainTimesTimes[mainTime.getProgress()],
+                                    byoYomiTimesTimes[byoYomiTime.getProgress()],
+                                    periods);
+                        } catch (Exception ex) {
                             new AlertDialog.Builder(mainActivity)
-                                    .setMessage("Create challenge failed.")
+                                    .setMessage("Create challenge failed." + ex.toString())
                                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
                                         }
