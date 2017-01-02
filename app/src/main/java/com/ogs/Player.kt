@@ -2,14 +2,8 @@ package com.ogs
 
 import org.json.JSONObject
 
-class Player {
-    val username: String
-    val id: Int
-    val ranking: Int
-
-    constructor(obj: JSONObject) {
-        username = obj.getString("username")
-        ranking = obj.getInt("ranking")
-        id = obj.getInt("id")
-    }
+class Player(obj: JSONObject) {
+    val username: String = obj.getString("username")
+    val id: Int = obj.getInt("id")
+    val ranking: Int = obj.getInt("ranking")
 }

@@ -7,13 +7,14 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URL
+import java.net.URLEncoder
 import javax.net.ssl.HttpsURLConnection
 
 class OGS(private val clientId: String, private val clientSecret: String) {
 
     @Throws(IOException::class)
     private fun getURL(url: String, method: String = "GET"): String {
-        Log.d("myApp", "GET $url")
+        Log.d(TAG, "GET $url")
         val con = URL(url).openConnection() as HttpsURLConnection
         val token = accessToken
         if (token != null && token.isNotEmpty()) {
@@ -25,7 +26,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 
     @Throws(IOException::class)
     private fun postURL(url: String, body: String, headers: Map<String, String>? = null, method: String = "POST"): String {
-        Log.d("myApp", "POST $url - $body")
+        Log.d(TAG, "POST $url - $body")
         val con = URL(url).openConnection() as HttpsURLConnection
         if (headers != null) {
             for ((k, v) in headers)
@@ -47,10 +48,11 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 
     private fun deleteURL(url: String) = getURL(url, "DELETE")
 
+    private fun urlencode(s: String) = URLEncoder.encode(s, "UTF-8")
+
     @Throws(IOException::class)
     fun login(username: String, password: String) {
-        val body = String.format("client_id=%s&client_secret=%s&grant_type=password&username=%s&password=%s",
-                clientId, clientSecret, username, password) // TODO url encode
+        val body = "client_id=$clientId&client_secret=$clientSecret&grant_type=password&username=${urlencode(username)}&password=${urlencode(password)}"
         try {
             val s = postURL("https://online-go.com/oauth2/access_token", body)
             val obj = JSONObject(s)
@@ -59,29 +61,14 @@ class OGS(private val clientId: String, private val clientSecret: String) {
             e.printStackTrace()
         }
 
-        player = Player(me())
+        me()
     }
 
-    @Throws(JSONException::class, IOException::class)
+    @Throws(IOException::class)
     fun me(): JSONObject {
-        val str = getURL("https://online-go.com/api/v1/me/?format=json")
-        val obj = JSONObject(str)
-        userId = obj.getInt("id")
-        username = obj.getString("username")
-        ranking = obj.getInt("ranking")
+        val obj = JSONObject(getURL("https://online-go.com/api/v1/me/?format=json"))
+        player = Player(obj)
         return obj
-    }
-
-    @Throws(JSONException::class)
-    fun listServerChallenges(): JSONObject? {
-        try {
-            val str = getURL("https://online-go.com/api/v1/challenges/?format=json")
-            return JSONObject(str)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return null
-        }
-
     }
 
     @Throws(JSONException::class)
@@ -95,7 +82,6 @@ class OGS(private val clientId: String, private val clientSecret: String) {
             e.printStackTrace()
             return 0
         }
-
     }
 
     @Throws(JSONException::class)
@@ -162,6 +148,9 @@ class OGS(private val clientId: String, private val clientSecret: String) {
      * Opens the real time api socket.
      */
     fun openSocket() {
+        if (socket != null)
+            return
+
         socket = IO.socket("https://ggs.online-go.com")
         socket!!.on(Socket.EVENT_CONNECT) {
             Log.d("myApp", "socket connect")
@@ -178,23 +167,25 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 
     fun openSeekGraph(callbacks: SeekGraphConnection.SeekGraphConnectionCallbacks): SeekGraphConnection {
         Log.d(TAG, "opening seek graph")
-        return SeekGraphConnection(this, socket, callbacks)
+        return SeekGraphConnection(this, socket!!, callbacks)
     }
 
     /**
      * Uses the real time api to connect to a game.
      */
-    fun openGameConnection(gameId: Int): OGSGameConnection {
-        return OGSGameConnection(this, socket, gameId, userId)
+    fun openGameConnection(gameId: Int): GameConnection {
+        Log.d(TAG, "socket:$socket player:$player")
+        return GameConnection(this, socket!!, gameId, player!!.id)
     }
 
     var accessToken: String? = null
-    private var username: String? = null
-    private var userId: Int = 0
-    private var ranking: Int = 0
+        set(value) {
+            field = value
+            me()
+        }
+    var player: Player? = null
+        private set
     private var socket: Socket? = null
-
-    lateinit var player: Player
 
     companion object {
         private val TAG = "OGS"

@@ -12,7 +12,7 @@ import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.ogs.OGSGameConnection;
+import com.ogs.GameConnection;
 
 import org.json.JSONObject;
 
@@ -24,7 +24,7 @@ public class BoardView extends View {
     public Board board;
     public Clock clockWhite, clockBlack;
     public String phase;
-    public OGSGameConnection gameConnection;
+    public GameConnection gameConnection;
     public Timer timer;
     public boolean blacksMove;
     public String zoom;

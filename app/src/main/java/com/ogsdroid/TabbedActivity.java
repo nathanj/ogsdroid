@@ -19,6 +19,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,8 +36,8 @@ import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.ogs.GameConnection;
 import com.ogs.OGS;
-import com.ogs.OGSGameConnection;
 import com.ogs.SeekGraphConnection;
 
 import org.json.JSONArray;
@@ -109,7 +110,7 @@ public class TabbedActivity extends AppCompatActivity {
 
         pref = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = pref.getString("accessToken", "");
-        ogs = new OGS("82ff83f2631a55273c31", "cd42d95fd978348d57dc909a9aecd68d36b17bd2");
+        ogs = Globals.INSTANCE.getOgs();
         ogs.setAccessToken(accessToken);
         ogs.openSocket();
 
@@ -146,10 +147,20 @@ public class TabbedActivity extends AppCompatActivity {
         TextView tvMsg = new TextView(this);
         tvMsg.setText("Hi this is pop up window...");
 
+        Button b = new Button(this);
+        b.setText("This is a button");
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG, "clicked the button");
+            }
+        });
+
         LayoutParams layout = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT);
         LinearLayout containerLayout = new LinearLayout(this);
         containerLayout.setOrientation(LinearLayout.VERTICAL);
+        containerLayout.addView(b, layout);
         containerLayout.addView(tvMsg, layout);
 
         popup = new PopupWindow(this);
@@ -157,6 +168,7 @@ public class TabbedActivity extends AppCompatActivity {
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
+
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -182,6 +194,8 @@ public class TabbedActivity extends AppCompatActivity {
                 gameList);
 
         mainActivity = this;
+
+
     }
 
     @Override
@@ -201,8 +215,11 @@ public class TabbedActivity extends AppCompatActivity {
         Log.d(TAG, "id = " + id);
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(intent);
+            popup.showAtLocation(mViewPager, Gravity.BOTTOM, 10, 10);
+            popup.update(50, 50, 320, 90);
+
+//            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+//            startActivity(intent);
         }
 
         /*
@@ -493,8 +510,9 @@ public class TabbedActivity extends AppCompatActivity {
                         final int periods = 5;
                         Log.d(TAG, "clicked on the challenge button");
                         Log.d(TAG, "byo yomi selected = " + byoYomiTimes[byoYomiTime.getProgress()]);
+                        JSONObject result;
                         try {
-                            JSONObject result = ogs.createChallenge(gameNameText.getText().toString(), ranked,
+                            result = ogs.createChallenge(gameNameText.getText().toString(), ranked,
                                     width, height,
                                     mainTimesTimes[mainTime.getProgress()],
                                     byoYomiTimesTimes[byoYomiTime.getProgress()],
@@ -513,7 +531,7 @@ public class TabbedActivity extends AppCompatActivity {
                             final int challenge = result.getInt("challenge");
                             final int game = result.getInt("game");
 
-                            OGSGameConnection conn = ogs.openGameConnection(game);
+                            GameConnection conn = ogs.openGameConnection(game);
                             final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
                                     .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
                                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -523,7 +541,7 @@ public class TabbedActivity extends AppCompatActivity {
                                         }
                                     })
                                     .show();
-                            conn.setResetCallback(new OGSGameConnection.OGSGameConnectionResetCallback() {
+                            conn.setResetCallback(new GameConnection.OGSGameConnectionResetCallback() {
                                 @Override
                                 public void reset() {
                                     dialog.dismiss();
@@ -591,6 +609,7 @@ public class TabbedActivity extends AppCompatActivity {
 
             new GetGameList().execute(ogs);
 
+            /*
             seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
                 @Override
                 public void event(JSONArray events) {
@@ -637,6 +656,7 @@ public class TabbedActivity extends AppCompatActivity {
                     }
                 }
             });
+            */
         }
     }
 

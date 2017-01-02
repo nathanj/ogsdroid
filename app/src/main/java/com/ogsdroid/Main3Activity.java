@@ -13,19 +13,29 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.ogs.ChatMessage;
+import com.ogs.GameConnection;
 import com.ogs.OGS;
-import com.ogs.OGSGameConnection;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main3Activity extends AppCompatActivity {
     private static final String TAG = "Main3Activity";
 
     private OGS ogs;
-    private OGSGameConnection gameCon;
+    private GameConnection gameCon;
     private int currentGameId;
     private String phase = "play";
 
@@ -42,7 +52,29 @@ public class Main3Activity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        Logger sioLogger = java.util.logging.Logger.getLogger(io.socket.client.Socket.class.getName());
+        sioLogger.setLevel(Level.ALL);
+
         bv = (BoardView) findViewById(R.id.boardview);
+
+        findViewById(R.id.chat_text_view).setVisibility(View.GONE);
+        final EditText editText = (EditText) findViewById(R.id.chat_edit_text);
+        editText.setVisibility(View.GONE);
+
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if (i == EditorInfo.IME_NULL
+                        && keyEvent.getAction() == KeyEvent.ACTION_UP) {
+
+                    gameCon.sendChatMessage(Globals.INSTANCE.getOgs().getPlayer(),
+                            editText.getText().toString());
+                    editText.setText("");
+                }
+
+                return true;
+            }
+        });
 
         Intent intent = getIntent();
         currentGameId = intent.getIntExtra("id", 0);
@@ -55,15 +87,14 @@ public class Main3Activity extends AppCompatActivity {
         StrictMode.setThreadPolicy(policy);
 
         //*
-        try {
+        try
+
+        {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
             String accessToken = pref.getString("accessToken", "");
 
-            // TODO - global ogs and global me
-            OGS ogs = new OGS("82ff83f2631a55273c31", "cd42d95fd978348d57dc909a9aecd68d36b17bd2");
+            ogs = Globals.INSTANCE.getOgs();
             ogs.setAccessToken(accessToken);
-            JSONObject obj = ogs.me();
-            Log.d(TAG, obj.toString());
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             final GameDetails details = new GameDetails(gameDetails);
@@ -95,7 +126,24 @@ public class Main3Activity extends AppCompatActivity {
             bv.gameConnection = gameCon;
             bv.phase = phase;
 
-            gameCon.setCallbacks(new OGSGameConnection.OGSGameConnectionCallbacks() {
+            gameCon.setCallbacks(new GameConnection.OGSGameConnectionCallbacks() {
+                @Override
+                public void chat(@NotNull final ChatMessage msg) {
+                    Log.d(TAG, msg.toString());
+
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast toast = Toast.makeText(activity, msg.toString(), Toast.LENGTH_LONG);
+                            toast.show();
+
+                            TextView tv = (TextView) findViewById(R.id.chat_text_view);
+                            tv.append(msg.toString());
+                            tv.append("\n");
+                        }
+                    });
+                }
+
                 @Override
                 public void move(int x, int y) {
                     if (x == -1)
@@ -202,6 +250,30 @@ public class Main3Activity extends AppCompatActivity {
                 @Override
                 public void gamedata(JSONObject obj) {
                     gamedata = new GameData(obj);
+
+                    try {
+                        final TextView tv = (TextView) findViewById(R.id.chat_text_view);
+                        JSONArray chats = obj.getJSONArray("chat_log");
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                tv.setText("");
+                            }
+                        });
+                        for (int i = 0; i < chats.length(); i++) {
+                            JSONObject c = chats.getJSONObject(i);
+                            final ChatMessage msg = new ChatMessage(c.getString("username"), c.getString("body"));
+                            activity.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tv.append(msg.toString());
+                                    tv.append("\n");
+                                }
+                            });
+                        }
+                    } catch (JSONException e) {
+                    }
+
                     if (!phase.equals(gamedata.phase)) {
                         phase = gamedata.phase;
                         bv.phase = gamedata.phase;
@@ -252,7 +324,11 @@ public class Main3Activity extends AppCompatActivity {
                     });
                 }
             });
-        } catch (Exception e) {
+        } catch (
+                Exception e
+                )
+
+        {
             e.printStackTrace();
         }
 
@@ -295,6 +371,24 @@ public class Main3Activity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.chat:
+                View v = findViewById(R.id.chat_text_view);
+                final EditText v2 = (EditText) findViewById(R.id.chat_edit_text);
+
+                if (v.getVisibility() == View.GONE) {
+                    v.setVisibility(View.VISIBLE);
+                    v2.setVisibility(View.VISIBLE);
+                    v2.setImeActionLabel("Send", KeyEvent.KEYCODE_ENTER);
+
+
+                    bv.setVisibility(View.GONE);
+                } else {
+                    v.setVisibility(View.GONE);
+                    v2.setVisibility(View.GONE);
+                    bv.setVisibility(View.VISIBLE);
+                }
+
+                return true;
             case R.id.pass:
                 Log.d(TAG, "user chose pass");
 
@@ -419,7 +513,6 @@ public class Main3Activity extends AppCompatActivity {
                     winner = obj.getInt("winner");
                     outcome = obj.getString("outcome");
                 } catch (JSONException e) {
-                    Log.d(TAG, "something", e);
                     winner = 1;
                     outcome = "";
                 }
@@ -429,5 +522,5 @@ public class Main3Activity extends AppCompatActivity {
         }
     }
 
-    // }}}
+// }}}
 }

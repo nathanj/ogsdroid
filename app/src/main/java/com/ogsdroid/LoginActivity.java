@@ -198,7 +198,7 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            OGS ogs = new OGS("82ff83f2631a55273c31", "cd42d95fd978348d57dc909a9aecd68d36b17bd2");
+            OGS ogs = Globals.INSTANCE.getOgs();
             try {
                 ogs.login(mEmail, mPassword);
             } catch (IOException e) {
