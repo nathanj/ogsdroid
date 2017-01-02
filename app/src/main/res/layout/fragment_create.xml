@@ -43,7 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:checkedButton="@+id/ranked"
-                android:orientation="vertical">
+                android:orientation="horizontal">
 
                 <RadioButton
                     android:id="@+id/casual"
@@ -75,7 +75,7 @@
                 android:layout_weight="1"
 
                 android:checkedButton="@+id/size19x19"
-                android:orientation="vertical">
+                android:orientation="horizontal">
 
                 <RadioButton
                     android:id="@+id/size9x9"

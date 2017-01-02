@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,6 +61,7 @@ public class Main3Activity extends AppCompatActivity {
         findViewById(R.id.chat_text_view).setVisibility(View.GONE);
         final EditText editText = (EditText) findViewById(R.id.chat_edit_text);
         editText.setVisibility(View.GONE);
+        findViewById(R.id.chat_scroll_view).setVisibility(View.GONE);
 
         editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -68,7 +70,7 @@ public class Main3Activity extends AppCompatActivity {
                         && keyEvent.getAction() == KeyEvent.ACTION_UP) {
 
                     gameCon.sendChatMessage(Globals.INSTANCE.getOgs().getPlayer(),
-                            editText.getText().toString());
+                            editText.getText().toString(), bv.board.moveNumber);
                     editText.setText("");
                 }
 
@@ -134,12 +136,13 @@ public class Main3Activity extends AppCompatActivity {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast toast = Toast.makeText(activity, msg.toString(), Toast.LENGTH_LONG);
-                            toast.show();
+                            if (!msg.getUsername().equals(Globals.INSTANCE.getOgs().getPlayer().getUsername())) {
+                                Toast toast = Toast.makeText(activity, msg.toString(), Toast.LENGTH_LONG);
+                                toast.show();
+                            }
 
                             TextView tv = (TextView) findViewById(R.id.chat_text_view);
-                            tv.append(msg.toString());
-                            tv.append("\n");
+                            tv.setText(msg.toString() + "\n" + tv.getText());
                         }
                     });
                 }
@@ -262,12 +265,11 @@ public class Main3Activity extends AppCompatActivity {
                         });
                         for (int i = 0; i < chats.length(); i++) {
                             JSONObject c = chats.getJSONObject(i);
-                            final ChatMessage msg = new ChatMessage(c.getString("username"), c.getString("body"));
+                            final ChatMessage msg = new ChatMessage(c.getString("username"), c.getString("body"), c.getLong("date"));
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    tv.append(msg.toString());
-                                    tv.append("\n");
+                                    tv.setText(msg.toString() + "\n" + tv.getText());
                                 }
                             });
                         }
@@ -285,7 +287,7 @@ public class Main3Activity extends AppCompatActivity {
                     else
                         bv.board.markTerritory();
 
-                    prefix = String.format("White:%s Black:%s", gamedata.whitePlayer, gamedata.blackPlayer);
+                    prefix = String.format("%s vs %s", gamedata.whitePlayer, gamedata.blackPlayer);
                     changeTitle();
                 }
 
@@ -372,21 +374,29 @@ public class Main3Activity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.chat:
-                View v = findViewById(R.id.chat_text_view);
+                final TextView v = (TextView) findViewById(R.id.chat_text_view);
                 final EditText v2 = (EditText) findViewById(R.id.chat_edit_text);
+                final ScrollView sv = (ScrollView) findViewById(R.id.chat_scroll_view);
+
 
                 if (v.getVisibility() == View.GONE) {
+                    sv.setVisibility(View.VISIBLE);
                     v.setVisibility(View.VISIBLE);
                     v2.setVisibility(View.VISIBLE);
-                    v2.setImeActionLabel("Send", KeyEvent.KEYCODE_ENTER);
+
+                    sv.fullScroll(View.FOCUS_UP);
+
+//                    v2.setImeActionLabel("Send", KeyEvent.KEYCODE_ENTER);
 
 
                     bv.setVisibility(View.GONE);
                 } else {
+                    sv.setVisibility(View.GONE);
                     v.setVisibility(View.GONE);
                     v2.setVisibility(View.GONE);
                     bv.setVisibility(View.VISIBLE);
                 }
+
 
                 return true;
             case R.id.pass:

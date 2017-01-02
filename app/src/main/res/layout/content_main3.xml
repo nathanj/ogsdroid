@@ -23,12 +23,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/chat_text_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        android:orientation="vertical"
+        >
 
         <EditText
             android:id="@+id/chat_edit_text"
@@ -36,7 +32,24 @@
             android:layout_height="wrap_content"
             android:gravity="bottom"
             android:hint="Say hi..."
-            android:maxLines="1" />
+            android:maxLines="1"
+             />
+
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="false"
+            android:scrollbars="vertical"
+            android:id="@+id/chat_scroll_view">
+
+            <TextView
+                android:id="@+id/chat_text_view"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+
+        </ScrollView>
+
 
     </LinearLayout>
 

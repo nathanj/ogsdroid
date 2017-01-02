@@ -4,6 +4,7 @@
     <string name="title_activity_main3">Main3Activity</string>
     <string name="pass">Pass</string>
     <string name="chat">Chat</string>
+    <string name="game">Game</string>
     <string name="resign">Resign</string>
     <string name="accept_stones">Accept Stones</string>
     <string name="reject_stones">Reject Stones</string>

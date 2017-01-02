@@ -3,9 +3,12 @@ package com.ogs
 import android.util.Log
 import io.socket.client.Socket
 import org.json.JSONObject
+import java.util.*
 
-data class ChatMessage(val username: String, val msg: String) {
-    override fun toString() = "$username: $msg"
+data class ChatMessage(val username: String, val msg: String, val date: Long) {
+    override fun toString(): String {
+        return "$username: $msg"
+    }
 }
 
 class GameConnection internal constructor(ogs: OGS, private val socket: Socket, private val gameId: Int, private val userId: Int) {
@@ -35,6 +38,11 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
 
     fun setResetCallback(callback: OGSGameConnectionResetCallback) {
         this.resetCallback = callback
+    }
+
+    private fun emit(event: String, msg: Any) {
+        Log.d(TAG, "emit event:$event msg:$msg")
+        socket.emit(event, msg)
     }
 
     init {
@@ -69,35 +77,37 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             val message = obj.getJSONObject("message")
             val username = message.getString("username")
             val msg = message.getString("body")
-            callbacks?.chat(ChatMessage(username, msg))
+            val date = message.getLong("date")
+            callbacks?.chat(ChatMessage(username, msg, date))
         })
 
         val gameDetails = ogs.getGameDetails(gameId)
         gameAuth = gameDetails!!.getString("auth")
         chatAuth = gameDetails.getString("game_chat_auth")
 
-        socket.emit("game/connect", createJsonObject {
+        Log.d(TAG, "socket = $socket")
+        emit("game/connect", createJsonObject {
             put("auth", gameAuth)
             put("game_id", gameId)
             put("player_id", userId)
             put("game_type", "game")
             put("chat", 1)
         })
-        socket.emit("game/clear_delayed_resign", createJsonObject {
+        emit("game/clear_delayed_resign", createJsonObject {
             put("auth", gameAuth)
             put("game_id", gameId)
             put("player_id", userId)
         })
-        socket.emit("chat/join", createJsonObject {
+        emit("chat/join", createJsonObject {
             put("channel", "game-$gameId")
         })
     }
 
     fun disconnect() {
-        socket.emit("chat/part", createJsonObject {
+        emit("chat/part", createJsonObject {
             put("channel", "game-$gameId")
         }.toString())
-        socket.emit("game/disconnect", createJsonObject {
+        emit("game/disconnect", createJsonObject {
             put("game_id", gameId)
         })
     }
@@ -144,7 +154,7 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             put("move", coord)
         }
         Log.d(TAG, "sending move = " + obj.toString())
-        socket.emit("game/move", obj)
+        emit("game/move", obj)
     }
 
     fun removeStones(coords: String, removed: Boolean) {
@@ -156,7 +166,7 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             put("removed", removed)
         }
         Log.d(TAG, "doing set removed stones: " + obj.toString())
-        socket.emit("game/removed_stones/set", obj)
+        emit("game/removed_stones/set", obj)
     }
 
     fun acceptStones(coords: String) {
@@ -168,7 +178,7 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             put("strict_seki_mode", false)
         }
         Log.d(TAG, "doing accept removed stones " + obj.toString())
-        socket.emit("game/removed_stones/accept", obj)
+        emit("game/removed_stones/accept", obj)
     }
 
     fun rejectStones() {
@@ -178,7 +188,7 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             put("player_id", userId)
         }
         Log.d(TAG, "doing reject removed stones: " + obj.toString())
-        socket.emit("game/removed_stones/reject", obj)
+        emit("game/removed_stones/reject", obj)
     }
 
     fun pass() {
@@ -189,7 +199,7 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             put("move", "..")
         }
         Log.d(TAG, "doing pass = " + obj)
-        socket.emit("game/move", obj)
+        emit("game/move", obj)
     }
 
     fun resign() {
@@ -199,17 +209,17 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             put("player_id", userId)
         }
         Log.d(TAG, "doing resign = " + obj)
-        socket.emit("game/resign", obj)
+        emit("game/resign", obj)
     }
 
     fun waitForStart() {
         val obj = createJsonObject {
             put("game_id", gameId)
         }
-        socket.emit("game/wait", obj)
+        emit("game/wait", obj)
     }
 
-    fun sendChatMessage(player: Player, msg: String) {
+    fun sendChatMessage(player: Player, msg: String, moveNumber: Int) {
         val json = createJsonObject {
             put("auth", chatAuth)
             put("player_id", player.id)
@@ -219,12 +229,11 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             put("type", "discussion")
             put("game_id", gameId)
             put("is_player", 1)
-            put("move_number", 5) // TODO
-            put("ui_class", "timeout")
+            put("move_number", moveNumber) // TODO
         }
 
-        Log.d(TAG, "Sending chat message: ${json.toString(2)}")
-        socket.emit("game/chat", json.toString())
+        Log.d(TAG, "Sending chat message using $socket: $json")
+        emit("game/chat", json)
     }
 
     companion object {

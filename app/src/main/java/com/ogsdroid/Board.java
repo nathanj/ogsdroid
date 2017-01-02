@@ -26,6 +26,7 @@ class Board {
 
     public int board[][];
     public int rows, cols;
+    public int moveNumber = 0;
 
     private Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
     private int lastY, lastX, lastV = 2;
@@ -547,6 +548,7 @@ class Board {
         board[y][x] = lastV;
         lastY = y;
         lastX = x;
+        moveNumber++;
 
         captureGroup(x - 1, y, oppositeColor(lastV));
         captureGroup(x + 1, y, oppositeColor(lastV));

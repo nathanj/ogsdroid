@@ -215,11 +215,8 @@ public class TabbedActivity extends AppCompatActivity {
         Log.d(TAG, "id = " + id);
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            popup.showAtLocation(mViewPager, Gravity.BOTTOM, 10, 10);
-            popup.update(50, 50, 320, 90);
-
-//            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-//            startActivity(intent);
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(intent);
         }
 
         /*
@@ -609,7 +606,6 @@ public class TabbedActivity extends AppCompatActivity {
 
             new GetGameList().execute(ogs);
 
-            /*
             seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
                 @Override
                 public void event(JSONArray events) {
@@ -656,7 +652,6 @@ public class TabbedActivity extends AppCompatActivity {
                     }
                 }
             });
-            */
         }
     }
 
