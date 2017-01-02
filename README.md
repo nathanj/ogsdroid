@@ -17,9 +17,7 @@ Todo
 
   * Make the board look nicer
   * Light/dark themes
-  * Create a challenge
   * Improve clock
-  * Game chat
   * Notifications
   * Landscape
   * Refresh token

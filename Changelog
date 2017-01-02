@@ -1,3 +1,7 @@
+0.4
+---
+- Add game chat
+
 0.3
 ---
 - Add ability to create challenges
@@ -8,5 +12,5 @@
 ---
 - Add ACRA for crash reporting
 - Make the board look a little nicer
-  - Added drop shadows and star points
+  - Add drop shadows and star points
 - Support handicap stones
