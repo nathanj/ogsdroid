@@ -1,7 +1,7 @@
 OGS Android
 ===========
 
-This is an android application to play games on online-go.com . It is still
+This is an android application to play games on [online-go.com](online-go.com). It is still
 early in development so be prepared for bugs and half-implemented features.
 
 Screenshots
@@ -27,5 +27,5 @@ Todo
 Credits
 -------
 
-  * Stone sound - https://www.freesound.org/people/gflower/sounds/235910/
-  * Pass sound - http://freesound.org/people/acclivity/sounds/25882/
+  * Stone sound - [https://www.freesound.org/people/gflower/sounds/235910/](https://www.freesound.org/people/gflower/sounds/235910/)
+  * Pass sound - [http://freesound.org/people/acclivity/sounds/25882](http://freesound.org/people/acclivity/sounds/25882/)
