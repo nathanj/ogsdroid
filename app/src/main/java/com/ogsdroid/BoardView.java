@@ -105,8 +105,8 @@ public class BoardView extends View {
 
         canvas.restore();
 
-        clockWhite.draw(canvas, false, whitePlayer, 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
-        clockBlack.draw(canvas, true, blackPlayer, canvas.getWidth() / 2, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension);
+        clockWhite.draw(canvas, false, whitePlayer, 0, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension, !blacksMove);
+        clockBlack.draw(canvas, true, blackPlayer, canvas.getWidth() / 2, dimension, canvas.getWidth() / 2, canvas.getHeight() - dimension, blacksMove);
 
     }
 

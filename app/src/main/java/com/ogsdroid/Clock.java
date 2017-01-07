@@ -54,7 +54,18 @@ class Clock {
         }
     }
 
-    public void draw(Canvas canvas, boolean black, String username, float sx, float sy, float w, float h) {
+    public void draw(Canvas canvas, boolean black, String username, float sx, float sy, float w, float h, boolean mymove) {
+        if (mymove) {
+            if (urgent()) {
+                p.setARGB(255, 255, 0, 0);
+                p.setStrokeWidth(1);
+                canvas.drawRect(sx, sy, sx + w, sy + h, p);
+            } else {
+                p.setARGB(255, 0, 128, 0);
+                p.setStrokeWidth(1);
+                canvas.drawRect(sx, sy, sx + w, sy + h, p);
+            }
+        }
         if (black) {
             p.setARGB(255, 0, 0, 0);
             p.setStrokeWidth(1);
@@ -62,7 +73,7 @@ class Clock {
             p.setARGB(255, 255, 255, 255);
             p.setStrokeWidth(1);
         }
-        canvas.drawRect(sx + 5, sy, sx + w - 5, sy + h - 5, p);
+        canvas.drawRect(sx + 5, sy + 5, sx + w - 5, sy + h - 5, p);
         if (black) {
             p.setARGB(255, 255, 255, 255);
             p.setStrokeWidth(1);
@@ -74,8 +85,6 @@ class Clock {
         p.setTextSize(h / 8);
         p.setTypeface(Typeface.MONOSPACE);
         canvas.drawText(username, sx + w / 2, sy + h / 3, p);
-        if (urgent())
-            p.setARGB(255, 255, 0, 0);
         canvas.drawText(toString(), sx + w / 2, sy + h * 2 / 3, p);
     }
 
@@ -108,6 +117,6 @@ class Clock {
     }
 
     public boolean urgent() {
-        return (thinkingTime < 10 && periods == 0);
+        return (thinkingTime < 10);
     }
 }
