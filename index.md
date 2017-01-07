@@ -9,7 +9,9 @@ Screenshots
 
 ![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/1.png "Your Games")
 ![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/2.png "Find a Game")
-![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/3.jpg "The Game")
+![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/5.png "Create a Game")
+![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/3.png "The Game")
+![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/4.png "Stone Removal")
 
 
 Todo
@@ -17,9 +19,13 @@ Todo
 
   * Make the board look nicer
   * Light/dark themes
-  * Create a challenge
   * Improve clock
-  * Game chat
   * Notifications
   * Landscape
   * Refresh token
+
+Credits
+-------
+
+  * Stone sound - https://www.freesound.org/people/gflower/sounds/235910/
+  * Pass sound - http://freesound.org/people/acclivity/sounds/25882/
