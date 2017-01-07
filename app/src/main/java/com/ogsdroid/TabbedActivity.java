@@ -19,7 +19,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -516,7 +515,7 @@ public class TabbedActivity extends AppCompatActivity {
                                     periods);
                         } catch (Exception ex) {
                             new AlertDialog.Builder(mainActivity)
-                                    .setMessage("Create challenge failed." + ex.toString())
+                                    .setMessage("Create challenge failed.\n" + ex.toString())
                                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int id) {
                                         }
@@ -534,7 +533,17 @@ public class TabbedActivity extends AppCompatActivity {
                                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialogInterface, int i) {
-                                            ogs.deleteChallenge(challenge);
+                                            try {
+                                                ogs.deleteChallenge(challenge);
+                                            } catch (Exception ex) {
+                                                new AlertDialog.Builder(mainActivity)
+                                                        .setMessage("Cancel challenge failed.\n" + ex.toString())
+                                                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                                            public void onClick(DialogInterface dialog, int id) {
+                                                            }
+                                                        })
+                                                        .show();
+                                            }
                                         }
                                     })
                                     .show();
