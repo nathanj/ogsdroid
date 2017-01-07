@@ -3,6 +3,7 @@ package com.ogsdroid;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
@@ -45,6 +46,8 @@ public class Main3Activity extends AppCompatActivity {
     private Board board;
     private String prefix = "";
     private GameData gamedata = null;
+    private MediaPlayer clickSound;
+    private MediaPlayer passSound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +87,9 @@ public class Main3Activity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         activity = this;
+
+        clickSound = MediaPlayer.create(this, R.raw.click);
+        passSound = MediaPlayer.create(this, R.raw.pass);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -149,10 +155,13 @@ public class Main3Activity extends AppCompatActivity {
 
                 @Override
                 public void move(int x, int y) {
-                    if (x == -1)
+                    if (x == -1) {
                         bv.board.pass();
-                    else
+                        passSound.start();
+                    } else {
                         bv.board.addStone(x, y);
+                        clickSound.start();
+                    }
                     bv.postInvalidate();
                 }
 

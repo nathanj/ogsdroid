@@ -21,3 +21,9 @@ Todo
   * Notifications
   * Landscape
   * Refresh token
+
+Credits
+-------
+
+  Stone sound - https://www.freesound.org/people/gflower/sounds/235910/
+  Pass sound - http://freesound.org/people/acclivity/sounds/25882/
