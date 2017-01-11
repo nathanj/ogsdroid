@@ -6,6 +6,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -17,7 +21,10 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,6 +35,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
@@ -46,12 +54,14 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
     static ArrayList<Game> gameList = new ArrayList<>();
     static ArrayList<Challenge> challengeList = new ArrayList<>();
     static ArrayAdapter<Game> gameAdapter;
+    static MyAdapter myGamesAdapter;
     static ArrayAdapter<Challenge> challengeAdapter;
     static Activity mainActivity;
     static OGS ogs;
@@ -87,6 +97,8 @@ public class TabbedActivity extends AppCompatActivity {
             challengeAdapter.notifyDataSetChanged();
         if (gameAdapter != null)
             gameAdapter.notifyDataSetChanged();
+        if (myGamesAdapter != null)
+            myGamesAdapter.notifyDataSetChanged();
 
         if (seek != null)
             seek.disconnect();
@@ -115,7 +127,6 @@ public class TabbedActivity extends AppCompatActivity {
 
         GetMe getme = new GetMe(ogs);
         getme.execute((Void) null);
-
     }
 
     @Override
@@ -192,9 +203,9 @@ public class TabbedActivity extends AppCompatActivity {
                 R.layout.activity_listview,
                 gameList);
 
+        myGamesAdapter = new MyAdapter(this, gameList);
+
         mainActivity = this;
-
-
     }
 
     @Override
@@ -315,6 +326,72 @@ public class TabbedActivity extends AppCompatActivity {
         }
     }
 
+    static class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+        List<Game> mGames;
+        Activity mActivity;
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            View mView;
+
+            ViewHolder(View v) {
+                super(v);
+                mView = v;
+            }
+        }
+
+        MyAdapter(Activity activity, List<Game> games) {
+            mActivity = activity;
+            mGames = games;
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            Log.d(TAG, "onCreateViewHolder");
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.my_card, parent, false);
+            return new ViewHolder(v);
+        }
+
+        @Override
+        public void onBindViewHolder(final ViewHolder holder, final int position) {
+            Log.d(TAG, "onBindViewHolder position=" + position);
+            final Game game = mGames.get(position);
+            Log.d(TAG, "onBindViewHolder myturn=" + game.myturn);
+            if (game.myturn)
+                holder.mView.setBackgroundColor(Color.argb(255, 200, 255, 200));
+            else
+                holder.mView.setBackgroundColor(Color.WHITE);
+            holder.mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.d(TAG, "You clicked on position " + position);
+                    Intent intent = new Intent(holder.mView.getContext(), Main3Activity.class);
+                    intent.putExtra("id", game.id);
+                    mActivity.startActivity(intent);
+                }
+            });
+            ImageView iv = (ImageView) holder.mView.findViewById(R.id.image);
+            TextView tv = (TextView) holder.mView.findViewById(R.id.my_games_text);
+            tv.setText(game.name);
+            Bitmap b = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(b);
+            Paint p = new Paint();
+            p.setColor(Color.argb(255, 200, 200, 155));
+            c.drawRect(0f, 0f, 300f, 300f, p);
+            game.board.draw(c, 300);
+            iv.setImageBitmap(b);
+        }
+
+        @Override
+        public int getItemCount() {
+            Log.d(TAG, "getItemCount=" + mGames.size());
+            return mGames.size();
+        }
+
+        void addAll(List<Game> games) {
+            mGames.addAll(games);
+        }
+    }
+
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -376,12 +453,32 @@ public class TabbedActivity extends AppCompatActivity {
                 60,
         };
 
+        View createMyGames(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            final Context context = container.getContext();
+            View rootView = inflater.inflate(R.layout.fragment_my_games, container, false);
+
+            RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.my_games_recycler_view);
+            rv.setHasFixedSize(true);
+
+            DisplayMetrics dm = context.getResources().getDisplayMetrics();
+            Log.d(TAG, "pixels = " + dm.widthPixels);
+            float dpWidth = dm.widthPixels / dm.density;
+            int columns = (int) (dpWidth / 310);
+
+            RecyclerView.LayoutManager manager = new GridLayoutManager(context, columns);
+            rv.setLayoutManager(manager);
+            rv.setAdapter(myGamesAdapter);
+
+            return rootView;
+        }
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             final Context context = container.getContext();
-            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1 ||
-                    getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
+            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
+                return createMyGames(inflater, container, savedInstanceState);
+            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
                 View rootView = inflater.inflate(R.layout.fragment_tabbed, container, false);
                 ListView lv = (ListView) rootView.findViewById(R.id.my_listview);
                 switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
@@ -671,24 +768,35 @@ public class TabbedActivity extends AppCompatActivity {
 
             try {
                 JSONObject games = ogs.listGames();
+                Log.d(TAG, "games = " + games);
                 JSONArray results = games.getJSONArray("results");
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject game = results.getJSONObject(i);
                     int id = game.getInt("id");
                     JSONObject details = ogs.getGameDetails(id);
+                    Log.d(TAG, "details = " + details);
+                    JSONArray moves = details.getJSONObject("gamedata").getJSONArray("moves");
+                    Board tmpBoard = new Board(0, details.getInt("height"), details.getInt("width"));
+                    for (int m = 0; m < moves.length(); m++) {
+                        int x = moves.getJSONArray(m).getInt(0);
+                        int y = moves.getJSONArray(m).getInt(1);
+                        if (x != -1)
+                            tmpBoard.addStone(x, y);
+                    }
                     Game g = new Game();
+                    g.board = tmpBoard;
                     g.id = id;
                     String white = game.getJSONObject("players").getJSONObject("white").getString("username");
                     String black = game.getJSONObject("players").getJSONObject("black").getString("username");
                     int currentPlayer = details.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
                     if (myId == currentPlayer) {
                         g.myturn = true;
-                        g.name = String.format("Your move - %s vs %s", white, black);
+                        g.name = String.format("%s vs %s", white, black);
                     } else {
                         g.myturn = false;
-                        g.name = String.format("Opponent's move - %s vs %s", white, black);
+                        g.name = String.format("%s vs %s", white, black);
                     }
-                    //Log.d(TAG, "game name = " + g.name);
+                    Log.d(TAG, "adding game name = " + g.name);
                     gameList.add(g);
                 }
                 Collections.sort(gameList);
@@ -699,8 +807,9 @@ public class TabbedActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(ArrayList<Game> list) {
-            gameAdapter.addAll(list);
-            gameAdapter.notifyDataSetChanged();
+            Log.d(TAG, "onPostExecute for my games list");
+            myGamesAdapter.addAll(list);
+            myGamesAdapter.notifyDataSetChanged();
         }
     }
 

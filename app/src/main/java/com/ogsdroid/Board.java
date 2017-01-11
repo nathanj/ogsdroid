@@ -96,10 +96,11 @@ class Board {
         }
     }
 
-    private void drawStar(Canvas c, float spacing, int y, int x) {
+    private void drawStar(Canvas c, int dimension, float spacing, int y, int x) {
         x++;
         y++;
-        r.set(x * spacing - 4, y * spacing - 4, x * spacing + 4, y * spacing + 4);
+        float radius = dimension / 200.0f;
+        r.set(x * spacing - radius, y * spacing - radius, x * spacing + radius, y * spacing + radius);
         c.drawOval(r, p);
     }
 
@@ -130,27 +131,27 @@ class Board {
 
         // Draw star points
         if (rows == 19 && cols == 19) {
-            drawStar(c, spacing, 3, 3);
-            drawStar(c, spacing, 3, 9);
-            drawStar(c, spacing, 3, 15);
-            drawStar(c, spacing, 9, 3);
-            drawStar(c, spacing, 9, 9);
-            drawStar(c, spacing, 9, 15);
-            drawStar(c, spacing, 15, 3);
-            drawStar(c, spacing, 15, 9);
-            drawStar(c, spacing, 15, 15);
+            drawStar(c, dimension, spacing, 3, 3);
+            drawStar(c, dimension, spacing, 3, 9);
+            drawStar(c, dimension, spacing, 3, 15);
+            drawStar(c, dimension, spacing, 9, 3);
+            drawStar(c, dimension, spacing, 9, 9);
+            drawStar(c, dimension, spacing, 9, 15);
+            drawStar(c, dimension, spacing, 15, 3);
+            drawStar(c, dimension, spacing, 15, 9);
+            drawStar(c, dimension, spacing, 15, 15);
         } else if (rows == 13 && cols == 13) {
-            drawStar(c, spacing, 3, 3);
-            drawStar(c, spacing, 3, 9);
-            drawStar(c, spacing, 6, 6);
-            drawStar(c, spacing, 9, 3);
-            drawStar(c, spacing, 9, 9);
+            drawStar(c, dimension, spacing, 3, 3);
+            drawStar(c, dimension, spacing, 3, 9);
+            drawStar(c, dimension, spacing, 6, 6);
+            drawStar(c, dimension, spacing, 9, 3);
+            drawStar(c, dimension, spacing, 9, 9);
         } else if (rows == 9 && cols == 9) {
-            drawStar(c, spacing, 2, 2);
-            drawStar(c, spacing, 2, 6);
-            drawStar(c, spacing, 4, 4);
-            drawStar(c, spacing, 6, 2);
-            drawStar(c, spacing, 6, 6);
+            drawStar(c, dimension, spacing, 2, 2);
+            drawStar(c, dimension, spacing, 2, 6);
+            drawStar(c, dimension, spacing, 4, 4);
+            drawStar(c, dimension, spacing, 6, 2);
+            drawStar(c, dimension, spacing, 6, 6);
         }
     }
 

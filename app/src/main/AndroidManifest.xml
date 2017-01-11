@@ -18,7 +18,7 @@
         <activity
             android:name=".TabbedActivity"
             android:label="@string/title_activity_tabbed"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".SettingsActivity" />
         <activity
             android:name=".LoginActivity"
@@ -29,10 +29,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".KotlinActivity"
-            android:label="@string/title_activity_kotlin"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

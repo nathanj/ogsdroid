@@ -5,6 +5,7 @@ package com.ogsdroid;
  */
 
 class Game implements Comparable<Game> {
+    Board board;
     int id;
     String name;
     boolean myturn;

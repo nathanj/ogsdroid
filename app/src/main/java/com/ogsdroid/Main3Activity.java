@@ -206,7 +206,6 @@ public class Main3Activity extends AppCompatActivity {
                                 periods = c.getInt("periods");
                                 periodTime = c.getInt("period_time");
                             } catch (JSONException e) {
-                                e.printStackTrace();
                             }
                             bv.clockBlack.setTime(thinkingTime, periods, periodTime);
                         }
@@ -244,16 +243,16 @@ public class Main3Activity extends AppCompatActivity {
                         public void run() {
                             if (phase.equals("play")) {
                                 if (gamedata.whoseTurn == gamedata.blackId)
-                                    setTitle(String.format("%s - Black to play", prefix));
+                                    setTitle(String.format("Black to play - %s", prefix));
                                 else
-                                    setTitle(String.format("%s - White to play", prefix));
+                                    setTitle(String.format("White to play - %s", prefix));
                             } else if (phase.equals("finished")) {
                                 if (gamedata.winner == gamedata.blackId)
-                                    setTitle(String.format("%s - Black wins by %s", prefix, gamedata.outcome));
+                                    setTitle(String.format("Black wins by %s - %s", gamedata.outcome, prefix));
                                 else
-                                    setTitle(String.format("%s - White wins by %s", prefix, gamedata.outcome));
+                                    setTitle(String.format("White wins by %s - %s", gamedata.outcome, prefix));
                             } else if (phase.equals("stone removal")) {
-                                setTitle(String.format("%s - Stone removal", prefix));
+                                setTitle(String.format("Stone removal - %s", prefix));
                             }
                         }
                     });
