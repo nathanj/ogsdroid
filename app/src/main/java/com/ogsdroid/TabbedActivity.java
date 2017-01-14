@@ -520,6 +520,8 @@ public class TabbedActivity extends AppCompatActivity {
                                                         intent.putExtra("id", gameId);
                                                         startActivity(intent);
                                                     }
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
@@ -625,35 +627,46 @@ public class TabbedActivity extends AppCompatActivity {
                             final int game = result.getInt("game");
 
                             GameConnection conn = ogs.openGameConnection(game);
-                            final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
-                                    .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
-                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                            try {
-                                                ogs.deleteChallenge(challenge);
-                                            } catch (Exception ex) {
-                                                new AlertDialog.Builder(mainActivity)
-                                                        .setMessage("Cancel challenge failed.\n" + ex.toString())
-                                                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                                            public void onClick(DialogInterface dialog, int id) {
-                                                            }
-                                                        })
-                                                        .show();
+                            if (conn == null) {
+                                final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+                                        .setMessage("Failed to create challenge.")
+                                        .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
                                             }
-                                        }
-                                    })
-                                    .show();
-                            conn.setResetCallback(new GameConnection.OGSGameConnectionResetCallback() {
-                                @Override
-                                public void reset() {
-                                    dialog.dismiss();
-                                    Intent intent = new Intent(context, Main3Activity.class);
-                                    intent.putExtra("id", game);
-                                    startActivity(intent);
-                                }
-                            });
-                            conn.waitForStart();
+                                        })
+                                        .show();
+                            } else {
+                                final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+                                        .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
+                                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                try {
+                                                    ogs.deleteChallenge(challenge);
+                                                } catch (Exception ex) {
+                                                    new AlertDialog.Builder(mainActivity)
+                                                            .setMessage("Cancel challenge failed.\n" + ex.toString())
+                                                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                                                public void onClick(DialogInterface dialog, int id) {
+                                                                }
+                                                            })
+                                                            .show();
+                                                }
+                                            }
+                                        })
+                                        .show();
+                                conn.setResetCallback(new GameConnection.OGSGameConnectionResetCallback() {
+                                    @Override
+                                    public void reset() {
+                                        dialog.dismiss();
+                                        Intent intent = new Intent(context, Main3Activity.class);
+                                        intent.putExtra("id", game);
+                                        startActivity(intent);
+                                    }
+                                });
+                                conn.waitForStart();
+                            }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -800,6 +813,8 @@ public class TabbedActivity extends AppCompatActivity {
                     gameList.add(g);
                 }
                 Collections.sort(gameList);
+            } catch (IOException e) {
+                e.printStackTrace();
             } catch (JSONException e) {
                 e.printStackTrace();
             }

@@ -71,7 +71,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
         return obj
     }
 
-    @Throws(JSONException::class)
+    @Throws(IOException::class, JSONException::class)
     fun acceptChallenge(id: Int): Int {
         try {
             val str = postURL("https://online-go.com/api/v1/challenges/$id/accept?format=json", "")
@@ -84,7 +84,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
         }
     }
 
-    @Throws(JSONException::class)
+    @Throws(IOException::class, JSONException::class)
     fun listGames(): JSONObject? {
         try {
             val str = getURL("https://online-go.com/api/v1/me/games/?started__isnull=False&ended__isnull=True&format=json")
@@ -97,7 +97,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 
     }
 
-    @Throws(JSONException::class)
+    @Throws(IOException::class, JSONException::class)
     fun getGameDetails(id: Int): JSONObject? {
         try {
             val str = getURL("https://online-go.com/api/v1/games/$id?format=json")
@@ -109,6 +109,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 
     }
 
+    @Throws(IOException::class)
     fun createChallenge(name: String, ranked: Boolean, width: Int, height: Int,
                         mainTime: Int, periodTime: Int, periods: Int): JSONObject {
         val post = createJsonObject {
@@ -140,6 +141,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
                 ))
     }
 
+    @Throws(IOException::class)
     fun deleteChallenge(challenge: Int) {
         deleteURL("https://online-go.com/api/v1/challenges/$challenge")
     }
