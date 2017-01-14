@@ -180,10 +180,12 @@ public class BoardView extends View {
             if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
                 Pair<String, Boolean> pair = board.stoneRemovalAtTouch(getWidth(),
                         getHeight(), event.getX(), event.getY());
-                Log.d(TAG, "coords=" + pair.first);
-                Log.d(TAG, "remove=" + pair.second);
-                if (!pair.first.equals("") && gameConnection != null)
-                    gameConnection.removeStones(pair.first, pair.second);
+                if (pair != null) {
+                    Log.d(TAG, "coords=" + pair.first);
+                    Log.d(TAG, "remove=" + pair.second);
+                    if (!pair.first.equals("") && gameConnection != null)
+                        gameConnection.removeStones(pair.first, pair.second);
+                }
             }
         } else {
             Log.d(TAG, "unknown phase " + phase);
