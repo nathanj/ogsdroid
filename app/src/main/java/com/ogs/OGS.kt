@@ -148,34 +148,51 @@ class OGS(private val clientId: String, private val clientSecret: String) {
      * Opens the real time api socket.
      */
     fun openSocket() {
-        if (socket != null)
-            return
+        synchronized(this) {
+            if (socket != null)
+                return
 
-        socket = IO.socket("https://ggs.online-go.com")
-        socket!!.on(Socket.EVENT_CONNECT) {
-            Log.d("myApp", "socket connect")
-        }.on(Socket.EVENT_DISCONNECT) {
-            Log.d("myApp", "socket disconnect")
+            socket = IO.socket("https://ggs.online-go.com")
+            socket!!.on(Socket.EVENT_CONNECT) {
+                Log.d("myApp", "socket connect")
+            }.on(Socket.EVENT_DISCONNECT) {
+                Log.d("myApp", "socket disconnect")
+            }
+            socket!!.connect()
         }
-        socket!!.connect()
     }
 
     fun closeSocket() {
-        socket?.disconnect()
-        socket = null
+        synchronized(this) {
+            socket?.disconnect()
+            socket = null
+        }
     }
 
-    fun openSeekGraph(callbacks: SeekGraphConnection.SeekGraphConnectionCallbacks): SeekGraphConnection {
-        Log.d(TAG, "opening seek graph")
-        return SeekGraphConnection(this, socket!!, callbacks)
+    fun openSeekGraph(callbacks: SeekGraphConnection.SeekGraphConnectionCallbacks): SeekGraphConnection? {
+        synchronized(this) {
+            Log.d(TAG, "trying opening seek graph socket:$socket")
+            if (socket != null) {
+                Log.d(TAG, "opening seek graph socket:$socket")
+                return SeekGraphConnection(this, socket!!, callbacks)
+            } else {
+                return null
+            }
+        }
     }
 
     /**
      * Uses the real time api to connect to a game.
      */
-    fun openGameConnection(gameId: Int): GameConnection {
-        Log.d(TAG, "socket:$socket player:$player")
-        return GameConnection(this, socket!!, gameId, player!!.id)
+    fun openGameConnection(gameId: Int): GameConnection? {
+        synchronized(this) {
+            Log.d(TAG, "socket:$socket player:$player")
+            if (socket != null) {
+                return GameConnection(this, socket!!, gameId, player!!.id)
+            } else {
+                return null
+            }
+        }
     }
 
     var accessToken: String? = null
