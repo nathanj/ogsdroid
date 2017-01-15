@@ -36,9 +36,7 @@ import java.util.logging.Logger;
 public class Main3Activity extends AppCompatActivity {
     private static final String TAG = "Main3Activity";
 
-    private OGS ogs;
     private GameConnection gameCon;
-    private int currentGameId;
     private String phase = "play";
 
     private AppCompatActivity activity;
@@ -82,7 +80,7 @@ public class Main3Activity extends AppCompatActivity {
         });
 
         Intent intent = getIntent();
-        currentGameId = intent.getIntExtra("id", 0);
+        int currentGameId = intent.getIntExtra("id", 0);
 
         getSupportActionBar().setHomeButtonEnabled(true);
 
@@ -101,7 +99,7 @@ public class Main3Activity extends AppCompatActivity {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
             String accessToken = pref.getString("accessToken", "");
 
-            ogs = Globals.INSTANCE.getOgs();
+            OGS ogs = Globals.INSTANCE.getOgs();
             ogs.setAccessToken(accessToken);
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);

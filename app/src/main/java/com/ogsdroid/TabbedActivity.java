@@ -60,13 +60,13 @@ public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
     static ArrayList<Game> gameList = new ArrayList<>();
     static ArrayList<Challenge> challengeList = new ArrayList<>();
-    static MyAdapter myGamesAdapter;
+    static MyGamesAdapter myGamesAdapter;
     static ArrayAdapter<Challenge> challengeAdapter;
     static Activity mainActivity;
     static OGS ogs;
     SeekGraphConnection seek;
-    PopupWindow popup;
     private int myRanking, myId;
+    private SharedPreferences pref;
 
     /**
      * Dispatch onPause() to fragments.
@@ -96,8 +96,6 @@ public class TabbedActivity extends AppCompatActivity {
         Log.d(TAG, "onStop");
     }
 
-    private SharedPreferences pref;
-
     @Override
     protected void onPostResume() {
         super.onPostResume();
@@ -109,8 +107,7 @@ public class TabbedActivity extends AppCompatActivity {
         ogs.setAccessToken(accessToken);
         ogs.openSocket();
 
-        GetMe getme = new GetMe(ogs);
-        getme.execute((Void) null);
+        new GetMe(ogs).execute();
     }
 
     @Override
@@ -160,7 +157,7 @@ public class TabbedActivity extends AppCompatActivity {
                 R.layout.activity_listview,
                 challengeList);
 
-        myGamesAdapter = new MyAdapter(this, gameList);
+        myGamesAdapter = new MyGamesAdapter(this, gameList);
 
         mainActivity = this;
     }
@@ -189,7 +186,7 @@ public class TabbedActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    static class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+    static class MyGamesAdapter extends RecyclerView.Adapter<MyGamesAdapter.ViewHolder> {
         List<Game> mGames;
         Activity mActivity;
 
@@ -199,7 +196,7 @@ public class TabbedActivity extends AppCompatActivity {
             }
         }
 
-        MyAdapter(Activity activity, List<Game> games) {
+        MyGamesAdapter(Activity activity, List<Game> games) {
             mActivity = activity;
             mGames = games;
         }
@@ -580,7 +577,7 @@ public class TabbedActivity extends AppCompatActivity {
                 return;
             }
 
-            new GetGameList().execute(ogs);
+            new GetMyGamesList().execute(ogs);
 
             seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
                 @Override
@@ -631,7 +628,7 @@ public class TabbedActivity extends AppCompatActivity {
         }
     }
 
-    private class GetGameList extends AsyncTask<OGS, Void, ArrayList<Game>> {
+    private class GetMyGamesList extends AsyncTask<OGS, Void, ArrayList<Game>> {
 
         @Override
         protected void onPreExecute() {
@@ -678,9 +675,7 @@ public class TabbedActivity extends AppCompatActivity {
                     gameList.add(g);
                 }
                 Collections.sort(gameList);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
             return gameList;
@@ -701,7 +696,7 @@ public class TabbedActivity extends AppCompatActivity {
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
