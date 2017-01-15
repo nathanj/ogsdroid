@@ -31,18 +31,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.ogs.Challenge;
 import com.ogs.GameConnection;
 import com.ogs.OGS;
 import com.ogs.SeekGraphConnection;
@@ -60,26 +59,12 @@ public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
     static ArrayList<Game> gameList = new ArrayList<>();
     static ArrayList<Challenge> challengeList = new ArrayList<>();
-    static ArrayAdapter<Game> gameAdapter;
     static MyAdapter myGamesAdapter;
     static ArrayAdapter<Challenge> challengeAdapter;
     static Activity mainActivity;
     static OGS ogs;
     SeekGraphConnection seek;
     PopupWindow popup;
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-     */
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    private ViewPager mViewPager;
     private int myRanking, myId;
 
     /**
@@ -95,8 +80,6 @@ public class TabbedActivity extends AppCompatActivity {
             challengeList.clear();
         if (challengeAdapter != null)
             challengeAdapter.notifyDataSetChanged();
-        if (gameAdapter != null)
-            gameAdapter.notifyDataSetChanged();
         if (myGamesAdapter != null)
             myGamesAdapter.notifyDataSetChanged();
 
@@ -154,40 +137,17 @@ public class TabbedActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_tabbed);
 
-        TextView tvMsg = new TextView(this);
-        tvMsg.setText("Hi this is pop up window...");
-
-        Button b = new Button(this);
-        b.setText("This is a button");
-        b.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(TAG, "clicked the button");
-            }
-        });
-
-        LayoutParams layout = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
-                LayoutParams.WRAP_CONTENT);
-        LinearLayout containerLayout = new LinearLayout(this);
-        containerLayout.setOrientation(LinearLayout.VERTICAL);
-        containerLayout.addView(b, layout);
-        containerLayout.addView(tvMsg, layout);
-
-        popup = new PopupWindow(this);
-        popup.setContentView(containerLayout);
-
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
+        ViewPager mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -198,10 +158,6 @@ public class TabbedActivity extends AppCompatActivity {
         challengeAdapter = new ArrayAdapter<Challenge>(this,
                 R.layout.activity_listview,
                 challengeList);
-
-        gameAdapter = new ArrayAdapter<Game>(this,
-                R.layout.activity_listview,
-                gameList);
 
         myGamesAdapter = new MyAdapter(this, gameList);
 
@@ -229,101 +185,7 @@ public class TabbedActivity extends AppCompatActivity {
             startActivity(intent);
         }
 
-        /*
-        if (id == R.id.create_game) {
-            Log.d(TAG, "trying to create a game!!!!");
-            popup.showAtLocation(this.mViewPager, Gravity.BOTTOM, 10, 10);
-            popup.update(50, 50, 320, 90);
-
-//            new AlertDialog.Builder(this)
-//                    .setMessage("Not implemented yet, sorry!")
-//                    .setCancelable(true)
-//                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-//                        public void onClick(DialogInterface dialog, int id) {
-//
-//                        }
-//                    })
-//                    .setNegativeButton("No", null)
-//                    .show();
-
-            return true;
-        }
-*/
         return super.onOptionsItemSelected(item);
-    }
-
-    public static class Challenge implements Comparable<Challenge> {
-        int challengeId;
-        String name;
-        String username;
-        boolean ranked;
-        int rank;
-        int minRank, maxRank;
-        int handicap;
-        int timePerMove;
-        int width, height;
-
-        Challenge(int id) {
-            challengeId = id;
-        }
-
-        Challenge(JSONObject obj) {
-            try {
-                challengeId = obj.getInt("challenge_id");
-                username = obj.getString("username");
-                name = obj.getString("name");
-                timePerMove = obj.getInt("time_per_move");
-                ranked = obj.getBoolean("ranked");
-                rank = obj.getInt("rank");
-                minRank = obj.getInt("min_rank");
-                maxRank = obj.getInt("max_rank");
-                handicap = obj.getInt("handicap");
-                width = obj.getInt("width");
-                height = obj.getInt("height");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private String rankToString(int rank) {
-            if (rank < 30)
-                return String.format("%d Kyu", 30 - rank);
-            else
-                return String.format("%d Dan", rank - 30 + 1);
-        }
-
-        @Override
-        public String toString() {
-            String handicapStr = handicap == -1 ? "Auto Handicap" : (handicap == 0 ? "No Handicap" : "");
-            if (handicap > 0)
-                handicapStr = String.format("%d Stones", handicap);
-
-            return String.format("%s - %dx%d - %s (%s) - %s - %s - %ds / move",
-                    name, width, height, username, rankToString(rank),
-                    ranked ? "Ranked" : "Casual",
-                    handicapStr,
-                    timePerMove);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            Challenge other = (Challenge) obj;
-            if (other == null)
-                return false;
-
-            return other.challengeId == challengeId;
-        }
-
-        public boolean canAccept(int myRanking) {
-            return myRanking >= minRank && myRanking <= maxRank && (!ranked || Math.abs(myRanking - rank) <= 9);
-        }
-
-        public int compareTo(Challenge challenge) {
-            if (challenge.timePerMove == timePerMove) {
-                return rank - challenge.rank;
-            }
-            return timePerMove - challenge.timePerMove;
-        }
     }
 
     static class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
@@ -472,210 +334,205 @@ public class TabbedActivity extends AppCompatActivity {
             return rootView;
         }
 
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
+        View createSeek(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             final Context context = container.getContext();
-            if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
-                return createMyGames(inflater, container, savedInstanceState);
-            } else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2) {
-                View rootView = inflater.inflate(R.layout.fragment_tabbed, container, false);
-                ListView lv = (ListView) rootView.findViewById(R.id.my_listview);
-                switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
-                    case 1:
-                        lv.setAdapter(gameAdapter);
-                        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                                Game game = gameList.get(i);
+            View rootView = inflater.inflate(R.layout.fragment_tabbed, container, false);
+            ListView lv = (ListView) rootView.findViewById(R.id.my_listview);
+            lv.setAdapter(challengeAdapter);
+            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    final Challenge c = challengeList.get(i);
 
-                                Intent intent = new Intent(context, Main3Activity.class);
-                                intent.putExtra("id", game.id);
-                                startActivity(intent);
-                            }
-                        });
-                        return rootView;
-                    case 2:
-                        lv.setAdapter(challengeAdapter);
-                        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                                final Challenge c = challengeList.get(i);
-
-                                new AlertDialog.Builder(mainActivity)
-                                        .setMessage(String.format("Are you sure you want to accept the challenge %s?", c))
-                                        .setCancelable(true)
-                                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                try {
-                                                    int gameId = ogs.acceptChallenge(c.challengeId);
-                                                    if (gameId == 0) {
-                                                        new AlertDialog.Builder(mainActivity)
-                                                                .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))
-                                                                .setCancelable(true)
-                                                                .setPositiveButton("Ok", null)
-                                                                .show();
-                                                    } else {
-                                                        Intent intent = new Intent(context, Main3Activity.class);
-                                                        intent.putExtra("id", gameId);
-                                                        startActivity(intent);
-                                                    }
-                                                } catch (IOException e) {
-                                                    e.printStackTrace();
-                                                } catch (JSONException e) {
-                                                    e.printStackTrace();
-                                                }
-                                            }
-                                        })
-                                        .setNegativeButton("No", null)
-                                        .show();
-                            }
-                        });
-                        return rootView;
+                    new AlertDialog.Builder(mainActivity)
+                            .setMessage(String.format("Are you sure you want to accept the challenge %s?", c))
+                            .setCancelable(true)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    try {
+                                        int gameId = ogs.acceptChallenge(c.getChallengeId());
+                                        if (gameId == 0) {
+                                            new AlertDialog.Builder(mainActivity)
+                                                    .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))
+                                                    .setCancelable(true)
+                                                    .setPositiveButton("Ok", null)
+                                                    .show();
+                                        } else {
+                                            Intent intent = new Intent(context, Main3Activity.class);
+                                            intent.putExtra("id", gameId);
+                                            startActivity(intent);
+                                        }
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            })
+                            .setNegativeButton("No", null)
+                            .show();
                 }
-            } else {
-                final View rootView = inflater.inflate(R.layout.fragment_create, container, false);
-                final TextView gameNameText = (TextView) rootView.findViewById(R.id.name);
-                final SeekBar mainTime = (SeekBar) rootView.findViewById(R.id.main_time);
-                final TextView mainTimeText = (TextView) rootView.findViewById(R.id.main_time_text);
-                mainTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                        mainTimeText.setText("Main Time: " + mainTimes[i]);
+            });
+            return rootView;
+        }
+
+        View createChallengeView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            final Context context = container.getContext();
+            final View rootView = inflater.inflate(R.layout.fragment_create, container, false);
+            final TextView gameNameText = (TextView) rootView.findViewById(R.id.name);
+            final SeekBar mainTime = (SeekBar) rootView.findViewById(R.id.main_time);
+            final TextView mainTimeText = (TextView) rootView.findViewById(R.id.main_time_text);
+            mainTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                    mainTimeText.setText("Main Time: " + mainTimes[i]);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
+            mainTime.setProgress(3);
+            mainTimeText.setText("Main Time: " + mainTimes[3]);
+
+            final TextView byoYomiText = (TextView) rootView.findViewById(R.id.byo_yomi_text);
+            final SeekBar byoYomiTime = (SeekBar) rootView.findViewById(R.id.byo_yomi);
+            byoYomiTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                    byoYomiText.setText("Byo-Yomi: " + byoYomiTimes[i]);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
+            byoYomiTime.setProgress(3);
+            byoYomiText.setText("Byo-Yomi: " + byoYomiTimes[3]);
+
+
+            Button b = (Button) rootView.findViewById(R.id.challenge);
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    RadioGroup rankedGroup = (RadioGroup) rootView.findViewById(R.id.ranked_group);
+                    final boolean ranked = (rankedGroup.getCheckedRadioButtonId() == R.id.ranked);
+
+                    RadioGroup sizeGroup = (RadioGroup) rootView.findViewById(R.id.size_group);
+
+                    int dim = 9;
+                    switch (sizeGroup.getCheckedRadioButtonId()) {
+                        case R.id.size9x9:
+                            dim = 9;
+                            break;
+                        case R.id.size13x13:
+                            dim = 13;
+                            break;
+                        case R.id.size19x19:
+                            dim = 19;
+                            break;
                     }
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-
+                    final int width = dim;
+                    final int height = dim;
+                    final int periods = 5;
+                    Log.d(TAG, "clicked on the challenge button");
+                    Log.d(TAG, "byo yomi selected = " + byoYomiTimes[byoYomiTime.getProgress()]);
+                    JSONObject result;
+                    try {
+                        result = ogs.createChallenge(gameNameText.getText().toString(), ranked,
+                                width, height,
+                                mainTimesTimes[mainTime.getProgress()],
+                                byoYomiTimesTimes[byoYomiTime.getProgress()],
+                                periods);
+                    } catch (Exception ex) {
+                        new AlertDialog.Builder(mainActivity)
+                                .setMessage("Create challenge failed.\n" + ex.toString())
+                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                    }
+                                })
+                                .show();
+                        return;
                     }
+                    try {
+                        final int challenge = result.getInt("challenge");
+                        final int game = result.getInt("game");
 
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-
-                    }
-                });
-                mainTime.setProgress(3);
-                mainTimeText.setText("Main Time: " + mainTimes[3]);
-
-                final TextView byoYomiText = (TextView) rootView.findViewById(R.id.byo_yomi_text);
-                final SeekBar byoYomiTime = (SeekBar) rootView.findViewById(R.id.byo_yomi);
-                byoYomiTime.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                    @Override
-                    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                        byoYomiText.setText("Byo-Yomi: " + byoYomiTimes[i]);
-                    }
-
-                    @Override
-                    public void onStartTrackingTouch(SeekBar seekBar) {
-
-                    }
-
-                    @Override
-                    public void onStopTrackingTouch(SeekBar seekBar) {
-
-                    }
-                });
-                byoYomiTime.setProgress(3);
-                byoYomiText.setText("Byo-Yomi: " + byoYomiTimes[3]);
-
-
-                Button b = (Button) rootView.findViewById(R.id.challenge);
-                b.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        RadioGroup rankedGroup = (RadioGroup) rootView.findViewById(R.id.ranked_group);
-                        final boolean ranked = (rankedGroup.getCheckedRadioButtonId() == R.id.ranked);
-
-                        RadioGroup sizeGroup = (RadioGroup) rootView.findViewById(R.id.size_group);
-
-                        int dim = 9;
-                        switch (sizeGroup.getCheckedRadioButtonId()) {
-                            case R.id.size9x9:
-                                dim = 9;
-                                break;
-                            case R.id.size13x13:
-                                dim = 13;
-                                break;
-                            case R.id.size19x19:
-                                dim = 19;
-                                break;
-                        }
-                        final int width = dim;
-                        final int height = dim;
-                        final int periods = 5;
-                        Log.d(TAG, "clicked on the challenge button");
-                        Log.d(TAG, "byo yomi selected = " + byoYomiTimes[byoYomiTime.getProgress()]);
-                        JSONObject result;
-                        try {
-                            result = ogs.createChallenge(gameNameText.getText().toString(), ranked,
-                                    width, height,
-                                    mainTimesTimes[mainTime.getProgress()],
-                                    byoYomiTimesTimes[byoYomiTime.getProgress()],
-                                    periods);
-                        } catch (Exception ex) {
-                            new AlertDialog.Builder(mainActivity)
-                                    .setMessage("Create challenge failed.\n" + ex.toString())
-                                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int id) {
+                        GameConnection conn = ogs.openGameConnection(game);
+                        if (conn == null) {
+                            final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+                                    .setMessage("Failed to create challenge.")
+                                    .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
                                         }
                                     })
                                     .show();
-                            return;
-                        }
-                        try {
-                            final int challenge = result.getInt("challenge");
-                            final int game = result.getInt("game");
-
-                            GameConnection conn = ogs.openGameConnection(game);
-                            if (conn == null) {
-                                final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
-                                        .setMessage("Failed to create challenge.")
-                                        .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialogInterface, int i) {
+                        } else {
+                            final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+                                    .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
+                                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            try {
+                                                ogs.deleteChallenge(challenge);
+                                            } catch (Exception ex) {
+                                                new AlertDialog.Builder(mainActivity)
+                                                        .setMessage("Cancel challenge failed.\n" + ex.toString())
+                                                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                                            public void onClick(DialogInterface dialog, int id) {
+                                                            }
+                                                        })
+                                                        .show();
                                             }
-                                        })
-                                        .show();
-                            } else {
-                                final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
-                                        .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
-                                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                try {
-                                                    ogs.deleteChallenge(challenge);
-                                                } catch (Exception ex) {
-                                                    new AlertDialog.Builder(mainActivity)
-                                                            .setMessage("Cancel challenge failed.\n" + ex.toString())
-                                                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                                                public void onClick(DialogInterface dialog, int id) {
-                                                                }
-                                                            })
-                                                            .show();
-                                                }
-                                            }
-                                        })
-                                        .show();
-                                conn.setResetCallback(new GameConnection.OGSGameConnectionResetCallback() {
-                                    @Override
-                                    public void reset() {
-                                        dialog.dismiss();
-                                        Intent intent = new Intent(context, Main3Activity.class);
-                                        intent.putExtra("id", game);
-                                        startActivity(intent);
-                                    }
-                                });
-                                conn.waitForStart();
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                                        }
+                                    })
+                                    .show();
+                            conn.setResetCallback(new GameConnection.OGSGameConnectionResetCallback() {
+                                @Override
+                                public void reset() {
+                                    dialog.dismiss();
+                                    Intent intent = new Intent(context, Main3Activity.class);
+                                    intent.putExtra("id", game);
+                                    startActivity(intent);
+                                }
+                            });
+                            conn.waitForStart();
                         }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                });
-                return rootView;
+                }
+            });
+            return rootView;
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
+                case 1:
+                    return createMyGames(inflater, container, savedInstanceState);
+                case 2:
+                    return createSeek(inflater, container, savedInstanceState);
+                case 3:
+                    return createChallengeView(inflater, container, savedInstanceState);
+                default:
+                    throw new RuntimeException("Tried to create view " + getArguments().getInt(ARG_SECTION_NUMBER));
             }
-            return null;
         }
     }
 
@@ -737,7 +594,7 @@ public class TabbedActivity extends AppCompatActivity {
                                     @Override
                                     public void run() {
                                         try {
-                                            challengeAdapter.remove(new TabbedActivity.Challenge(event.getInt("challenge_id")));
+                                            challengeAdapter.remove(new Challenge(event.getInt("challenge_id")));
                                             challengeAdapter.notifyDataSetChanged();
                                         } catch (JSONException e) {
                                             e.printStackTrace();
@@ -748,7 +605,7 @@ public class TabbedActivity extends AppCompatActivity {
                                 ; // game started notificaton
                             else // new seek
                             {
-                                final TabbedActivity.Challenge c = new TabbedActivity.Challenge(event);
+                                final Challenge c = new Challenge(event);
                                 Log.d(TAG, c.toString());
 
                                 if (c.canAccept(myRanking)) {
