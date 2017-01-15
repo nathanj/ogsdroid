@@ -352,6 +352,17 @@ public class Main3Activity extends AppCompatActivity {
                 return true;
             }
         }
+        final TextView v = (TextView) findViewById(R.id.chat_text_view);
+        // If the chat is visible then go back to the game
+        if (v.getVisibility() == View.VISIBLE) {
+            final EditText v2 = (EditText) findViewById(R.id.chat_edit_text);
+            final ScrollView sv = (ScrollView) findViewById(R.id.chat_scroll_view);
+            sv.setVisibility(View.GONE);
+            v.setVisibility(View.GONE);
+            v2.setVisibility(View.GONE);
+            bv.setVisibility(View.VISIBLE);
+            return true;
+        }
         return super.onKeyDown(keyCode, event);
     }
 
