@@ -37,6 +37,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -193,11 +194,8 @@ public class TabbedActivity extends AppCompatActivity {
         Activity mActivity;
 
         static class ViewHolder extends RecyclerView.ViewHolder {
-            View mView;
-
             ViewHolder(View v) {
                 super(v);
-                mView = v;
             }
         }
 
@@ -214,25 +212,26 @@ public class TabbedActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, final int position) {
+        public void onBindViewHolder(final ViewHolder holder, int position) {
             Log.d(TAG, "onBindViewHolder position=" + position);
             final Game game = mGames.get(position);
             Log.d(TAG, "onBindViewHolder myturn=" + game.myturn);
             if (game.myturn)
-                holder.mView.setBackgroundColor(Color.argb(255, 200, 255, 200));
+                holder.itemView.setBackgroundColor(Color.argb(255, 200, 255, 200));
             else
-                holder.mView.setBackgroundColor(Color.WHITE);
-            holder.mView.setOnClickListener(new View.OnClickListener() {
+                holder.itemView.setBackgroundColor(Color.WHITE);
+
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Log.d(TAG, "You clicked on position " + position);
-                    Intent intent = new Intent(holder.mView.getContext(), Main3Activity.class);
+                    Log.d(TAG, "You clicked on position " + holder.getAdapterPosition());
+                    Intent intent = new Intent(holder.itemView.getContext(), Main3Activity.class);
                     intent.putExtra("id", game.id);
                     mActivity.startActivity(intent);
                 }
             });
-            ImageView iv = (ImageView) holder.mView.findViewById(R.id.image);
-            TextView tv = (TextView) holder.mView.findViewById(R.id.my_games_text);
+            ImageView iv = (ImageView) holder.itemView.findViewById(R.id.image);
+            TextView tv = (TextView) holder.itemView.findViewById(R.id.my_games_text);
             tv.setText(game.name);
             Bitmap b = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888);
             Canvas c = new Canvas(b);
@@ -316,6 +315,7 @@ public class TabbedActivity extends AppCompatActivity {
         };
 
         View createMyGames(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            Log.d(TAG, "createMyGames");
             final Context context = container.getContext();
             View rootView = inflater.inflate(R.layout.fragment_my_games, container, false);
 
@@ -632,7 +632,15 @@ public class TabbedActivity extends AppCompatActivity {
     }
 
     private class GetGameList extends AsyncTask<OGS, Void, ArrayList<Game>> {
+
+        @Override
+        protected void onPreExecute() {
+            ProgressBar pb = (ProgressBar) TabbedActivity.this.findViewById(R.id.my_games_progress_bar);
+            pb.setVisibility(View.VISIBLE);
+        }
+
         protected ArrayList<Game> doInBackground(OGS... ogss) {
+            Log.d(TAG, "GetGameList doInBackground");
             OGS ogs = ogss[0];
             ArrayList<Game> gameList = new ArrayList<>();
 
@@ -679,7 +687,9 @@ public class TabbedActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(ArrayList<Game> list) {
-            Log.d(TAG, "onPostExecute for my games list");
+            Log.d(TAG, "GetGameList onPostExecute");
+            ProgressBar pb = (ProgressBar) TabbedActivity.this.findViewById(R.id.my_games_progress_bar);
+            pb.setVisibility(View.GONE);
             myGamesAdapter.addAll(list);
             myGamesAdapter.notifyDataSetChanged();
         }

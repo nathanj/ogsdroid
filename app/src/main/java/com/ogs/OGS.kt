@@ -159,6 +159,14 @@ class OGS(private val clientId: String, private val clientSecret: String) {
                 Log.d("myApp", "socket connect")
             }.on(Socket.EVENT_DISCONNECT) {
                 Log.d("myApp", "socket disconnect")
+            }.on(Socket.EVENT_CONNECT_ERROR) {
+                Log.e("myApp", "socket connect error")
+            }.on(Socket.EVENT_ERROR) {
+                Log.e("myApp", "socket error")
+            }.on(Socket.EVENT_CONNECT_TIMEOUT) {
+                Log.e("myApp", "socket connect timeout")
+            }.on(Socket.EVENT_RECONNECT) {
+                Log.d("myApp", "socket reconnect")
             }
             socket!!.connect()
         }
