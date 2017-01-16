@@ -39,7 +39,6 @@ public class Main3Activity extends AppCompatActivity {
     private GameConnection gameCon;
     private String phase = "play";
 
-    private AppCompatActivity activity;
     private BoardView bv;
     private Board board;
     private String prefix = "";
@@ -83,8 +82,6 @@ public class Main3Activity extends AppCompatActivity {
         int currentGameId = intent.getIntExtra("id", 0);
 
         getSupportActionBar().setHomeButtonEnabled(true);
-
-        activity = this;
 
         clickSound = MediaPlayer.create(this, R.raw.click);
         passSound = MediaPlayer.create(this, R.raw.pass);
@@ -137,11 +134,11 @@ public class Main3Activity extends AppCompatActivity {
                 public void chat(@NotNull final ChatMessage msg) {
                     Log.d(TAG, msg.toString());
 
-                    activity.runOnUiThread(new Runnable() {
+                    Main3Activity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             if (!msg.getUsername().equals(Globals.INSTANCE.getOgs().getPlayer().getUsername())) {
-                                Toast toast = Toast.makeText(activity, msg.toString(), Toast.LENGTH_LONG);
+                                Toast toast = Toast.makeText(Main3Activity.this, msg.toString(), Toast.LENGTH_LONG);
                                 toast.show();
                             }
 
@@ -237,7 +234,7 @@ public class Main3Activity extends AppCompatActivity {
                 void changeTitle() {
                     if (gamedata == null)
                         return;
-                    activity.runOnUiThread(new Runnable() {
+                    Main3Activity.this.runOnUiThread(new Runnable() {
                         public void run() {
                             if (phase.equals("play")) {
                                 if (gamedata.whoseTurn == gamedata.blackId)
@@ -263,7 +260,7 @@ public class Main3Activity extends AppCompatActivity {
                     try {
                         final TextView tv = (TextView) findViewById(R.id.chat_text_view);
                         JSONArray chats = obj.getJSONArray("chat_log");
-                        activity.runOnUiThread(new Runnable() {
+                        Main3Activity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 tv.setText("");
@@ -272,7 +269,7 @@ public class Main3Activity extends AppCompatActivity {
                         for (int i = 0; i < chats.length(); i++) {
                             JSONObject c = chats.getJSONObject(i);
                             final ChatMessage msg = new ChatMessage(c.getString("username"), c.getString("body"), c.getLong("date"));
-                            activity.runOnUiThread(new Runnable() {
+                            Main3Activity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     tv.setText(msg.toString() + "\n" + tv.getText());
@@ -317,10 +314,10 @@ public class Main3Activity extends AppCompatActivity {
                 @Override
                 public void error(final String msg) {
                     Log.e(TAG, "got ogs error: " + msg);
-                    activity.runOnUiThread(new Runnable() {
+                    Main3Activity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            new AlertDialog.Builder(activity)
+                            new AlertDialog.Builder(Main3Activity.this)
                                     .setMessage("OGS error: " + msg)
                                     .setCancelable(true)
                                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -332,11 +329,7 @@ public class Main3Activity extends AppCompatActivity {
                     });
                 }
             });
-        } catch (
-                Exception e
-                )
-
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

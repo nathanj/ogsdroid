@@ -14,6 +14,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -36,7 +37,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
@@ -60,9 +60,8 @@ public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
     static ArrayList<Game> gameList = new ArrayList<>();
     static ArrayList<Challenge> challengeList = new ArrayList<>();
-    static MyGamesAdapter myGamesAdapter;
+    MyGamesAdapter myGamesAdapter;
     static ArrayAdapter<Challenge> challengeAdapter;
-    static Activity mainActivity;
     static OGS ogs;
     SeekGraphConnection seek;
     private int myRanking, myId;
@@ -151,15 +150,11 @@ public class TabbedActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
-        PlaceholderFragment f = (PlaceholderFragment) mSectionsPagerAdapter.getItem(0);
-
         challengeAdapter = new ArrayAdapter<Challenge>(this,
                 R.layout.activity_listview,
                 challengeList);
 
         myGamesAdapter = new MyGamesAdapter(this, gameList);
-
-        mainActivity = this;
     }
 
     @Override
@@ -203,16 +198,16 @@ public class TabbedActivity extends AppCompatActivity {
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            Log.d(TAG, "onCreateViewHolder");
+            //Log.d(TAG, "onCreateViewHolder");
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.my_card, parent, false);
             return new ViewHolder(v);
         }
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
-            Log.d(TAG, "onBindViewHolder position=" + position);
+            //Log.d(TAG, "onBindViewHolder position=" + position);
             final Game game = mGames.get(position);
-            Log.d(TAG, "onBindViewHolder myturn=" + game.myturn);
+            //Log.d(TAG, "onBindViewHolder myturn=" + game.myturn);
             if (game.myturn)
                 holder.itemView.setBackgroundColor(Color.argb(255, 200, 255, 200));
             else
@@ -241,7 +236,7 @@ public class TabbedActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            Log.d(TAG, "getItemCount=" + mGames.size());
+            //Log.d(TAG, "getItemCount=" + mGames.size());
             return mGames.size();
         }
 
@@ -250,31 +245,74 @@ public class TabbedActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
+    public static class MyGamesFragment extends Fragment {
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            Log.d(TAG, "MyGamesFragment onCreateView");
+            final Context context = container.getContext();
+            View rootView = inflater.inflate(R.layout.fragment_my_games, container, false);
 
-        public PlaceholderFragment() {
+            RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.my_games_recycler_view);
+            rv.setHasFixedSize(true);
+
+            DisplayMetrics dm = context.getResources().getDisplayMetrics();
+            float dpWidth = dm.widthPixels / dm.density;
+            int columns = (int) (dpWidth / 310);
+
+            RecyclerView.LayoutManager manager = new GridLayoutManager(context, columns);
+            rv.setLayoutManager(manager);
+            rv.setAdapter(((TabbedActivity) getActivity()).myGamesAdapter);
+
+            return rootView;
         }
+    }
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
+    public static class FindAGameFragment extends Fragment {
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            final TabbedActivity activity = (TabbedActivity) getActivity();
+            View rootView = inflater.inflate(R.layout.fragment_tabbed, container, false);
+            ListView lv = (ListView) rootView.findViewById(R.id.my_listview);
+            lv.setAdapter(challengeAdapter);
+            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    final Challenge c = challengeList.get(i);
+
+                    new AlertDialog.Builder(activity)
+                            .setMessage(String.format("Are you sure you want to accept the challenge %s?", c))
+                            .setCancelable(true)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    try {
+                                        int gameId = ogs.acceptChallenge(c.getChallengeId());
+                                        if (gameId == 0) {
+                                            new AlertDialog.Builder(activity)
+                                                    .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))
+                                                    .setCancelable(true)
+                                                    .setPositiveButton("Ok", null)
+                                                    .show();
+                                        } else {
+                                            Intent intent = new Intent(activity, Main3Activity.class);
+                                            intent.putExtra("id", gameId);
+                                            startActivity(intent);
+                                        }
+                                    } catch (IOException | JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            })
+                            .setNegativeButton("No", null)
+                            .show();
+                }
+            });
+            return rootView;
         }
+    }
 
+    public static class CreateAGameFragment extends Fragment {
         static String[] mainTimes = {
                 "1 Minute",
                 "5 Minutes",
@@ -311,70 +349,9 @@ public class TabbedActivity extends AppCompatActivity {
                 60,
         };
 
-        View createMyGames(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            Log.d(TAG, "createMyGames");
-            final Context context = container.getContext();
-            View rootView = inflater.inflate(R.layout.fragment_my_games, container, false);
-
-            RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.my_games_recycler_view);
-            rv.setHasFixedSize(true);
-
-            DisplayMetrics dm = context.getResources().getDisplayMetrics();
-            Log.d(TAG, "pixels = " + dm.widthPixels);
-            float dpWidth = dm.widthPixels / dm.density;
-            int columns = (int) (dpWidth / 310);
-
-            RecyclerView.LayoutManager manager = new GridLayoutManager(context, columns);
-            rv.setLayoutManager(manager);
-            rv.setAdapter(myGamesAdapter);
-
-            return rootView;
-        }
-
-        View createSeek(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            final Context context = container.getContext();
-            View rootView = inflater.inflate(R.layout.fragment_tabbed, container, false);
-            ListView lv = (ListView) rootView.findViewById(R.id.my_listview);
-            lv.setAdapter(challengeAdapter);
-            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    final Challenge c = challengeList.get(i);
-
-                    new AlertDialog.Builder(mainActivity)
-                            .setMessage(String.format("Are you sure you want to accept the challenge %s?", c))
-                            .setCancelable(true)
-                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    try {
-                                        int gameId = ogs.acceptChallenge(c.getChallengeId());
-                                        if (gameId == 0) {
-                                            new AlertDialog.Builder(mainActivity)
-                                                    .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))
-                                                    .setCancelable(true)
-                                                    .setPositiveButton("Ok", null)
-                                                    .show();
-                                        } else {
-                                            Intent intent = new Intent(context, Main3Activity.class);
-                                            intent.putExtra("id", gameId);
-                                            startActivity(intent);
-                                        }
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            })
-                            .setNegativeButton("No", null)
-                            .show();
-                }
-            });
-            return rootView;
-        }
-
-        View createChallengeView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            final Context context = container.getContext();
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            final TabbedActivity activity = (TabbedActivity) getActivity();
             final View rootView = inflater.inflate(R.layout.fragment_create, container, false);
             final TextView gameNameText = (TextView) rootView.findViewById(R.id.name);
             final SeekBar mainTime = (SeekBar) rootView.findViewById(R.id.main_time);
@@ -454,7 +431,7 @@ public class TabbedActivity extends AppCompatActivity {
                                 byoYomiTimesTimes[byoYomiTime.getProgress()],
                                 periods);
                     } catch (Exception ex) {
-                        new AlertDialog.Builder(mainActivity)
+                        new AlertDialog.Builder(activity)
                                 .setMessage("Create challenge failed.\n" + ex.toString())
                                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
@@ -469,7 +446,7 @@ public class TabbedActivity extends AppCompatActivity {
 
                         GameConnection conn = ogs.openGameConnection(game);
                         if (conn == null) {
-                            final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+                            final AlertDialog dialog = new AlertDialog.Builder(activity)
                                     .setMessage("Failed to create challenge.")
                                     .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
                                         @Override
@@ -478,7 +455,7 @@ public class TabbedActivity extends AppCompatActivity {
                                     })
                                     .show();
                         } else {
-                            final AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+                            final AlertDialog dialog = new AlertDialog.Builder(activity)
                                     .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
                                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                         @Override
@@ -486,7 +463,7 @@ public class TabbedActivity extends AppCompatActivity {
                                             try {
                                                 ogs.deleteChallenge(challenge);
                                             } catch (Exception ex) {
-                                                new AlertDialog.Builder(mainActivity)
+                                                new AlertDialog.Builder(activity)
                                                         .setMessage("Cancel challenge failed.\n" + ex.toString())
                                                         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                                             public void onClick(DialogInterface dialog, int id) {
@@ -501,7 +478,7 @@ public class TabbedActivity extends AppCompatActivity {
                                 @Override
                                 public void reset() {
                                     dialog.dismiss();
-                                    Intent intent = new Intent(context, Main3Activity.class);
+                                    Intent intent = new Intent(activity, Main3Activity.class);
                                     intent.putExtra("id", game);
                                     startActivity(intent);
                                 }
@@ -515,21 +492,6 @@ public class TabbedActivity extends AppCompatActivity {
                 }
             });
             return rootView;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
-                case 1:
-                    return createMyGames(inflater, container, savedInstanceState);
-                case 2:
-                    return createSeek(inflater, container, savedInstanceState);
-                case 3:
-                    return createChallengeView(inflater, container, savedInstanceState);
-                default:
-                    throw new RuntimeException("Tried to create view " + getArguments().getInt(ARG_SECTION_NUMBER));
-            }
         }
     }
 
@@ -566,7 +528,7 @@ public class TabbedActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = pref.edit();
                 editor.remove("accessToken");
                 editor.apply();
-                new AlertDialog.Builder(mainActivity)
+                new AlertDialog.Builder(TabbedActivity.this)
                         .setMessage("Access token did not work. It may have expired. Restart the app and login again.")
                         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
@@ -579,6 +541,7 @@ public class TabbedActivity extends AppCompatActivity {
 
             new GetMyGamesList().execute(ogs);
 
+            // /*
             seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
                 @Override
                 public void event(JSONArray events) {
@@ -587,7 +550,7 @@ public class TabbedActivity extends AppCompatActivity {
                             final JSONObject event = events.getJSONObject(i);
                             Log.d(TAG, event.toString());
                             if (event.has("delete")) {
-                                mainActivity.runOnUiThread(new Runnable() {
+                                TabbedActivity.this.runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
@@ -606,7 +569,7 @@ public class TabbedActivity extends AppCompatActivity {
                                 Log.d(TAG, c.toString());
 
                                 if (c.canAccept(myRanking)) {
-                                    mainActivity.runOnUiThread(new Runnable() {
+                                    TabbedActivity.this.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
                                             challengeList.add(c);
@@ -625,6 +588,7 @@ public class TabbedActivity extends AppCompatActivity {
                     }
                 }
             });
+            // */
         }
     }
 
@@ -702,14 +666,18 @@ public class TabbedActivity extends AppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            switch (position) {
+                case 0:
+                    return new MyGamesFragment();
+                case 1:
+                    return new FindAGameFragment();
+                default:
+                    return new CreateAGameFragment();
+            }
         }
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
             return 3;
         }
 
