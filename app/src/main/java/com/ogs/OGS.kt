@@ -60,8 +60,6 @@ class OGS(private val clientId: String, private val clientSecret: String) {
         } catch (e: JSONException) {
             e.printStackTrace()
         }
-
-        me()
     }
 
     @Throws(IOException::class)
@@ -206,10 +204,6 @@ class OGS(private val clientId: String, private val clientSecret: String) {
     }
 
     var accessToken: String? = null
-        set(value) {
-            field = value
-            me()
-        }
     var player: Player? = null
         private set
     private var socket: Socket? = null

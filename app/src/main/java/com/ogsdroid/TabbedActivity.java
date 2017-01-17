@@ -2,7 +2,6 @@ package com.ogsdroid;
 
 import android.app.Activity;
 import android.app.IntentService;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,7 +13,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -22,28 +20,20 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RadioGroup;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.ogs.Challenge;
-import com.ogs.GameConnection;
 import com.ogs.OGS;
 import com.ogs.SeekGraphConnection;
 
@@ -51,7 +41,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,7 +56,6 @@ public class TabbedActivity extends AppCompatActivity {
     ArrayAdapter<Challenge> challengeAdapter;
     static OGS ogs;
     SeekGraphConnection seek;
-    private int myRanking, myId;
     private SharedPreferences pref;
 
     /**
@@ -105,7 +96,6 @@ public class TabbedActivity extends AppCompatActivity {
         ogs = Globals.INSTANCE.getOgs();
         ogs.setAccessToken(accessToken);
         ogs.openSocket();
-
         new GetMe(ogs).execute();
     }
 
@@ -246,7 +236,7 @@ public class TabbedActivity extends AppCompatActivity {
     }
 
 
-    private class GetMe extends AsyncTask<Void, Void, Boolean> {
+    private class GetMe extends AsyncTask<Void, Void, Integer> {
         private final OGS ogs;
 
         GetMe(OGS ogs) {
@@ -255,27 +245,38 @@ public class TabbedActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected Integer doInBackground(Void... params) {
             Log.d(TAG, "GetMe.doInBackground()");
             try {
-                JSONObject me = ogs.me();
-                myRanking = me.getInt("ranking");
-                myId = me.getInt("id");
-                Log.d(TAG, "myRanking = " + myRanking);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return false;
+                ogs.me();
+            } catch (UnknownHostException ex) {
+                ex.printStackTrace();
+                return 2;
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+                return 3;
             } catch (IOException e) {
                 e.printStackTrace();
-                return false;
+                return 3;
             }
-            return true;
+            return 0;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
-            Log.d(TAG, String.format("GetMe.onPostExecute(%s)", success ? "true" : "false"));
-            if (!success) {
+        protected void onPostExecute(final Integer success) {
+            Log.d(TAG, String.format("GetMe.onPostExecute(%s)", success));
+            if (success == 2) {
+                new AlertDialog.Builder(TabbedActivity.this)
+                        .setMessage("There was an error connecting to online-go.com. Please check your network connection.")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                finish();
+                            }
+                        })
+                        .show();
+                return;
+            }
+            if (success == 3) {
                 SharedPreferences.Editor editor = pref.edit();
                 editor.remove("accessToken");
                 editor.apply();
@@ -319,7 +320,7 @@ public class TabbedActivity extends AppCompatActivity {
                                 final Challenge c = new Challenge(event);
                                 Log.d(TAG, c.toString());
 
-                                if (c.canAccept(myRanking)) {
+                                if (c.canAccept(ogs.getPlayer().getRanking())) {
                                     TabbedActivity.this.runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -379,7 +380,7 @@ public class TabbedActivity extends AppCompatActivity {
                     String white = game.getJSONObject("players").getJSONObject("white").getString("username");
                     String black = game.getJSONObject("players").getJSONObject("black").getString("username");
                     int currentPlayer = details.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
-                    if (myId == currentPlayer) {
+                    if (ogs.getPlayer().getId() == currentPlayer) {
                         g.myturn = true;
                         g.name = String.format("%s vs %s", white, black);
                     } else {
