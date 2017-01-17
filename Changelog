@@ -1,3 +1,12 @@
+0.5
+---
+- Display mini boards for the "My Games" list, like the OGS web page
+- Pressing back while in the chat screen will go back to the game view
+- Fix a crash when clicking outside the board during the stone removal phase
+- Fix a crash when navigating away from the app while network activity is
+  happening
+- Fix a crash when there is no network connection while starting the app
+
 0.4
 ---
 - Add game chat
