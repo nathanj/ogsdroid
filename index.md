@@ -2,7 +2,7 @@ OGS Android
 ===========
 
 This is an android application to play games on [online-go.com](online-go.com). It is still
-early in development so be prepared for bugs and half-implemented features.
+early in development so there may be bugs and half-implemented features.
 
 [Download v0.5 APK](https://github.com/nathanj/ogsdroid/releases/download/v0.5/ogsdroid-0.5.apk)
 
