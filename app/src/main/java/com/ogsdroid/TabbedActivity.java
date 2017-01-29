@@ -51,10 +51,10 @@ import java.util.List;
 public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
     static ArrayList<Game> gameList = new ArrayList<>();
+    static OGS ogs;
     ArrayList<Challenge> challengeList = new ArrayList<>();
     MyGamesAdapter myGamesAdapter;
     ArrayAdapter<Challenge> challengeAdapter;
-    static OGS ogs;
     SeekGraphConnection seek;
     private SharedPreferences pref;
 
@@ -104,19 +104,6 @@ public class TabbedActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
     }
-
-
-    public static class MyService extends IntentService {
-        MyService() {
-            super("MyService");
-        }
-
-        @Override
-        protected void onHandleIntent(Intent intent) {
-            String data = intent.getDataString();
-        }
-    }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,15 +158,20 @@ public class TabbedActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public static class MyService extends IntentService {
+        MyService() {
+            super("MyService");
+        }
+
+        @Override
+        protected void onHandleIntent(Intent intent) {
+            String data = intent.getDataString();
+        }
+    }
+
     static class MyGamesAdapter extends RecyclerView.Adapter<MyGamesAdapter.ViewHolder> {
         List<Game> mGames;
         Activity mActivity;
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            ViewHolder(View v) {
-                super(v);
-            }
-        }
 
         MyGamesAdapter(Activity activity, List<Game> games) {
             mActivity = activity;
@@ -232,6 +224,12 @@ public class TabbedActivity extends AppCompatActivity {
 
         void addAll(List<Game> games) {
             mGames.addAll(games);
+        }
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            ViewHolder(View v) {
+                super(v);
+            }
         }
     }
 
@@ -349,7 +347,8 @@ public class TabbedActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             ProgressBar pb = (ProgressBar) TabbedActivity.this.findViewById(R.id.my_games_progress_bar);
-            pb.setVisibility(View.VISIBLE);
+            if (pb != null)
+                pb.setVisibility(View.VISIBLE);
         }
 
         protected ArrayList<Game> doInBackground(OGS... ogss) {
@@ -400,7 +399,8 @@ public class TabbedActivity extends AppCompatActivity {
         protected void onPostExecute(ArrayList<Game> list) {
             Log.d(TAG, "GetGameList onPostExecute");
             ProgressBar pb = (ProgressBar) TabbedActivity.this.findViewById(R.id.my_games_progress_bar);
-            pb.setVisibility(View.GONE);
+            if (pb != null)
+                pb.setVisibility(View.GONE);
             myGamesAdapter.addAll(list);
             myGamesAdapter.notifyDataSetChanged();
         }
