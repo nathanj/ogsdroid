@@ -38,6 +38,7 @@ public class SeekGraphConnection {
     }
 
     public void disconnect() {
+        socket.off("seekgraph/global");
         try {
             JSONObject args = new JSONObject();
             args.put("channel", "global");
