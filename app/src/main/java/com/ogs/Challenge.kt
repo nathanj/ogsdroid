@@ -15,6 +15,7 @@ class Challenge : Comparable<Challenge> {
     var timePerMove: Int = 0
     var width: Int = 0
     var height: Int = 0
+    var timeControlParameters: JSONObject? = null
 
     constructor(id: Int) {
         challengeId = id
@@ -33,6 +34,7 @@ class Challenge : Comparable<Challenge> {
             handicap = obj.getInt("handicap")
             width = obj.getInt("width")
             height = obj.getInt("height")
+            timeControlParameters = obj.getJSONObject("time_control_parameters")
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -46,15 +48,51 @@ class Challenge : Comparable<Challenge> {
     }
 
     override fun toString(): String {
-        var handicapStr = if (handicap == -1) "Auto Handicap" else if (handicap == 0) "No Handicap" else ""
-        if (handicap > 0)
-            handicapStr = String.format("%d Stones", handicap)
+        val handicapStr = if (handicap == -1)
+            "Auto Handicap"
+        else if (handicap == 0)
+            "No Handicap"
+        else
+            String.format("%d Stones", handicap)
 
-        return String.format("%s - %dx%d - %s (%s) - %s - %s - %ds / move",
+        return String.format("%s - %dx%d - %s (%s) - %s - %s - %s",
                 name, width, height, username, rankToString(rank),
                 if (ranked) "Ranked" else "Casual",
                 handicapStr,
-                timePerMove)
+                formatTime())
+    }
+
+    fun prettyTime(time: Int): String {
+        if (time > 24 * 3600)
+            return (time / 24 / 3600).toString() + "d"
+        else if (time > 3600)
+            return (time / 3600).toString() + "h"
+        else if (time > 60)
+            return (time / 60).toString() + "m"
+        return time.toString() + "s"
+    }
+
+    fun formatTime(): String {
+        try {
+            val tcp = timeControlParameters
+            if (tcp != null) {
+                val control = tcp.getString("time_control")
+                if (control == "byoyomi") {
+                    val periodTime = tcp.getInt("period_time")
+                    val mainTime = tcp.getInt("main_time")
+                    val periods = tcp.getInt("periods")
+                    return "${prettyTime(mainTime)} + ${prettyTime(periodTime)} x $periods"
+                } else if (control == "fischer") {
+                    val initialTime = tcp.getInt("initial_time")
+                    val maxTime = tcp.getInt("max_time")
+                    val increment = tcp.getInt("time_increment")
+                    return "${prettyTime(initialTime)} + ${prettyTime(increment)} up to ${prettyTime(maxTime)}"
+                }
+            }
+        } catch (ex: JSONException) {
+            // nothing, move along
+        }
+        return prettyTime(timePerMove) + " / move"
     }
 
     override fun equals(other: Any?): Boolean {
