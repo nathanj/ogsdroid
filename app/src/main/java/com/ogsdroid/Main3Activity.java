@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -46,58 +47,19 @@ public class Main3Activity extends AppCompatActivity {
     private MediaPlayer clickSound;
     private MediaPlayer passSound;
 
+    private int currentGameId;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main3);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        Logger sioLogger = java.util.logging.Logger.getLogger(io.socket.client.Socket.class.getName());
-        sioLogger.setLevel(Level.ALL);
-
-        bv = (BoardView) findViewById(R.id.boardview);
-
-        findViewById(R.id.chat_text_view).setVisibility(View.GONE);
-        final EditText editText = (EditText) findViewById(R.id.chat_edit_text);
-        editText.setVisibility(View.GONE);
-        findViewById(R.id.chat_scroll_view).setVisibility(View.GONE);
-
-        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
-                if (i == EditorInfo.IME_NULL
-                        && keyEvent.getAction() == KeyEvent.ACTION_UP) {
-
-                    gameCon.sendChatMessage(Globals.INSTANCE.getOgs().getPlayer(),
-                            editText.getText().toString(), bv.board.moveNumber);
-                    editText.setText("");
-                }
-
-                return true;
-            }
-        });
-
-        Intent intent = getIntent();
-        int currentGameId = intent.getIntExtra("id", 0);
-
-        getSupportActionBar().setHomeButtonEnabled(true);
-
-        clickSound = MediaPlayer.create(this, R.raw.click);
-        passSound = MediaPlayer.create(this, R.raw.pass);
-
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
+    protected void onPostResume() {
+        super.onPostResume();
+        Log.d(TAG, "onPostResume");
 
         //*
         try
-
         {
             SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-            String accessToken = pref.getString("accessToken", "");
 
             OGS ogs = Globals.INSTANCE.getOgs();
-            ogs.setAccessToken(accessToken);
 
             JSONObject gameDetails = ogs.getGameDetails(currentGameId);
             final GameDetails details = new GameDetails(gameDetails);
@@ -113,7 +75,7 @@ public class Main3Activity extends AppCompatActivity {
                 if (x == -1)
                     bv.board.pass();
                 else
-                    bv.board.addStone(move.getInt(0), move.getInt(1));
+                    bv.board.addStone(x, y);
             }
 
             if (details.removed != null) {
@@ -187,7 +149,7 @@ public class Main3Activity extends AppCompatActivity {
                                 periods = c.getInt("periods");
                                 periodTime = c.getInt("period_time");
                             } catch (JSONException e) {
-                                e.printStackTrace();
+                                //e.printStackTrace();
                             }
                             bv.clockWhite.setTime(thinkingTime, periods, periodTime);
 
@@ -332,6 +294,69 @@ public class Main3Activity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
+        clickSound.release();
+        passSound.release();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        if (gameCon != null) {
+            gameCon.disconnect();
+            gameCon = null;
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main3);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        Logger sioLogger = java.util.logging.Logger.getLogger(io.socket.client.Socket.class.getName());
+        sioLogger.setLevel(Level.ALL);
+
+        bv = (BoardView) findViewById(R.id.boardview);
+
+        findViewById(R.id.chat_text_view).setVisibility(View.GONE);
+        final EditText editText = (EditText) findViewById(R.id.chat_edit_text);
+        editText.setVisibility(View.GONE);
+        findViewById(R.id.chat_scroll_view).setVisibility(View.GONE);
+
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if (i == EditorInfo.IME_NULL
+                        && keyEvent.getAction() == KeyEvent.ACTION_UP) {
+
+                    gameCon.sendChatMessage(Globals.INSTANCE.getOgs().getPlayer(),
+                            editText.getText().toString(), bv.board.moveNumber);
+                    editText.setText("");
+                }
+
+                return true;
+            }
+        });
+
+        Intent intent = getIntent();
+        currentGameId = intent.getIntExtra("id", 0);
+
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        clickSound = MediaPlayer.create(this, R.raw.click);
+        passSound = MediaPlayer.create(this, R.raw.pass);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
     }
 

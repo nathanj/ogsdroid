@@ -104,6 +104,16 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
     }
 
     fun disconnect() {
+        socket.off("game/$gameId/clock")
+                .off("game/$gameId/gamedata")
+                .off("game/$gameId/move")
+                .off("game/$gameId/removed_stones")
+                .off("game/$gameId/removed_stones_accepted")
+                .off("game/$gameId/error")
+                .off("game/$gameId/phase")
+                .off("game/$gameId/reset")
+                .off("game/$gameId/chat")
+
         emit("chat/part", createJsonObject {
             put("channel", "game-$gameId")
         }.toString())
