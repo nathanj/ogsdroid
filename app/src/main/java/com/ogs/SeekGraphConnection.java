@@ -23,7 +23,7 @@ public class SeekGraphConnection {
             @Override
             public void call(Object... args) {
                 JSONArray events = (JSONArray) args[0];
-                Log.d(TAG, "seekgraph calllback = " + events);
+                //Log.d(TAG, "seekgraph calllback = " + events);
                 callbacks.event(events);
             }
         });

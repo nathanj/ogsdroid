@@ -298,7 +298,7 @@ public class TabbedActivity extends AppCompatActivity {
                     for (int i = 0; i < events.length(); i++) {
                         try {
                             final JSONObject event = events.getJSONObject(i);
-                            Log.d(TAG, event.toString());
+                            //Log.d(TAG, event.toString());
                             if (event.has("delete")) {
                                 TabbedActivity.this.runOnUiThread(new Runnable() {
                                     @Override
@@ -316,7 +316,7 @@ public class TabbedActivity extends AppCompatActivity {
                             else // new seek
                             {
                                 final Challenge c = new Challenge(event);
-                                Log.d(TAG, c.toString());
+                                //Log.d(TAG, c.toString());
 
                                 if (c.canAccept(ogs.getPlayer().getRanking())) {
                                     TabbedActivity.this.runOnUiThread(new Runnable() {
@@ -358,13 +358,13 @@ public class TabbedActivity extends AppCompatActivity {
 
             try {
                 JSONObject games = ogs.listGames();
-                Log.d(TAG, "games = " + games);
+                //Log.d(TAG, "games = " + games);
                 JSONArray results = games.getJSONArray("results");
                 for (int i = 0; i < results.length(); i++) {
                     JSONObject game = results.getJSONObject(i);
                     int id = game.getInt("id");
                     JSONObject details = ogs.getGameDetails(id);
-                    Log.d(TAG, "details = " + details);
+                    //Log.d(TAG, "details = " + details);
                     JSONArray moves = details.getJSONObject("gamedata").getJSONArray("moves");
                     Board tmpBoard = new Board(0, details.getInt("height"), details.getInt("width"));
                     for (int m = 0; m < moves.length(); m++) {

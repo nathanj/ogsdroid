@@ -239,7 +239,7 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             put("type", "discussion")
             put("game_id", gameId)
             put("is_player", 1)
-            put("move_number", moveNumber) // TODO
+            put("move_number", moveNumber)
         }
 
         Log.d(TAG, "Sending chat message using $socket: $json")
