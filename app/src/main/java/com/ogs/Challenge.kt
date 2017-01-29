@@ -87,6 +87,16 @@ class Challenge : Comparable<Challenge> {
                     val maxTime = tcp.getInt("max_time")
                     val increment = tcp.getInt("time_increment")
                     return "${prettyTime(initialTime)} + ${prettyTime(increment)} up to ${prettyTime(maxTime)}"
+                } else if (control == "canadian") {
+                    val periodTime = tcp.getInt("period_time")
+                    val mainTime = tcp.getInt("main_time")
+                    val stonesPerPeriod = tcp.getInt("stones_per_period")
+                    return "${prettyTime(mainTime)} + ${prettyTime(periodTime)} per $stonesPerPeriod stones"
+                } else if (control == "absolute") {
+                    val totalTime = tcp.getInt("total_time")
+                    return prettyTime(totalTime)
+                } else {
+                    System.err.println("error: control = $control  tcp=$tcp")
                 }
             }
         } catch (ex: JSONException) {
