@@ -1,7 +1,8 @@
 package com.ogsdroid;
 
 import android.app.Activity;
-import android.app.IntentService;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -97,6 +98,13 @@ public class TabbedActivity extends AppCompatActivity {
         ogs.setAccessToken(accessToken);
         ogs.openSocket();
         new GetMe(ogs).execute();
+
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.cancelAll();
+
+        Alarm al = new Alarm();
+        al.cancelAlarm(this);
+        al.setAlarm(this);
     }
 
     @Override

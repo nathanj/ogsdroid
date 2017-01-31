@@ -41,4 +41,19 @@
         <item>3</item>
     </string-array>
     <string name="title_activity_kotlin">KotlinActivity</string>
+
+    <string-array name="notify_time_names">
+        <item>15 Minutes</item>
+        <item>30 Minutes</item>
+        <item>1 Hour</item>
+        <item>Half Day</item>
+        <item>Day</item>
+    </string-array>
+    <string-array name="notify_time_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
 </resources>

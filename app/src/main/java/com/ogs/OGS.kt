@@ -3,6 +3,7 @@ package com.ogs
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
@@ -66,6 +67,11 @@ class OGS(private val clientId: String, private val clientSecret: String) {
     fun me(): JSONObject {
         val obj = JSONObject(getURL("https://online-go.com/api/v1/me/?format=json"))
         player = Player(obj)
+        return obj
+    }
+    @Throws(IOException::class)
+    fun notifications(): JSONArray {
+        val obj = JSONArray(getURL("https://online-go.com/api/v1/me/notifications/?format=json"))
         return obj
     }
 
