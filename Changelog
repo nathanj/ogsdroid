@@ -1,3 +1,10 @@
+0.6
+---
+- Add notifications when it is your move
+- Display actual time control on the find a game screen
+- Improve pause activity behavior to disconnect from the game
+- Fix a crash when pausing the application on the create challenge screen
+
 0.5
 ---
 - Display mini boards for the "My Games" list, like the OGS web page
