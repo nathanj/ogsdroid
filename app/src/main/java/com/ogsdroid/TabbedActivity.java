@@ -35,6 +35,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ogs.Challenge;
+import com.ogs.NotificationService;
 import com.ogs.OGS;
 import com.ogs.SeekGraphConnection;
 
@@ -52,7 +53,7 @@ import java.util.List;
 public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
     static ArrayList<Game> gameList = new ArrayList<>();
-    static OGS ogs;
+    public OGS ogs;
     ArrayList<Challenge> challengeList = new ArrayList<>();
     MyGamesAdapter myGamesAdapter;
     ArrayAdapter<Challenge> challengeAdapter;
@@ -77,14 +78,16 @@ public class TabbedActivity extends AppCompatActivity {
 
         if (seek != null)
             seek.disconnect();
-        if (ogs != null)
-            ogs.closeSocket();
+
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "onStop");
+
+        Globals.INSTANCE.putOGS();
+        ogs = null;
     }
 
     @Override
@@ -94,17 +97,15 @@ public class TabbedActivity extends AppCompatActivity {
 
         pref = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = pref.getString("accessToken", "");
-        ogs = Globals.INSTANCE.getOgs();
+        if (ogs == null) {
+            ogs = Globals.INSTANCE.getOGS();
+        }
         ogs.setAccessToken(accessToken);
         ogs.openSocket();
         new GetMe(ogs).execute();
 
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         nm.cancelAll();
-
-        Alarm al = new Alarm();
-        al.cancelAlarm(this);
-        al.setAlarm(this);
     }
 
     @Override
@@ -140,6 +141,10 @@ public class TabbedActivity extends AppCompatActivity {
                 challengeList);
 
         myGamesAdapter = new MyGamesAdapter(this, gameList);
+
+        Alarm al = new Alarm();
+        al.cancelAlarm(this);
+        al.setAlarm(this);
     }
 
     @Override
@@ -164,17 +169,6 @@ public class TabbedActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    public static class MyService extends IntentService {
-        MyService() {
-            super("MyService");
-        }
-
-        @Override
-        protected void onHandleIntent(Intent intent) {
-            String data = intent.getDataString();
-        }
     }
 
     static class MyGamesAdapter extends RecyclerView.Adapter<MyGamesAdapter.ViewHolder> {
@@ -255,6 +249,9 @@ public class TabbedActivity extends AppCompatActivity {
             Log.d(TAG, "GetMe.doInBackground()");
             try {
                 ogs.me();
+            } catch (JSONException ex) {
+                ex.printStackTrace();
+                return 2;
             } catch (UnknownHostException ex) {
                 ex.printStackTrace();
                 return 2;
@@ -336,7 +333,7 @@ public class TabbedActivity extends AppCompatActivity {
                                         }
                                     });
                                 } else {
-                                    Log.d(TAG, "could not accept " + c);
+                                    //Log.d(TAG, "could not accept " + c);
                                 }
 
                             }

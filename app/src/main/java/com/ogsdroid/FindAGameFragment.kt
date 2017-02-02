@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ListView
+import com.ogs.OGS
 import org.json.JSONException
 import java.io.IOException
 
@@ -28,7 +29,9 @@ class FindAGameFragment : Fragment() {
                     .setCancelable(true)
                     .setPositiveButton("Yes") { dialog, id ->
                         try {
-                            val gameId = Globals.ogs.acceptChallenge(c.challengeId)
+                            val ogs = Globals.getOGS()
+                            val gameId = ogs.acceptChallenge(c.challengeId)
+                            Globals.putOGS()
                             if (gameId == 0) {
                                 AlertDialog.Builder(activity)
                                         .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))

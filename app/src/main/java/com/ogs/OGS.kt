@@ -13,6 +13,10 @@ import javax.net.ssl.HttpsURLConnection
 
 class OGS(private val clientId: String, private val clientSecret: String) {
 
+    init {
+        println("OGS init")
+    }
+
     @Throws(IOException::class)
     private fun getURL(url: String, method: String = "GET"): String {
         Log.d(TAG, "GET $url")
@@ -63,13 +67,13 @@ class OGS(private val clientId: String, private val clientSecret: String) {
         }
     }
 
-    @Throws(IOException::class)
+    @Throws(IOException::class, JSONException::class)
     fun me(): JSONObject {
         val obj = JSONObject(getURL("https://online-go.com/api/v1/me/?format=json"))
         player = Player(obj)
         return obj
     }
-    @Throws(IOException::class)
+    @Throws(IOException::class, JSONException::class)
     fun notifications(): JSONArray {
         val obj = JSONArray(getURL("https://online-go.com/api/v1/me/notifications/?format=json"))
         return obj

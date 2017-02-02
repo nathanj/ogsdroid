@@ -3,6 +3,7 @@
     package="com.ogsdroid">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name=".MyApplication"
@@ -29,6 +30,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name="com.ogs.NotificationService"
+            android:exported="false" />
+
         <receiver android:name=".Alarm" />
     </application>
 

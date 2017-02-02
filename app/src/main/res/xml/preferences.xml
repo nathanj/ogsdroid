@@ -15,17 +15,16 @@
     <PreferenceCategory
         android:key="pref_key_notification_settings"
         android:title="Notifications">
-        <CheckBoxPreference
-            android:key="pref_notify"
-            android:title="Poll for your move"
-            android:summary="Periodically check if it is your move in any of your games and create a notification if so."
-            android:defaultValue="false" />
         <ListPreference
             android:entries="@array/notify_time_names"
             android:entryValues="@array/notify_time_values"
             android:key="pref_notify_time"
-            android:title="Poll time"
-            android:summary="How often to poll for your move?"
-            android:defaultValue="3" />
+            android:title="Poll for your move"
+            android:summary="Periodically check if it is your move in any of your games and create a notification if so."
+            android:defaultValue="0" />
+        <CheckBoxPreference
+            android:key="pref_notify_wifi"
+            android:title="Only poll when on WiFi"
+            android:defaultValue="false" />
     </PreferenceCategory>
 </PreferenceScreen>
