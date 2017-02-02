@@ -95,6 +95,9 @@ class Challenge : Comparable<Challenge> {
                 } else if (control == "absolute") {
                     val totalTime = tcp.getInt("total_time")
                     return prettyTime(totalTime)
+                } else if (control == "simple") {
+                    val perMove = tcp.getInt("per_move")
+                    return prettyTime(perMove)
                 } else {
                     System.err.println("error: control = $control  tcp=$tcp")
                 }
