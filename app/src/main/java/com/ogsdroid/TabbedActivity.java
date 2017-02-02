@@ -145,6 +145,12 @@ public class TabbedActivity extends AppCompatActivity {
         Alarm al = new Alarm();
         al.cancelAlarm(this);
         al.setAlarm(this);
+
+
+        //Intent intent = new Intent(this, NotificationService.class);
+        //System.out.println("NJ creating service....");
+        //startService(intent);
+        //System.out.println("NJ done creating service....");
     }
 
     @Override
