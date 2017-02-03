@@ -143,7 +143,7 @@ public class TabbedActivity extends AppCompatActivity {
         myGamesAdapter = new MyGamesAdapter(this, gameList);
 
         Alarm al = new Alarm();
-        al.cancelAlarm(this);
+        //al.cancelAlarm(this);
         al.setAlarm(this);
 
 
@@ -242,7 +242,7 @@ public class TabbedActivity extends AppCompatActivity {
     }
 
 
-    private class GetMe extends AsyncTask<Void, Void, Integer> {
+    private class GetMe extends AsyncTask<Void, Void, Boolean> {
         private final OGS ogs;
 
         GetMe(OGS ogs) {
@@ -251,48 +251,33 @@ public class TabbedActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Integer doInBackground(Void... params) {
+        protected Boolean doInBackground(Void... params) {
             Log.d(TAG, "GetMe.doInBackground()");
             try {
                 ogs.me();
-            } catch (JSONException ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
-                return 2;
-            } catch (UnknownHostException ex) {
-                ex.printStackTrace();
-                return 2;
-            } catch (FileNotFoundException ex) {
-                ex.printStackTrace();
-                return 3;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return 3;
+                return false;
             }
-            return 0;
+            return true;
         }
 
         @Override
-        protected void onPostExecute(final Integer success) {
+        protected void onPostExecute(final Boolean success) {
             Log.d(TAG, String.format("GetMe.onPostExecute(%s)", success));
-            if (success == 2) {
+            if (!success) {
                 new AlertDialog.Builder(TabbedActivity.this)
-                        .setMessage("There was an error connecting to online-go.com. Please check your network connection.")
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        .setMessage("There was an error connecting to online-go.com. Please check your network connection. If your connection is fine, then your authentication token could have expired. You can remove it and type in your credentials again.")
+                        .setPositiveButton("Close", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 finish();
                             }
                         })
-                        .show();
-                return;
-            }
-            if (success == 3) {
-                SharedPreferences.Editor editor = pref.edit();
-                editor.remove("accessToken");
-                editor.apply();
-                new AlertDialog.Builder(TabbedActivity.this)
-                        .setMessage("Access token did not work. It may have expired. Restart the app and login again.")
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        .setNegativeButton("Remove access token", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
+                                SharedPreferences.Editor editor = pref.edit();
+                                editor.remove("accessToken");
+                                editor.apply();
                                 finish();
                             }
                         })

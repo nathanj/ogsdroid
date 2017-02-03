@@ -80,6 +80,7 @@ class Alarm : BroadcastReceiver() {
             val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             val intent = Intent(context, Alarm::class.java)
             val pi = PendingIntent.getBroadcast(context, 0, intent, 0)
+            println("NJ OGS Alarm: setting alarm for $notifyTime")
             am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + notifyTime, notifyTime, pi)
         }
     }
@@ -88,6 +89,7 @@ class Alarm : BroadcastReceiver() {
         val intent = Intent(context, Alarm::class.java)
         val pi = PendingIntent.getBroadcast(context, 0, intent, 0)
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        println("NJ OGS Alarm: canceling alarm")
         am.cancel(pi)
     }
 }

@@ -1,8 +1,9 @@
 0.6
 ---
-- Add notifications when it is your move
+- Display notifications when it is your move
 - Display actual time control on the find a game screen
 - Improve pause activity behavior to disconnect from the game
+- Remove create game screen as it is buggy
 - Fix a crash when pausing the application on the create challenge screen
 
 0.5
