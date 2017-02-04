@@ -80,7 +80,7 @@ class CreateAGameFragment : Fragment() {
             Log.d(javaClass.name, "byo yomi selected = " + byoYomiTimes[byoYomiTime.progress].description)
             val result: JSONObject
             try {
-                result = activity.ogs.createChallenge(gameNameText.text.toString(), ranked,
+                result = activity.ogs!!.createChallenge(gameNameText.text.toString(), ranked,
                         width, height,
                         mainTimes[mainTime.progress].time,
                         byoYomiTimes[byoYomiTime.progress].time,
@@ -98,7 +98,7 @@ class CreateAGameFragment : Fragment() {
                 val challenge = result.getInt("challenge")
                 val game = result.getInt("game")
 
-                val conn = activity.ogs.openGameConnection(game)
+                val conn = activity.ogs!!.openGameConnection(game)
                 if (conn == null) {
                     AlertDialog.Builder(activity)
                             .setMessage("Failed to create challenge.")
@@ -109,7 +109,7 @@ class CreateAGameFragment : Fragment() {
                             .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
                             .setNegativeButton("Cancel") { dialogInterface, i ->
                                 try {
-                                    activity.ogs.deleteChallenge(challenge)
+                                    activity.ogs!!.deleteChallenge(challenge)
                                 } catch (ex: Exception) {
                                     AlertDialog.Builder(activity)
                                             .setMessage("Cancel challenge failed.\n" + ex.toString())

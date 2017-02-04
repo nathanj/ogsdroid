@@ -70,16 +70,24 @@ class OGS(private val clientId: String, private val clientSecret: String) {
     }
 
     @Throws(IOException::class, JSONException::class)
-    fun me(): JSONObject {
+    fun me() {
+        if (player != null)
+            return
         val obj = JSONObject(getURL("https://online-go.com/api/v1/me/?format=json"))
         player = Player(obj)
-        return obj
+    }
+
+    fun meObservable(): Observable<Unit> {
+        return Observable.fromCallable { me() }.subscribeOn(Schedulers.io())
     }
 
     @Throws(IOException::class, JSONException::class)
     fun notifications(): JSONArray {
-        val obj = JSONArray(getURL("https://online-go.com/api/v1/me/notifications/?format=json"))
-        return obj
+        return JSONArray(getURL("https://online-go.com/api/v1/me/notifications/?format=json"))
+    }
+
+    fun notificationsObservable(): Observable<JSONArray> {
+        return Observable.fromCallable { notifications() }.subscribeOn(Schedulers.io())
     }
 
     @Throws(IOException::class, JSONException::class)

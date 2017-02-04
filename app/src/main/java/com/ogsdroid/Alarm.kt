@@ -7,39 +7,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
+import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.support.v4.app.NotificationCompat
+import android.util.Log
 import android.widget.Toast
-import org.json.JSONException
-import java.io.IOException
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 class Alarm : BroadcastReceiver() {
-
-    private fun isYourMove(): Int {
-        var count = 0
-        try {
-            val ogs = Globals.getOGS()
-            val notifications = ogs.notifications()
-            Globals.putOGS()
-            (0..notifications.length()).forEach { i ->
-                val obj = notifications.getJSONObject(i)
-                if (obj.getString("type") == "yourMove") {
-                    count++
-                }
-            }
-        } catch (ex: JSONException) {
-
-        } catch (ex: IOException) {
-
-        }
-        return count
-    }
-
     override fun onReceive(context: Context, intent: Intent) {
-        //val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-        //val wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OGS")
-        //wl.acquire()
-
         Toast.makeText(context, "Alarm running!", Toast.LENGTH_SHORT).show()
         println("OGS Alarm: running")
 
@@ -53,23 +29,39 @@ class Alarm : BroadcastReceiver() {
             return
         }
 
-        val count = isYourMove()
-        if (count > 0) {
-            // send notification
-            val intent = Intent(context, LoginActivity::class.java)
-            val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val ogs = Globals.getOGS()
 
-            val builder = NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.testnotification)
-                    .setContentTitle("OGS")
-                    .setContentText(if (count == 1) "It's your move!" else "It's your move in $count games!")
-                    .setContentIntent(pi)
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager?
+        val wl = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OGS")
+        println("wl = ${wl}")
+        wl?.acquire()
 
-            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            nm.notify(1, builder.build())
-        }
+        ogs.notificationsObservable()
+                .map { notifications ->
+                    (0..notifications.length() - 1)
+                            .count { i -> notifications.getJSONObject(i).getString("type") == "yourMove" }
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { count ->
+                            if (count > 0) {
+                                // send notification
+                                val intent = Intent(context, LoginActivity::class.java)
+                                val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        //wl.release()
+                                val builder = NotificationCompat.Builder(context)
+                                        .setSmallIcon(R.drawable.testnotification)
+                                        .setContentTitle("OGS")
+                                        .setContentText(if (count == 1) "It's your move!" else "It's your move in $count games!")
+                                        .setContentIntent(pi)
+
+                                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                                nm.notify(1, builder.build())
+                            }
+                            wl?.release()
+                        },
+                        { e -> Log.e("Alarm", "error while getting notifications", e); wl?.release() }
+                )
     }
 
     fun setAlarm(context: Context) {

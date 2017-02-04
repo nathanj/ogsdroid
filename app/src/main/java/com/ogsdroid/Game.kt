@@ -2,6 +2,7 @@ package com.ogsdroid
 
 import com.ogs.OGS
 import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import org.json.JSONObject
 import java.util.*
 
@@ -61,6 +62,7 @@ internal class Game : Comparable<Game> {
                     }
                     .flatMap { gameId -> ogs.getGameDetailsObservable(gameId) }
                     .map { gameDetails -> Game.fromJson(ogs.player!!.id, gameDetails) }
+                    .subscribeOn(Schedulers.io())
         }
     }
 }

@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ListView
-import com.ogs.OGS
 import org.json.JSONException
 import java.io.IOException
 
