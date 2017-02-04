@@ -23,18 +23,18 @@ import com.ogs.Challenge
 import com.ogs.OGS
 import com.ogs.SeekGraphConnection
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
+import io.reactivex.disposables.CompositeDisposable
 import org.json.JSONException
 import java.util.*
 
 class TabbedActivity : AppCompatActivity() {
     internal var ogs: OGS? = null
-    internal var gameList: ArrayList<Game> = ArrayList()
-    internal var challengeList: ArrayList<Challenge> = ArrayList()
+    internal val gameList: ArrayList<Game> = ArrayList()
+    internal val challengeList: ArrayList<Challenge> = ArrayList()
     lateinit internal var myGamesAdapter: MyGamesAdapter
     lateinit internal var challengeAdapter: ArrayAdapter<Challenge>
     internal var seek: SeekGraphConnection? = null
-    internal var gameListSubscriber: Disposable? = null
+    internal val subscribers: CompositeDisposable = CompositeDisposable()
 
     /**
      * Dispatch onPause() to fragments.
@@ -50,10 +50,7 @@ class TabbedActivity : AppCompatActivity() {
         if (seek != null)
             seek!!.disconnect()
 
-        if (gameListSubscriber != null && !gameListSubscriber!!.isDisposed) {
-            gameListSubscriber!!.dispose()
-            gameListSubscriber = null
-        }
+        subscribers.dispose()
     }
 
     override fun onStop() {
@@ -83,7 +80,7 @@ class TabbedActivity : AppCompatActivity() {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.cancelAll()
 
-        ogs!!.meObservable()
+        subscribers.add(ogs!!.meObservable()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { },
@@ -102,7 +99,7 @@ class TabbedActivity : AppCompatActivity() {
                                     .show()
                         },
                         { getGameListAndOpenSeek() }
-                )
+                ))
     }
 
     override fun onDestroy() {
@@ -171,7 +168,7 @@ class TabbedActivity : AppCompatActivity() {
     }
 
     private fun getGameListAndOpenSeek() {
-        gameListSubscriber = Game.getGamesList(ogs!!)
+        subscribers.add(Game.getGamesList(ogs!!)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { game ->
@@ -187,7 +184,7 @@ class TabbedActivity : AppCompatActivity() {
                             Collections.sort(gameList)
                             myGamesAdapter.notifyDataSetChanged()
                         }
-                )
+                ))
 
         //*
         seek = ogs!!.openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks { events ->
