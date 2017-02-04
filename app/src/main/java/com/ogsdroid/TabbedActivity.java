@@ -35,7 +35,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.ogs.Challenge;
-import com.ogs.NotificationService;
 import com.ogs.OGS;
 import com.ogs.SeekGraphConnection;
 
@@ -43,12 +42,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class TabbedActivity extends AppCompatActivity {
     private static final String TAG = "TabbedActivity";
@@ -59,6 +61,7 @@ public class TabbedActivity extends AppCompatActivity {
     ArrayAdapter<Challenge> challengeAdapter;
     SeekGraphConnection seek;
     private SharedPreferences pref;
+    private Disposable gameListSubscriber;
 
     /**
      * Dispatch onPause() to fragments.
@@ -79,6 +82,10 @@ public class TabbedActivity extends AppCompatActivity {
         if (seek != null)
             seek.disconnect();
 
+        if (gameListSubscriber != null && !gameListSubscriber.isDisposed()) {
+            gameListSubscriber.dispose();
+            gameListSubscriber = null;
+        }
     }
 
     @Override
@@ -102,6 +109,11 @@ public class TabbedActivity extends AppCompatActivity {
         }
         ogs.setAccessToken(accessToken);
         ogs.openSocket();
+
+        ProgressBar pb = (ProgressBar) TabbedActivity.this.findViewById(R.id.my_games_progress_bar);
+        if (pb != null)
+            pb.setVisibility(View.VISIBLE);
+
         new GetMe(ogs).execute();
 
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -198,7 +210,7 @@ public class TabbedActivity extends AppCompatActivity {
             //Log.d(TAG, "onBindViewHolder position=" + position);
             final Game game = mGames.get(position);
             //Log.d(TAG, "onBindViewHolder myturn=" + game.myturn);
-            if (game.myturn)
+            if (game.getMyturn())
                 holder.itemView.setBackgroundColor(Color.argb(255, 200, 255, 200));
             else
                 holder.itemView.setBackgroundColor(Color.WHITE);
@@ -208,19 +220,19 @@ public class TabbedActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     Log.d(TAG, "You clicked on position " + holder.getAdapterPosition());
                     Intent intent = new Intent(holder.itemView.getContext(), Main3Activity.class);
-                    intent.putExtra("id", game.id);
+                    intent.putExtra("id", game.getId());
                     mActivity.startActivity(intent);
                 }
             });
             ImageView iv = (ImageView) holder.itemView.findViewById(R.id.image);
             TextView tv = (TextView) holder.itemView.findViewById(R.id.my_games_text);
-            tv.setText(game.name);
+            tv.setText(game.getName());
             Bitmap b = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888);
             Canvas c = new Canvas(b);
             Paint p = new Paint();
             p.setColor(Color.argb(255, 200, 200, 155));
             c.drawRect(0f, 0f, 300f, 300f, p);
-            game.board.draw(c, 300);
+            game.getBoard().draw(c, 300);
             iv.setImageBitmap(b);
         }
 
@@ -228,10 +240,6 @@ public class TabbedActivity extends AppCompatActivity {
         public int getItemCount() {
             //Log.d(TAG, "getItemCount=" + mGames.size());
             return mGames.size();
-        }
-
-        void addAll(List<Game> games) {
-            mGames.addAll(games);
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
@@ -285,9 +293,37 @@ public class TabbedActivity extends AppCompatActivity {
                 return;
             }
 
-            new GetMyGamesList().execute(ogs);
+            gameListSubscriber = Game.Companion.getGamesList(ogs)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            new Consumer<Game>() {
+                                @Override
+                                public void accept(Game game) throws Exception {
+                                    Log.i(TAG, "onNext " + game);
+                                    gameList.add(game);
+                                }
+                            },
+                            new Consumer<Throwable>() {
+                                @Override
+                                public void accept(Throwable e) throws Exception {
+                                    Log.e(TAG, "error while getting game list", e);
+                                }
+                            },
+                            new Action() {
+                                @Override
+                                public void run() throws Exception {
+                                    Log.i(TAG, "onComplete");
+                                    ProgressBar pb = (ProgressBar) TabbedActivity.this.findViewById(R.id.my_games_progress_bar);
+                                    if (pb != null)
+                                        pb.setVisibility(View.GONE);
+                                    Collections.sort(gameList);
+                                    myGamesAdapter.notifyDataSetChanged();
+                                }
+                            }
+                    );
 
-            // /*
+            //*
             seek = ogs.openSeekGraph(new SeekGraphConnection.SeekGraphConnectionCallbacks() {
                 @Override
                 public void event(JSONArray events) {
@@ -338,74 +374,6 @@ public class TabbedActivity extends AppCompatActivity {
         }
     }
 
-    private class GetMyGamesList extends AsyncTask<OGS, Void, ArrayList<Game>> {
-
-        @Override
-        protected void onPreExecute() {
-            ProgressBar pb = (ProgressBar) TabbedActivity.this.findViewById(R.id.my_games_progress_bar);
-            if (pb != null)
-                pb.setVisibility(View.VISIBLE);
-        }
-
-        protected ArrayList<Game> doInBackground(OGS... ogss) {
-            Log.d(TAG, "GetGameList doInBackground");
-            OGS ogs = ogss[0];
-            ArrayList<Game> gameList = new ArrayList<>();
-
-            try {
-                JSONObject games = ogs.listGames();
-                //Log.d(TAG, "games = " + games);
-                JSONArray results = games.getJSONArray("results");
-                for (int i = 0; i < results.length(); i++) {
-                    JSONObject game = results.getJSONObject(i);
-                    int id = game.getInt("id");
-                    JSONObject details = ogs.getGameDetails(id);
-                    //Log.d(TAG, "details = " + details);
-                    JSONArray moves = details.getJSONObject("gamedata").getJSONArray("moves");
-                    Board tmpBoard = new Board(0, details.getInt("height"), details.getInt("width"));
-                    for (int m = 0; m < moves.length(); m++) {
-                        int x = moves.getJSONArray(m).getInt(0);
-                        int y = moves.getJSONArray(m).getInt(1);
-                        if (x != -1)
-                            tmpBoard.addStone(x, y);
-                    }
-                    Game g = new Game();
-                    g.board = tmpBoard;
-                    g.id = id;
-                    String white = game.getJSONObject("players").getJSONObject("white").getString("username");
-                    String black = game.getJSONObject("players").getJSONObject("black").getString("username");
-                    int currentPlayer = details.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player");
-                    if (ogs.getPlayer().getId() == currentPlayer) {
-                        g.myturn = true;
-                        g.name = String.format("%s vs %s", white, black);
-                    } else {
-                        g.myturn = false;
-                        g.name = String.format("%s vs %s", white, black);
-                    }
-                    Log.d(TAG, "adding game name = " + g.name);
-                    gameList.add(g);
-                }
-                Collections.sort(gameList);
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
-            }
-            return gameList;
-        }
-
-        protected void onPostExecute(ArrayList<Game> list) {
-            Log.d(TAG, "GetGameList onPostExecute");
-            ProgressBar pb = (ProgressBar) TabbedActivity.this.findViewById(R.id.my_games_progress_bar);
-            if (pb != null)
-                pb.setVisibility(View.GONE);
-            myGamesAdapter.addAll(list);
-            myGamesAdapter.notifyDataSetChanged();
-        }
-    }
-
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         SectionsPagerAdapter(FragmentManager fm) {

@@ -1,6 +1,8 @@
 package com.ogs
 
 import android.util.Log
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import io.socket.client.IO
 import io.socket.client.Socket
 import org.json.JSONArray
@@ -73,11 +75,13 @@ class OGS(private val clientId: String, private val clientSecret: String) {
         player = Player(obj)
         return obj
     }
+
     @Throws(IOException::class, JSONException::class)
     fun notifications(): JSONArray {
         val obj = JSONArray(getURL("https://online-go.com/api/v1/me/notifications/?format=json"))
         return obj
     }
+
     @Throws(IOException::class, JSONException::class)
     fun uiConfig(): JSONObject {
         val obj = JSONObject(getURL("https://online-go.com/api/v1/ui/config/?format=json"))
@@ -98,28 +102,21 @@ class OGS(private val clientId: String, private val clientSecret: String) {
     }
 
     @Throws(IOException::class, JSONException::class)
-    fun listGames(): JSONObject? {
-        try {
-            val str = getURL("https://online-go.com/api/v1/me/games/?started__isnull=False&ended__isnull=True&format=json")
-            //        Log.d("myApp", str);
-            return JSONObject(str)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return null
-        }
+    fun listGames(): JSONObject {
+        return JSONObject(getURL("https://online-go.com/api/v1/me/games/?started__isnull=False&ended__isnull=True&format=json"))
+    }
 
+    fun listGamesObservable(): Observable<JSONObject> {
+        return Observable.fromCallable { listGames() }.subscribeOn(Schedulers.io())
     }
 
     @Throws(IOException::class, JSONException::class)
-    fun getGameDetails(id: Int): JSONObject? {
-        try {
-            val str = getURL("https://online-go.com/api/v1/games/$id?format=json")
-            return JSONObject(str)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return null
-        }
+    fun getGameDetails(id: Int): JSONObject {
+        return JSONObject(getURL("https://online-go.com/api/v1/games/$id?format=json"))
+    }
 
+    fun getGameDetailsObservable(id: Int): Observable<JSONObject> {
+        return Observable.fromCallable { getGameDetails(id) }.subscribeOn(Schedulers.io())
     }
 
     @Throws(IOException::class)
