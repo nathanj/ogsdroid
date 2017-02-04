@@ -1,14 +1,8 @@
 package com.ogsdroid
 
-import android.app.Activity
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.os.AsyncTask
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.design.widget.TabLayout
@@ -18,20 +12,18 @@ import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.Toolbar
 import android.util.Log
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.TextView
 import com.ogs.Challenge
 import com.ogs.OGS
 import com.ogs.SeekGraphConnection
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import org.json.JSONException
 import java.util.*
 
@@ -176,49 +168,6 @@ class TabbedActivity : AppCompatActivity() {
         }
 
         return super.onOptionsItemSelected(item)
-    }
-
-    internal class MyGamesAdapter(var mActivity: Activity, var mGames: List<Game>) : RecyclerView.Adapter<MyGamesAdapter.ViewHolder>() {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            //Log.d(TAG, "onCreateViewHolder");
-            val v = LayoutInflater.from(parent.context).inflate(R.layout.my_card, parent, false)
-            return ViewHolder(v)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            //Log.d(TAG, "onBindViewHolder position=" + position);
-            val game = mGames[position]
-            //Log.d(TAG, "onBindViewHolder myturn=" + game.myturn);
-            if (game.myturn)
-                holder.itemView.setBackgroundColor(Color.argb(255, 200, 255, 200))
-            else
-                holder.itemView.setBackgroundColor(Color.WHITE)
-
-            holder.itemView.setOnClickListener {
-                Log.d(TAG, "You clicked on position " + holder.adapterPosition)
-                val intent = Intent(holder.itemView.context, Main3Activity::class.java)
-                intent.putExtra("id", game.id)
-                mActivity.startActivity(intent)
-            }
-            val iv = holder.itemView.findViewById(R.id.image) as ImageView
-            val tv = holder.itemView.findViewById(R.id.my_games_text) as TextView
-            tv.text = game.name
-            val b = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888)
-            val c = Canvas(b)
-            val p = Paint()
-            p.color = Color.argb(255, 200, 200, 155)
-            c.drawRect(0f, 0f, 300f, 300f, p)
-            game.board!!.draw(c, 300)
-            iv.setImageBitmap(b)
-        }
-
-        override fun getItemCount(): Int {
-            //Log.d(TAG, "getItemCount=" + mGames.size());
-            return mGames.size
-        }
-
-        internal class ViewHolder(v: View) : RecyclerView.ViewHolder(v)
     }
 
     private fun getGameListAndOpenSeek() {

@@ -6,11 +6,11 @@ import io.reactivex.schedulers.Schedulers
 import org.json.JSONObject
 import java.util.*
 
-internal class Game : Comparable<Game> {
-    var board: Board? = null
-    var id: Int = 0
-    var name: String? = null
-    var myturn: Boolean = false
+class Game : Comparable<Game> {
+    internal var board: Board? = null
+    internal var id: Int = 0
+    internal var name: String? = null
+    internal var myturn: Boolean = false
 
     override fun toString(): String {
         return name!!
