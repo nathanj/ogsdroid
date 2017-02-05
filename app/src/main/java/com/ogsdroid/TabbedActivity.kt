@@ -51,7 +51,7 @@ class TabbedActivity : AppCompatActivity() {
             seek!!.disconnect()
 
         println("disposing subscribers")
-        subscribers.dispose()
+        subscribers.clear()
     }
 
     override fun onStop() {
