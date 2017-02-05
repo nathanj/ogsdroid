@@ -34,7 +34,7 @@ class TabbedActivity : AppCompatActivity() {
     lateinit internal var myGamesAdapter: MyGamesAdapter
     lateinit internal var challengeAdapter: ArrayAdapter<Challenge>
     internal var seek: SeekGraphConnection? = null
-    internal val subscribers: CompositeDisposable = CompositeDisposable()
+    internal val subscribers = CompositeDisposable()
 
     /**
      * Dispatch onPause() to fragments.
@@ -50,6 +50,7 @@ class TabbedActivity : AppCompatActivity() {
         if (seek != null)
             seek!!.disconnect()
 
+        println("disposing subscribers")
         subscribers.dispose()
     }
 
@@ -73,17 +74,14 @@ class TabbedActivity : AppCompatActivity() {
         ogs!!.accessToken = accessToken
         ogs!!.openSocket()
 
-        val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
-        if (pb != null)
-            pb.visibility = View.VISIBLE
-
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.cancelAll()
 
+        println("Calling meObservable")
         subscribers.add(ogs!!.meObservable()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { },
+                        { println("onNext from me") },
                         { e ->
                             Log.e(TAG, "error while getting me", e)
 
@@ -168,6 +166,9 @@ class TabbedActivity : AppCompatActivity() {
     }
 
     private fun getGameListAndOpenSeek() {
+        val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
+        pb?.visibility = View.VISIBLE
+
         subscribers.add(Game.getGamesList(ogs!!)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -179,8 +180,7 @@ class TabbedActivity : AppCompatActivity() {
                         {
                             Log.i(TAG, "onComplete")
                             val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
-                            if (pb != null)
-                                pb.visibility = View.GONE
+                            pb?.visibility = View.GONE
                             Collections.sort(gameList)
                             myGamesAdapter.notifyDataSetChanged()
                         }

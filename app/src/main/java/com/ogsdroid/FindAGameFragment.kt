@@ -10,12 +10,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ListView
-import org.json.JSONException
-import java.io.IOException
+import com.ogs.Challenge
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 
 class FindAGameFragment : Fragment() {
+    val subscribers = CompositeDisposable()
+
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.d(javaClass.name, "onCreateView")
+        Log.d(TAG, "onCreateView")
         val activity = activity as TabbedActivity
         val rootView = inflater!!.inflate(R.layout.fragment_tabbed, container, false)
         val lv = rootView.findViewById(R.id.my_listview) as ListView
@@ -26,11 +29,25 @@ class FindAGameFragment : Fragment() {
             AlertDialog.Builder(activity)
                     .setMessage(String.format("Are you sure you want to accept the challenge %s?", c))
                     .setCancelable(true)
-                    .setPositiveButton("Yes") { dialog, id ->
-                        try {
-                            val ogs = Globals.getOGS()
-                            val gameId = ogs.acceptChallenge(c.challengeId)
-                            Globals.putOGS()
+                    .setPositiveButton("Yes") { dialog, id -> acceptChallenge(c) }
+                    .setNegativeButton("No", null)
+                    .show()
+        }
+        return rootView
+    }
+
+    override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
+        super.onDestroy()
+        subscribers.clear()
+    }
+
+    fun acceptChallenge(c: Challenge) {
+        val ogs = Globals.getOGS()
+        subscribers.add(ogs.acceptChallengeObservable(c.challengeId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { gameId ->
                             if (gameId == 0) {
                                 AlertDialog.Builder(activity)
                                         .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))
@@ -42,15 +59,18 @@ class FindAGameFragment : Fragment() {
                                 intent.putExtra("id", gameId)
                                 startActivity(intent)
                             }
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        } catch (e: JSONException) {
-                            e.printStackTrace()
+                        },
+                        { e ->
+                            Log.e(TAG, "error while accepting challenge", e)
+                            Globals.putOGS()
+                        },
+                        {
+                            Globals.putOGS()
                         }
-                    }
-                    .setNegativeButton("No", null)
-                    .show()
-        }
-        return rootView
+                ))
+    }
+
+    companion object {
+        val TAG = "FindAGameFragment"
     }
 }

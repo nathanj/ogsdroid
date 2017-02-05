@@ -71,6 +71,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 
     @Throws(IOException::class, JSONException::class)
     fun me() {
+        println("calling me()")
         if (player != null)
             return
         val obj = JSONObject(getURL("https://online-go.com/api/v1/me/?format=json"))
@@ -96,17 +97,23 @@ class OGS(private val clientId: String, private val clientSecret: String) {
         return obj
     }
 
-    @Throws(IOException::class, JSONException::class)
     fun acceptChallenge(id: Int): Int {
         try {
             val str = postURL("https://online-go.com/api/v1/challenges/$id/accept?format=json", "")
             Log.d(TAG, "acceptChallenge resp=" + str)
             val obj = JSONObject(str)
             return obj.getInt("game")
+        } catch (e: JSONException) {
+            e.printStackTrace()
+            return 0
         } catch (e: IOException) {
             e.printStackTrace()
             return 0
         }
+    }
+
+    fun acceptChallengeObservable(id: Int): Observable<Int> {
+        return Observable.fromCallable { acceptChallenge(id) }.subscribeOn(Schedulers.io())
     }
 
     @Throws(IOException::class, JSONException::class)
