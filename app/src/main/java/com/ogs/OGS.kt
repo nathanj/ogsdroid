@@ -5,12 +5,14 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import io.socket.client.IO
 import io.socket.client.Socket
+import io.socket.emitter.Emitter
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.URL
 import java.net.URLEncoder
+import java.util.*
 import javax.net.ssl.HttpsURLConnection
 
 class OGS(private val clientId: String, private val clientSecret: String) {
@@ -202,6 +204,40 @@ class OGS(private val clientId: String, private val clientSecret: String) {
             socket?.disconnect()
             socket = null
         }
+    }
+
+    fun getGameDetailsViaSocketBlocking(id: Int): JSONObject? {
+        openSocket()
+        val lock = Object()
+        val list = ArrayList<JSONObject>()
+        socket?.let { socket ->
+            socket.on("game/$id/gamedata", { objs ->
+                synchronized(lock) {
+                    list.add(objs[0] as JSONObject)
+                    lock.notify()
+                }
+            })
+            socket.emit("game/connect", createJsonObject {
+                put("game_id", id)
+                put("player_id", 0)
+                put("chat_id", 0)
+                put("game_type", "temporary")
+            })
+            synchronized(lock) {
+                while (list.isEmpty()) {
+                    lock.wait()
+                }
+            }
+            socket.off("game/$id/gamedata")
+        }
+        if (list.isEmpty())
+            return null
+        else
+            return list[0]
+    }
+
+    fun getGameDetailsViaSocketObservable(id: Int): Observable<JSONObject?> {
+        return Observable.fromCallable { getGameDetailsViaSocketBlocking(id) }.subscribeOn(Schedulers.io())
     }
 
     fun openSeekGraph(callbacks: SeekGraphConnection.SeekGraphConnectionCallbacks): SeekGraphConnection? {

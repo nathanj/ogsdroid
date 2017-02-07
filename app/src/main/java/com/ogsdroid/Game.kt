@@ -27,8 +27,9 @@ class Game : Comparable<Game> {
     companion object {
         fun fromJson(playerId: Int, details: JSONObject): Game {
             val g = Game()
-            g.id = details.getJSONObject("gamedata").getInt("game_id")
-            val moves = details.getJSONObject("gamedata").getJSONArray("moves")
+            //println(details.toString(2))
+            g.id = details.getInt("game_id")
+            val moves = details.getJSONArray("moves")
             g.board = Board(0, details.getInt("height"), details.getInt("width"))
             for (m in 0..moves.length() - 1) {
                 val x = moves.getJSONArray(m).getInt(0)
@@ -38,7 +39,7 @@ class Game : Comparable<Game> {
             }
             val white = details.getJSONObject("players").getJSONObject("white").getString("username")
             val black = details.getJSONObject("players").getJSONObject("black").getString("username")
-            val currentPlayer = details.getJSONObject("gamedata").getJSONObject("clock").getInt("current_player")
+            val currentPlayer = details.getJSONObject("clock").getInt("current_player")
             if (playerId == currentPlayer) {
                 g.myturn = true
                 g.name = String.format("%s vs %s", white, black)
@@ -52,6 +53,7 @@ class Game : Comparable<Game> {
 
         fun getGamesList(ogs: OGS): Observable<Game> {
             return ogs.listGamesObservable()
+                    // Convert to a list of game ids
                     .flatMap { gameListObj ->
                         val results = gameListObj.getJSONArray("results")
                         val arr = ArrayList<Int>(results.length())
@@ -60,8 +62,11 @@ class Game : Comparable<Game> {
                         }
                         Observable.fromIterable(arr)
                     }
-                    .flatMap { gameId -> ogs.getGameDetailsObservable(gameId) }
-                    .map { gameDetails -> Game.fromJson(ogs.player!!.id, gameDetails) }
+                    // Convert to a list of game details
+                    .flatMap { gameId -> ogs.getGameDetailsViaSocketObservable(gameId) }
+                    .filter { game -> game != null }
+                    // Convert to a list of game objects
+                    .map { gameDetails -> Game.fromJson(ogs.player!!.id, gameDetails!!) }
                     .subscribeOn(Schedulers.io())
         }
     }

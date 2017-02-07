@@ -311,18 +311,18 @@ public class Main3Activity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop");
         if (gameCon != null) {
             gameCon.disconnect();
             gameCon = null;
         }
         Globals.INSTANCE.putOGS();
         ogs = null;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
     }
 
     @Override

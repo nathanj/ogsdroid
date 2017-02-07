@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.StrictMode
 import android.preference.PreferenceManager
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
@@ -50,7 +51,7 @@ class TabbedActivity : AppCompatActivity() {
         if (seek != null)
             seek!!.disconnect()
 
-        println("disposing subscribers")
+        println("XXXXXXXXXX disposing subscribers")
         subscribers.clear()
     }
 
