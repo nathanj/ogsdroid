@@ -9,11 +9,44 @@ import io.socket.emitter.Emitter
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.http.POST
+import retrofit2.http.Query
 import java.io.IOException
 import java.net.URL
 import java.net.URLEncoder
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
+
+
+
+// {
+//     "access_token": "izoMAnZm0P6ovjuM6qh9yTg3VAdY3H",
+//     "expires_in": 36000,
+//     "refresh_token": "NHyDWr2FSxxpROW3oNFFwczSzhG3an",
+//     "scope": "read write groups",
+//     "token_type": "Bearer"
+// }
+data class LoginInfo(
+        val access_token: String,
+        val refresh_token: String,
+        val expires_in: Long
+)
+
+interface OgsService {
+    @POST("oauth2/token/")
+    fun login(@Query("username") username: String,
+              @Query("password") password: String,
+              @Query("client_id") client_id: String = "nathanj439_client",
+              @Query("client_secret") client_secret: String = "sosecret",
+              @Query("grant_type") grant_type: String = "password"): Observable<LoginInfo>
+
+    @POST("oauth2/token/")
+    fun refreshToken(@Query("refresh_token") refresh_token: String,
+                     @Query("client_id") client_id: String = "nathanj439_client",
+                     @Query("client_secret") client_secret: String = "sosecret",
+                     @Query("grant_type") grant_type: String = "refresh_token"): Observable<LoginInfo>
+}
 
 class OGS(private val clientId: String, private val clientSecret: String) {
 
