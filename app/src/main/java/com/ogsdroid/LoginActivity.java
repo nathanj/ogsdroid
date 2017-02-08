@@ -4,52 +4,27 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.LoaderManager.LoaderCallbacks;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
-import android.provider.ContactsContract;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import com.ogs.LoginInfo;
 import com.ogs.OGS;
-import com.ogs.OgsService;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
-import retrofit2.Retrofit;
-import retrofit2.converter.moshi.MoshiConverterFactory;
-
-import static android.Manifest.permission.READ_CONTACTS;
 
 /**
  * A login screen that offers login via email/password.
@@ -112,48 +87,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://beta.online-go.com/")
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(MoshiConverterFactory.create())
-                .build();
-
-        OgsService ogsService = retrofit.create(OgsService.class);
-        // try {
-        //     LoginInfo li = ogsService.login("nathanj439", "nathanj439xx", "nathanj439_client", "sosecret", "password")
-        //             .execute()
-        //             .body();
-        //     Log.d(TAG, "onCreate: li=" + li);
-        // } catch (IOException ex) {
-        //     Log.e(TAG, "onCreate: ", ex);
-        // }
-        //*
-        ogsService.login("nathanj439", "nathanj439", "nathanj439_client", "sosecret", "password")
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<LoginInfo>() {
-                    @Override
-                    public void onSubscribe(Disposable disposable) {
-                        Log.d(TAG, "onSubscribe() called with: disposable = [" + disposable + "]");
-                    }
-
-                    @Override
-                    public void onNext(LoginInfo loginInfo) {
-                        Log.d(TAG, "onNext() called with: loginInfo = [" + loginInfo + "]");
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        Log.d(TAG, "onError() called with: throwable = [" + throwable + "]");
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        Log.d(TAG, "onComplete() called");
-                    }
-                });
-                // */
     }
 
     /**

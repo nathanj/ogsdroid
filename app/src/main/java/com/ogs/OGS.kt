@@ -5,11 +5,10 @@ import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import io.socket.client.IO
 import io.socket.client.Socket
-import io.socket.emitter.Emitter
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import retrofit2.Call
+import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 import java.io.IOException
@@ -19,6 +18,87 @@ import java.util.*
 import javax.net.ssl.HttpsURLConnection
 
 
+class Player2 {
+
+    var id: Int? = null
+    var username: String? = null
+    var country: String? = null
+    var icon: String? = null
+    var ranking: Int? = null
+    var ranking_blitz: Int? = null
+    var ranking_live: Int? = null
+    var ranking_correspondence: Int? = null
+    var rating: String? = null
+    var rating_blitz: String? = null
+    var rating_live: String? = null
+    var rating_correspondence: String? = null
+    var professional: Boolean? = null
+    var ui_class: String? = null
+    var aga_valid: Any? = null
+
+}
+
+data class GameList(
+
+        var count: Int? = null,
+        var next: Any? = null,
+        var previous: Any? = null,
+        var results: List<Result>? = null
+
+)
+
+class Players {
+
+    var white: Player2? = null
+    var black: Player2? = null
+
+}
+
+
+class Related {
+
+    var detail: String? = null
+
+}
+
+class Result {
+
+    var related: Related? = null
+    var players: Players? = null
+    var id: Int? = null
+    var name: String? = null
+    var creator: Int? = null
+    var mode: String? = null
+    var source: String? = null
+    var black: Int? = null
+    var white: Int? = null
+    var width: Int? = null
+    var height: Int? = null
+    var rules: String? = null
+    var ranked: Boolean? = null
+    var handicap: Int? = null
+    var komi: String? = null
+    var time_control: String? = null
+    var black_player_rank: Int? = null
+    var black_player_rating: String? = null
+    var white_player_rank: Int? = null
+    var white_player_rating: String? = null
+    var time_per_move: Int? = null
+    var time_control_parameters: String? = null
+    var disable_analysis: Boolean? = null
+    var tournament: Any? = null
+    var tournament_round: Int? = null
+    var ladder: Any? = null
+    var pause_on_weekends: Boolean? = null
+    var outcome: String? = null
+    var black_lost: Boolean? = null
+    var white_lost: Boolean? = null
+    var annulled: Boolean? = null
+    var started: String? = null
+    var ended: Any? = null
+    var sgf_filename: Any? = null
+
+}
 
 // {
 //     "access_token": "izoMAnZm0P6ovjuM6qh9yTg3VAdY3H",
@@ -33,7 +113,35 @@ data class LoginInfo(
         val expires_in: Long
 )
 
-interface OgsService {
+// {
+//     "about": "",
+//     "challenges": "/api/v1/mechallenges",
+//     "friends": "/api/v1/mefriends",
+//     "games": "/api/v1/megames",
+//     "groups": "/api/v1/megroups",
+//     "id": 413,
+//     "mail": "/api/v1/memail",
+//     "notifications": "/api/v1/menotifications",
+//     "ranking": 15,
+//     "ranking_blitz": 15,
+//     "ranking_correspondence": 15,
+//     "ranking_live": 15,
+//     "rating": 650.0,
+//     "rating_blitz": 650.0,
+//     "rating_correspondence": 650.0,
+//     "rating_live": 650.0,
+//     "settings": "/api/v1/mesettings",
+//     "tournaments": "/api/v1/metournaments",
+//     "username": "nathanj439",
+//     "vacation": "/api/v1/mevacation"
+// }
+data class Me(
+		val id: Int,
+		val ranking: Int,
+		val username: String
+)
+
+interface OgsOauthService {
     @POST("oauth2/token/")
     fun login(@Query("username") username: String,
               @Query("password") password: String,
@@ -46,6 +154,15 @@ interface OgsService {
                      @Query("client_id") client_id: String = "nathanj439_client",
                      @Query("client_secret") client_secret: String = "sosecret",
                      @Query("grant_type") grant_type: String = "refresh_token"): Observable<LoginInfo>
+
+}
+
+interface OgsService {
+    @GET("me/")
+    fun me(): Observable<Me>
+
+    @GET("megames/")
+    fun gameList(): Observable<GameList>
 }
 
 class OGS(private val clientId: String, private val clientSecret: String) {

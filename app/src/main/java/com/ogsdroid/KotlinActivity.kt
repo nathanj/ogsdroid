@@ -1,29 +1,109 @@
 package com.ogsdroid
 
-import android.graphics.Bitmap
-import android.graphics.Bitmap.*
+import android.graphics.Bitmap.Config
+import android.graphics.Bitmap.createBitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.CardView
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
+import com.ogs.LoginInfo
+import com.ogs.Me
+import io.reactivex.Observer
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
+import java.util.*
 
 class KotlinActivity : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
     private lateinit var mAdapter: MyAdapter
     private lateinit var mLayoutManager: RecyclerView.LayoutManager
 
+    companion object {
+        val TAG = "KotlinActivity"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_kotlin)
+
+        val pref = PreferenceManager.getDefaultSharedPreferences(baseContext)
+        val refresh = pref.getString("refreshToken", "")
+
+        //Globals.ogsOauthService.login("nathanj439", "nathanj439")
+        Globals.ogsOauthService.refreshToken(refresh)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(object : Observer<LoginInfo> {
+                    override fun onSubscribe(disposable: Disposable) {
+                        Log.d(TAG, "onSubscribe() called with: disposable = [$disposable]")
+                    }
+
+                    override fun onNext(loginInfo: LoginInfo) {
+                        Log.d(TAG, "onNext() called with: loginInfo = [$loginInfo]")
+
+                        val editor = pref.edit()
+                        editor.putString("accessToken", loginInfo.access_token)
+                        editor.putString("refreshToken", loginInfo.refresh_token)
+                        editor.putLong("expiresAt", Date().time + loginInfo.expires_in)
+                        editor.apply()
+
+                        Globals.accessToken = loginInfo.access_token
+
+                        Globals.ogsService.me()
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(object : Observer<Me> {
+                                    override fun onSubscribe(disposable: Disposable) {
+                                        Log.d(TAG, "onSubscribe() called with: disposable = [$disposable]")
+                                    }
+
+                                    override fun onNext(me: Me) {
+                                        Log.d(TAG, "onNext() called with: me = [$me]")
+                                    }
+
+                                    override fun onError(throwable: Throwable) {
+                                        Log.d(TAG, "onError() called with: throwable = [$throwable]")
+                                    }
+
+                                    override fun onComplete() {
+                                        Log.d(TAG, "onComplete() called")
+                                    }
+                                })
+
+                        Globals.ogsService.gameList()
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(
+                                        { gameList ->
+                                            println("gameList = ${gameList}")
+                                            val white = gameList?.results?.get(0)?.players?.white?.username
+                                            val black = gameList?.results?.get(0)?.players?.black?.username
+                                            println("the game is $white vs $black")
+                                        },
+                                        { e -> println("e = ${e}") }
+                                )
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        Log.d(TAG, "onError() called with: throwable = [$throwable]")
+                    }
+
+                    override fun onComplete() {
+                        Log.d(TAG, "onComplete() called")
+                    }
+                })
+
+
 
         val dpWidth = baseContext.resources.displayMetrics.let {
             it.widthPixels / it.density
@@ -45,7 +125,7 @@ class KotlinActivity : AppCompatActivity() {
                 "Derek Willis"
         )
 
-        mAdapter = MyAdapter(myDataset);
+        mAdapter = MyAdapter(myDataset)
         mRecyclerView.adapter = mAdapter
 
         //myfab.setOnClickListener { view ->
