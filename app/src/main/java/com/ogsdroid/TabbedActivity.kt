@@ -4,14 +4,12 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.StrictMode
 import android.preference.PreferenceManager
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.view.ViewPager
-import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.util.Log
@@ -21,8 +19,10 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ProgressBar
 import com.ogs.Challenge
+import com.ogs.Gamedata
 import com.ogs.OGS
 import com.ogs.SeekGraphConnection
+import com.squareup.moshi.Moshi
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import org.json.JSONException
@@ -78,27 +78,72 @@ class TabbedActivity : AppCompatActivity() {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.cancelAll()
 
-        println("Calling meObservable")
-        subscribers.add(ogs!!.meObservable()
+        Globals.getAccessToken(this)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { println("onNext from me") },
+                        { token -> Globals.accessToken = token!! },
                         { e ->
-                            Log.e(TAG, "error while getting me", e)
-
-                            AlertDialog.Builder(this@TabbedActivity)
-                                    .setMessage("There was an error connecting to online-go.com. Please check your network connection. If your connection is fine, then your authentication token could have expired. You can remove it and type in your credentials again.")
-                                    .setPositiveButton("Close") { dialog, id -> finish() }
-                                    .setNegativeButton("Remove access token") { dialog, id ->
-                                        val editor = pref.edit()
-                                        editor.remove("accessToken")
-                                        editor.apply()
-                                        finish()
-                                    }
-                                    .show()
+                            Log.e(TAG, "error while getting acces token", e)
                         },
-                        { getGameListAndOpenSeek() }
-                ))
+                        { loadEverything() }
+                )
+
+        //println("Calling meObservable")
+        //subscribers.add(ogs!!.meObservable()
+        //        .observeOn(AndroidSchedulers.mainThread())
+        //        .subscribe(
+        //                { println("onNext from me") },
+        //                { e ->
+        //                    Log.e(TAG, "error while getting me", e)
+
+        //                    AlertDialog.Builder(this@TabbedActivity)
+        //                            .setMessage("There was an error connecting to online-go.com. Please check your network connection. If your connection is fine, then your authentication token could have expired. You can remove it and type in your credentials again.")
+        //                            .setPositiveButton("Close") { dialog, id -> finish() }
+        //                            .setNegativeButton("Remove access token") { dialog, id ->
+        //                                val editor = pref.edit()
+        //                                editor.remove("accessToken")
+        //                                editor.apply()
+        //                                finish()
+        //                            }
+        //                            .show()
+        //                },
+        //                { getGameListAndOpenSeek() }
+        //))
+    }
+
+    fun loadEverything() {
+        Globals.ogsService.me()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { me -> Globals.me = me },
+                        { e -> Log.e(TAG, "error while getting me", e) },
+                        { loadGames() }
+                )
+    }
+
+    fun loadGames() {
+        val moshi = Moshi.Builder().build()
+        val adapter = moshi.adapter(Gamedata::class.java)
+
+        Globals.ogsService.gameList()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { gameList ->
+                            gameList.results?.forEach { g ->
+                                val ogs = OGS("", "")
+                                val details = ogs.getGameDetailsViaSocketBlocking(g.id!!)
+                                val gamedata = adapter.fromJson(details.toString())
+                                println("gamedata = ${gamedata}")
+                                val id = gamedata.game_id
+                                val white = gamedata.players?.white?.username
+                                val black = gamedata.players?.black?.username
+                                println("the game is $id $white vs $black")
+                                println("gamedata.moves = ${gamedata.moves}")
+                                println("details = ${details}")
+                            }
+                        },
+                        { e -> println("e = ${e}"); e.printStackTrace() }
+                )
     }
 
     override fun onDestroy() {

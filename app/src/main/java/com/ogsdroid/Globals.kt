@@ -1,12 +1,15 @@
 package com.ogsdroid
 
+import android.content.Context
+import android.preference.PreferenceManager
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
-import com.ogs.OGS
-import com.ogs.OgsOauthService
-import com.ogs.OgsService
+import com.ogs.*
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 object Globals {
@@ -14,11 +17,50 @@ object Globals {
     private val refCount = AtomicInteger()
 
     var accessToken = ""
+    var me: Me? = null
+
+    private fun saveLoginInfo(context: Context, loginInfo: LoginInfo) {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val editor = pref.edit()
+        editor.putString("accessToken", loginInfo.access_token)
+        editor.putString("refreshToken", loginInfo.refresh_token)
+        editor.putLong("expiresAt", Date().time + loginInfo.expires_in)
+        editor.apply()
+    }
+
+    fun refreshAccessToken(context: Context, refreshToken: String): Observable<String?> {
+        return ogsOauthService.refreshToken(refreshToken)
+                .doOnNext { saveLoginInfo(context, it) }
+                .map { it.access_token }
+    }
+
+    fun getAccessToken(context: Context): Observable<String?> {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val accessToken = pref.getString("accessToken", "")
+        val refreshToken = pref.getString("refreshToken", "")
+        val expiresAt = pref.getLong("expiresAt", 0)
+
+        if (accessToken.isNotEmpty() && expiresAt - 5 * 60 < Date().time)
+            return Observable.just(accessToken)
+        else if (refreshToken.isNotEmpty())
+            return refreshAccessToken(context, refreshToken)
+        else
+            return Observable.just(null)
+    }
 
     val ogsOauthService: OgsOauthService by lazy {
+        val httpClient = OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    val request = chain.request()
+                    val response = chain.proceed(request)
+                    println("XX ${request.method()} ${request.url()} -> ${response.code()}")
+                    response
+                }
+                .build()
         Retrofit.Builder()
                 .baseUrl("https://beta.online-go.com/")
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .client(httpClient)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(MoshiConverterFactory.create())
                 .build()
                 .create(OgsOauthService::class.java)
@@ -31,15 +73,17 @@ object Globals {
                             .newBuilder()
                             .addHeader("Authorization", "Bearer ${Globals.accessToken}")
                             .build()
-
-                    chain.proceed(request)
+                    println("request.headers() = ${request.headers()}")
+                    val response = chain.proceed(request)
+                    println("${request.method()} ${request.url()} -> ${response.code()}")
+                    response
                 }
                 .build()
 
         Retrofit.Builder()
                 .baseUrl("https://beta.online-go.com/api/v1/")
                 .client(httpClient)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(MoshiConverterFactory.create())
                 .build()
                 .create(OgsService::class.java)
@@ -48,18 +92,18 @@ object Globals {
     // Returns the OGS object. The caller must putOGS() when finished with the
     // object.
     fun getOGS(): OGS {
-	    refCount.incrementAndGet()
-	    println("NJ getOGS: refCount = ${refCount.get()}")
-	    return ogs
+        refCount.incrementAndGet()
+        println("NJ getOGS: refCount = ${refCount.get()}")
+        return ogs
     }
 
     // Closes the OGS socket if this is the last reference.
     fun putOGS() {
-	    println("NJ putOGS: refCount = ${refCount.get()}")
-	    if (refCount.decrementAndGet() == 0) {
-		    println("NJ putOGS: closing socket")
-		    ogs.closeSocket()
-	    }
+        println("NJ putOGS: refCount = ${refCount.get()}")
+        if (refCount.decrementAndGet() == 0) {
+            println("NJ putOGS: closing socket")
+            ogs.closeSocket()
+        }
     }
 }
 
