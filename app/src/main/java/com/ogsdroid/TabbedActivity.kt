@@ -25,6 +25,8 @@ import com.ogs.SeekGraphConnection
 import com.squareup.moshi.Moshi
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import org.json.JSONException
 import java.util.*
 
@@ -124,25 +126,34 @@ class TabbedActivity : AppCompatActivity() {
     fun loadGames() {
         val moshi = Moshi.Builder().build()
         val adapter = moshi.adapter(Gamedata::class.java)
+        val ogs = OGS("", "")
 
         Globals.ogsService.gameList()
+                // Convert to list of game ids
+                .flatMap { gameList -> Observable.fromIterable(gameList.results?.map { it.id }) }
+                // Convert to list of Gamedata objects
+                .flatMap { gameId ->
+                    val details = ogs.getGameDetailsViaSocketObservable(gameId!!)
+                    println("details = ${details}")
+                    val gamedata = adapter.fromJson(details.toString())
+                    val game = Game.fromGamedata(Globals.me!!.id, gamedata)
+                    Observable.just(game)
+                }
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { gameList ->
-                            gameList.results?.forEach { g ->
-                                val ogs = OGS("", "")
-                                val details = ogs.getGameDetailsViaSocketBlocking(g.id!!)
-                                val gamedata = adapter.fromJson(details.toString())
-                                println("gamedata = ${gamedata}")
-                                val id = gamedata.game_id
-                                val white = gamedata.players?.white?.username
-                                val black = gamedata.players?.black?.username
-                                println("the game is $id $white vs $black")
-                                println("gamedata.moves = ${gamedata.moves}")
-                                println("details = ${details}")
-                            }
+                        { game ->
+                            Log.i(TAG, "onNext " + game)
+                            gameList.add(game)
                         },
-                        { e -> println("e = ${e}"); e.printStackTrace() }
+                        { e -> Log.e(TAG, "error while getting game list", e) },
+                        {
+                            Log.i(TAG, "onComplete")
+                            val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
+                            pb?.visibility = View.GONE
+                            Collections.sort(gameList)
+                            myGamesAdapter.notifyDataSetChanged()
+                        }
                 )
     }
 

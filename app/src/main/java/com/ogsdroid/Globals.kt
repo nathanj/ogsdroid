@@ -40,6 +40,10 @@ object Globals {
         val refreshToken = pref.getString("refreshToken", "")
         val expiresAt = pref.getLong("expiresAt", 0)
 
+        println("expiresAt = ${expiresAt}")
+        println("Date().time = ${Date().time}")
+        val timeLeft = expiresAt - Date().time
+        println("timeLeft = ${timeLeft}")
         if (accessToken.isNotEmpty() && expiresAt - 5 * 60 < Date().time)
             return Observable.just(accessToken)
         else if (refreshToken.isNotEmpty())

@@ -1,5 +1,6 @@
 package com.ogsdroid
 
+import com.ogs.Gamedata
 import com.ogs.OGS
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
@@ -40,6 +41,30 @@ class Game : Comparable<Game> {
             val white = details.getJSONObject("players").getJSONObject("white").getString("username")
             val black = details.getJSONObject("players").getJSONObject("black").getString("username")
             val currentPlayer = details.getJSONObject("clock").getInt("current_player")
+            if (playerId == currentPlayer) {
+                g.myturn = true
+                g.name = String.format("%s vs %s", white, black)
+            } else {
+                g.myturn = false
+                g.name = String.format("%s vs %s", white, black)
+            }
+            println("returning game=$g")
+            return g
+        }
+
+        fun fromGamedata(playerId: Int, gamedata: Gamedata): Game {
+            val g = Game()
+            g.id = gamedata.game_id!!
+            g.board = Board(0, gamedata.height!!, gamedata.width!!)
+            gamedata.moves?.forEach {
+                val x = it[0]
+                val y = it[1]
+                if (x != -1)
+                    g.board!!.addStone(x, y)
+            }
+            val white = gamedata.players?.white?.username
+            val black = gamedata.players?.black?.username
+            val currentPlayer = gamedata.clock?.current_player
             if (playerId == currentPlayer) {
                 g.myturn = true
                 g.name = String.format("%s vs %s", white, black)
