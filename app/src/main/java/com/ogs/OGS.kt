@@ -444,13 +444,19 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 }
 
 
-class Time {
+class Time(
 
-    var thinking_time: Long? = null
+        //var data: String? = null
+        var thinking_time: Float? = null,
     var skip_bonus: Boolean? = null
 
-}
+)
 
+//class TimeAdapter {
+//    @FromJson fun fromJson(json: String): Time {
+//        return Time(json)
+//    }
+//}
 
 class Clock {
 

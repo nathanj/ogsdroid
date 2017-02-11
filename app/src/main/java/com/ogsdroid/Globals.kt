@@ -40,16 +40,20 @@ object Globals {
         val refreshToken = pref.getString("refreshToken", "")
         val expiresAt = pref.getLong("expiresAt", 0)
 
-        println("expiresAt = ${expiresAt}")
-        println("Date().time = ${Date().time}")
         val timeLeft = expiresAt - Date().time
-        println("timeLeft = ${timeLeft}")
-        if (accessToken.isNotEmpty() && expiresAt - 5 * 60 < Date().time)
+        println("expiresAt   = ${expiresAt}")
+        println("Date().time = ${Date().time}")
+        println("timeLeft    = ${timeLeft}")
+        if (accessToken.isNotEmpty() && expiresAt - 5 * 60 > Date().time) {
+            println("using access token")
             return Observable.just(accessToken)
-        else if (refreshToken.isNotEmpty())
+        } else if (refreshToken.isNotEmpty()) {
+            println("using refresh token")
             return refreshAccessToken(context, refreshToken)
-        else
+        } else {
+            println("whoops")
             return Observable.just(null)
+        }
     }
 
     val ogsOauthService: OgsOauthService by lazy {

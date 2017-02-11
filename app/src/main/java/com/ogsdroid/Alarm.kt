@@ -20,7 +20,7 @@ class Alarm : BroadcastReceiver() {
         println("OGS Alarm: running")
 
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val ni = cm.activeNetworkInfo
+        val ni = cm.activeNetworkInfo ?: return
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val notifyWifi = pref.getBoolean("pref_notify_wifi", false)
 

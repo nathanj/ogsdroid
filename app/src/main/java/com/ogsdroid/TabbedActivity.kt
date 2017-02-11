@@ -23,9 +23,9 @@ import com.ogs.Gamedata
 import com.ogs.OGS
 import com.ogs.SeekGraphConnection
 import com.squareup.moshi.Moshi
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import org.json.JSONException
 import java.util.*
@@ -124,16 +124,19 @@ class TabbedActivity : AppCompatActivity() {
     }
 
     fun loadGames() {
-        val moshi = Moshi.Builder().build()
+        val moshi = Moshi.Builder()
+                //.add(TimeAdapter())
+                .build()
         val adapter = moshi.adapter(Gamedata::class.java)
         val ogs = OGS("", "")
 
         Globals.ogsService.gameList()
                 // Convert to list of game ids
                 .flatMap { gameList -> Observable.fromIterable(gameList.results?.map { it.id }) }
+                // Convert to list of json game details
+                .flatMap { gameId -> ogs.getGameDetailsViaSocketObservable(gameId!!) }
                 // Convert to list of Gamedata objects
-                .flatMap { gameId ->
-                    val details = ogs.getGameDetailsViaSocketObservable(gameId!!)
+                .flatMap { details ->
                     println("details = ${details}")
                     val gamedata = adapter.fromJson(details.toString())
                     val game = Game.fromGamedata(Globals.me!!.id, gamedata)
