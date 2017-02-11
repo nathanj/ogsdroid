@@ -10,7 +10,7 @@ data class ChatMessage(val username: String, val msg: String, val date: Long) {
     }
 }
 
-class GameConnection internal constructor(ogs: OGS, private val socket: Socket, private val gameId: Int, private val userId: Int, private val gamedata: Gamedata) {
+class GameConnection internal constructor(ogs: OGS, private val socket: Socket, private val gameId: Int, private var userId: Int, private val gamedata: Gamedata, private var callbacks: OGSGameConnectionCallbacks? = null) {
     interface OGSGameConnectionCallbacks {
         fun move(x: Int, y: Int)
         fun clock(clock: JSONObject)
@@ -28,7 +28,6 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
 
     private var gameAuth: String? = null
     private var chatAuth: String? = null
-    private var callbacks: OGSGameConnectionCallbacks? = null
     private var resetCallback: OGSGameConnectionResetCallback? = null
 
     fun setCallbacks(callbacks: OGSGameConnectionCallbacks) {
@@ -45,6 +44,9 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
     }
 
     init {
+
+        println("NJ socket on game/$gameId/gamedata")
+
         socket.on("game/$gameId/clock") { args ->
             val obj = args[0] as JSONObject
             Log.d(TAG, "got clock = " + obj)
@@ -71,12 +73,20 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             phase(p)
         }.on("game/$gameId/reset") {
             reset()
+        }.on("game/$gameId/conditional_moves") {
+            Log.d(TAG, "conditional_moves $it")
+        }.on("game/$gameId/chat-reset") {
+            Log.d(TAG, "chat-reset $it")
+        }.on("active_game") { args ->
+            val obj = args[0] as JSONObject
+            Log.d(TAG, "active_game obj=$obj")
         }.on("game/$gameId/chat", {
             val obj = it[0] as JSONObject
-            val message = obj.getJSONObject("message")
-            val username = message.getString("username")
-            val msg = message.getString("body")
-            val date = message.getLong("date")
+            Log.d(TAG, "chat obj=$obj")
+            val line = obj.getJSONObject("line")
+            val username = line.getString("username")
+            val msg = line.getString("body")
+            val date = line.getLong("date")
             callbacks?.chat(ChatMessage(username, msg, date))
         })
 
@@ -84,24 +94,38 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
         chatAuth = gamedata.game_chat_auth
 
         Log.d(TAG, "socket = $socket")
-        emit("game/connect", createJsonObject {
-            put("auth", gameAuth)
-            put("game_id", gameId)
-            put("player_id", userId)
-            put("game_type", "game")
-            put("chat", 1)
-        })
-        emit("game/clear_delayed_resign", createJsonObject {
-            put("auth", gameAuth)
-            put("game_id", gameId)
-            put("player_id", userId)
+        //emit("ui-pushes/subscribe", createJsonObject {
+        //    put("channel", "announcements")
+        //})
+        //emit("authenticate", createJsonObject {
+        //    put("auth", "d0e89279f1fd3a6e086f369fc7e66e8a")
+        //    put("player_id", 458)
+        //    put("username", "nathanj4398fae9954a5344145")
+        //})
+        //emit("chat/connect", createJsonObject {
+        //    put("auth", "d0e89279f1fd3a6e086f369fc7e66e8a")
+        //    put("player_id", 458)
+        //    put("username", "nathanj4398fae9954a5344145")
+        //    put("ui_class", "provisional")
+        //})
+        emit("ui-pushes/subscribe", createJsonObject {
+            put("channel", "game-$gameId")
         })
         emit("chat/join", createJsonObject {
             put("channel", "game-$gameId")
         })
+        emit("game/connect", createJsonObject {
+            put("game_id", gameId)
+            put("player_id", userId)
+            put("chat", true)
+        })
     }
 
     fun disconnect() {
+
+        println("NJ socket off game/$gameId/gamedata")
+
+
         socket.off("game/$gameId/clock")
                 .off("game/$gameId/gamedata")
                 .off("game/$gameId/move")
@@ -111,10 +135,14 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
                 .off("game/$gameId/phase")
                 .off("game/$gameId/reset")
                 .off("game/$gameId/chat")
+                .off("active_game")
 
+        emit("ui-pushes/unsubscribe", createJsonObject {
+            put("channel", "game-$gameId")
+        })
         emit("chat/part", createJsonObject {
             put("channel", "game-$gameId")
-        }.toString())
+        })
         emit("game/disconnect", createJsonObject {
             put("game_id", gameId)
         })
@@ -227,21 +255,13 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
         emit("game/wait", obj)
     }
 
-    fun sendChatMessage(player: Player, msg: String, moveNumber: Int) {
-        val json = createJsonObject {
-            put("auth", chatAuth)
-            put("player_id", player.id)
-            put("username", player.username)
-            put("ranking", player.ranking)
+    fun sendChatMessage(msg: String, moveNumber: Int) {
+        emit("game/chat", createJsonObject {
             put("body", msg)
-            put("type", "discussion")
             put("game_id", gameId)
-            put("is_player", 1)
+            put("type", "main")
             put("move_number", moveNumber)
-        }
-
-        Log.d(TAG, "Sending chat message using $socket: $json")
-        emit("game/chat", json)
+        })
     }
 
     companion object {

@@ -78,200 +78,203 @@ class Main3Activity : AppCompatActivity() {
             bv!!.blackPlayer = details.blackPlayer
             bv!!.whitePlayer = details.whitePlayer
 
+            ogs!!.closeSocket()
             ogs!!.openSocket()
-            gameCon = ogs!!.openGameConnection(currentGameId, gameData)
+
+            gameCon = ogs!!.openGameConnection(currentGameId, gameData,
+                    object : GameConnection.OGSGameConnectionCallbacks {
+                        override fun chat(msg: ChatMessage) {
+                            Log.d(TAG, "got chat messague: " + msg.toString())
+
+                            this@Main3Activity.runOnUiThread {
+                                if (msg.username != Globals.me!!.username) {
+                                    val toast = Toast.makeText(this@Main3Activity, msg.toString(), Toast.LENGTH_LONG)
+                                    toast.show()
+                                }
+
+                                val tv = findViewById(R.id.chat_text_view) as TextView
+                                tv.text = msg.toString() + "\n" + tv.text
+                            }
+                        }
+
+                        override fun move(x: Int, y: Int) {
+                            if (x == -1) {
+                                bv!!.board.pass()
+                                passSound!!.start()
+                            } else {
+                                bv!!.board.addStone(x, y)
+                                clickSound!!.start()
+                            }
+                            bv!!.postInvalidate()
+                        }
+
+                        override fun clock(clock: JSONObject) {
+                            try {
+
+                                Log.d("njclock", clock.toString())
+                                val whoseTurn = clock.getInt("current_player")
+
+                                if (clock.get("white_time") is Number) {
+                                    val now = System.currentTimeMillis()
+                                    val now_delta = now - clock.getLong("now")
+                                    val base_time = clock.getLong("last_move") + now_delta
+                                    Log.d("njclock", "now = " + now)
+                                    Log.d("njclock", "now_delta = " + now_delta)
+                                    Log.d("njclock", "base_time = " + base_time)
+                                    Log.d("njclock", "black time = " + clock.getLong("black_time"))
+                                    Log.d("njclock", "delta = " + (clock.getLong("black_time") - System.currentTimeMillis()))
+                                    bv!!.clockWhite.setTime((clock.getLong("white_time") - System.currentTimeMillis()).toInt() / 1000, 0, 0)
+                                    bv!!.clockBlack.setTime((clock.getLong("black_time") - System.currentTimeMillis()).toInt() / 1000, 0, 0)
+                                } else {
+                                    var thinkingTime = 0
+                                    var periods = 0
+                                    var periodTime = 0
+                                    try {
+                                        val c = clock.getJSONObject("white_time")
+                                        Log.d("njclock", "white = " + c)
+                                        thinkingTime = c.getInt("thinking_time")
+                                        periods = c.getInt("periods")
+                                        periodTime = c.getInt("period_time")
+                                    } catch (e: JSONException) {
+                                        //e.printStackTrace();
+                                    }
+
+                                    bv!!.clockWhite.setTime(thinkingTime, periods, periodTime)
+
+                                    thinkingTime = 0
+                                    periods = 0
+                                    periodTime = 0
+                                    try {
+                                        val c = clock.getJSONObject("black_time")
+                                        Log.d("njclock", "black = " + c)
+                                        thinkingTime = c.getInt("thinking_time")
+                                        periods = c.getInt("periods")
+                                        periodTime = c.getInt("period_time")
+                                    } catch (e: JSONException) {
+                                    }
+
+                                    bv!!.clockBlack.setTime(thinkingTime, periods, periodTime)
+                                }
+
+                                if (gamedata != null) {
+                                    gamedata!!.whoseTurn = whoseTurn
+                                    changeTitle()
+                                }
+                                bv!!.blacksMove = whoseTurn == details.blackId
+                            } catch (e: JSONException) {
+                                e.printStackTrace()
+                            }
+
+                        }
+
+                        override fun phase(p: String) {
+                            if (phase != p) {
+                                phase = p
+                                bv!!.phase = p
+                                invalidateOptionsMenu()
+                            }
+                            if (p == "play") {
+                                bv!!.board.unmarkTerritory()
+                                bv!!.board.unmarkRemoved()
+                            } else
+                                bv!!.board.markTerritory()
+
+                            changeTitle()
+                        }
+
+                        internal fun changeTitle() {
+                            if (gamedata == null)
+                                return
+                            this@Main3Activity.runOnUiThread {
+                                if (phase == "play") {
+                                    if (gamedata!!.whoseTurn == gamedata!!.blackId)
+                                        title = String.format("Black to play - %s", prefix)
+                                    else
+                                        title = String.format("White to play - %s", prefix)
+                                } else if (phase == "finished") {
+                                    if (gamedata!!.winner == gamedata!!.blackId)
+                                        title = String.format("Black wins by %s - %s", gamedata!!.outcome, prefix)
+                                    else
+                                        title = String.format("White wins by %s - %s", gamedata!!.outcome, prefix)
+                                } else if (phase == "stone removal") {
+                                    title = String.format("Stone removal - %s", prefix)
+                                }
+                            }
+                        }
+
+                        override fun gamedata(obj: JSONObject) {
+                            val moshi = Moshi.Builder()
+                                    //.add(TimeAdapter())
+                                    .build()
+                            val adapter = moshi.adapter(Gamedata::class.java)
+                            val gameData: Gamedata
+                            try {
+                                gameData = adapter.fromJson(obj.toString())
+                            } catch (ex: IOException) {
+                                throw RuntimeException(ex)
+                            }
+
+                            gamedata = GameDetails(gameData)
+
+                            try {
+                                val tv = findViewById(R.id.chat_text_view) as TextView
+                                val chats = obj.getJSONArray("chat_log")
+                                this@Main3Activity.runOnUiThread { tv.text = "" }
+                                for (i in 0..chats.length() - 1) {
+                                    val c = chats.getJSONObject(i)
+                                    val msg = ChatMessage(c.getString("username"), c.getString("body"), c.getLong("date"))
+                                    this@Main3Activity.runOnUiThread { tv.text = msg.toString() + "\n" + tv.text }
+                                }
+                            } catch (e: JSONException) {
+                            }
+
+                            if (phase != gamedata!!.phase) {
+                                phase = gamedata!!.phase
+                                bv!!.phase = gamedata!!.phase
+                                invalidateOptionsMenu()
+                            }
+
+                            if (phase == "play")
+                                bv!!.board.unmarkTerritory()
+                            else
+                                bv!!.board.markTerritory()
+
+                            prefix = String.format("%s vs %s", gamedata!!.whitePlayer, gamedata!!.blackPlayer)
+                            changeTitle()
+                        }
+
+                        override fun removedStones(obj: JSONObject) {
+                            try {
+                                val coords = obj.getString("stones")
+                                val removed = obj.getBoolean("removed")
+                                bv!!.board.stoneRemoval(coords, removed)
+                                bv!!.postInvalidate()
+                            } catch (e: JSONException) {
+                                e.printStackTrace()
+                            }
+
+                        }
+
+                        override fun removedStonesAccepted(obj: JSONObject) {
+
+                        }
+
+                        override fun error(msg: String) {
+                            Log.e(TAG, "got ogs error: " + msg)
+                            this@Main3Activity.runOnUiThread {
+                                AlertDialog.Builder(this@Main3Activity)
+                                        .setMessage("OGS error: " + msg)
+                                        .setCancelable(true)
+                                        .setPositiveButton("Ok") { dialog, id -> }
+                                        .show()
+                            }
+                        }
+                    }
+            )
 
             bv!!.gameConnection = gameCon
             bv!!.phase = phase
 
-            gameCon!!.setCallbacks(object : GameConnection.OGSGameConnectionCallbacks {
-                override fun chat(msg: ChatMessage) {
-                    Log.d(TAG, msg.toString())
-
-                    this@Main3Activity.runOnUiThread {
-                        if (msg.username != ogs!!.player!!.username) {
-                            val toast = Toast.makeText(this@Main3Activity, msg.toString(), Toast.LENGTH_LONG)
-                            toast.show()
-                        }
-
-                        val tv = findViewById(R.id.chat_text_view) as TextView
-                        tv.text = msg.toString() + "\n" + tv.text
-                    }
-                }
-
-                override fun move(x: Int, y: Int) {
-                    if (x == -1) {
-                        bv!!.board.pass()
-                        passSound!!.start()
-                    } else {
-                        bv!!.board.addStone(x, y)
-                        clickSound!!.start()
-                    }
-                    bv!!.postInvalidate()
-                }
-
-                override fun clock(clock: JSONObject) {
-                    try {
-
-                        Log.d("njclock", clock.toString())
-                        val whoseTurn = clock.getInt("current_player")
-
-                        if (clock.get("white_time") is Number) {
-                            val now = System.currentTimeMillis()
-                            val now_delta = now - clock.getLong("now")
-                            val base_time = clock.getLong("last_move") + now_delta
-                            Log.d("njclock", "now = " + now)
-                            Log.d("njclock", "now_delta = " + now_delta)
-                            Log.d("njclock", "base_time = " + base_time)
-                            Log.d("njclock", "black time = " + clock.getLong("black_time"))
-                            Log.d("njclock", "delta = " + (clock.getLong("black_time") - System.currentTimeMillis()))
-                            bv!!.clockWhite.setTime((clock.getLong("white_time") - System.currentTimeMillis()).toInt() / 1000, 0, 0)
-                            bv!!.clockBlack.setTime((clock.getLong("black_time") - System.currentTimeMillis()).toInt() / 1000, 0, 0)
-                        } else {
-                            var thinkingTime = 0
-                            var periods = 0
-                            var periodTime = 0
-                            try {
-                                val c = clock.getJSONObject("white_time")
-                                Log.d("njclock", "white = " + c)
-                                thinkingTime = c.getInt("thinking_time")
-                                periods = c.getInt("periods")
-                                periodTime = c.getInt("period_time")
-                            } catch (e: JSONException) {
-                                //e.printStackTrace();
-                            }
-
-                            bv!!.clockWhite.setTime(thinkingTime, periods, periodTime)
-
-                            thinkingTime = 0
-                            periods = 0
-                            periodTime = 0
-                            try {
-                                val c = clock.getJSONObject("black_time")
-                                Log.d("njclock", "black = " + c)
-                                thinkingTime = c.getInt("thinking_time")
-                                periods = c.getInt("periods")
-                                periodTime = c.getInt("period_time")
-                            } catch (e: JSONException) {
-                            }
-
-                            bv!!.clockBlack.setTime(thinkingTime, periods, periodTime)
-                        }
-
-                        if (gamedata != null) {
-                            gamedata!!.whoseTurn = whoseTurn
-                            changeTitle()
-                        }
-                        bv!!.blacksMove = whoseTurn == details.blackId
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                    }
-
-                }
-
-                override fun phase(p: String) {
-                    if (phase != p) {
-                        phase = p
-                        bv!!.phase = p
-                        invalidateOptionsMenu()
-                    }
-                    if (p == "play") {
-                        bv!!.board.unmarkTerritory()
-                        bv!!.board.unmarkRemoved()
-                    } else
-                        bv!!.board.markTerritory()
-
-                    changeTitle()
-                }
-
-                internal fun changeTitle() {
-                    if (gamedata == null)
-                        return
-                    this@Main3Activity.runOnUiThread {
-                        if (phase == "play") {
-                            if (gamedata!!.whoseTurn == gamedata!!.blackId)
-                                title = String.format("Black to play - %s", prefix)
-                            else
-                                title = String.format("White to play - %s", prefix)
-                        } else if (phase == "finished") {
-                            if (gamedata!!.winner == gamedata!!.blackId)
-                                title = String.format("Black wins by %s - %s", gamedata!!.outcome, prefix)
-                            else
-                                title = String.format("White wins by %s - %s", gamedata!!.outcome, prefix)
-                        } else if (phase == "stone removal") {
-                            title = String.format("Stone removal - %s", prefix)
-                        }
-                    }
-                }
-
-                override fun gamedata(obj: JSONObject) {
-                    val moshi = Moshi.Builder()
-                            //.add(TimeAdapter())
-                            .build()
-                    val adapter = moshi.adapter(Gamedata::class.java)
-                    val gameData: Gamedata
-                    try {
-                        gameData = adapter.fromJson(obj.toString())
-                    } catch (ex: IOException) {
-                        throw RuntimeException(ex)
-                    }
-
-                    gamedata = GameDetails(gameData)
-
-                    try {
-                        val tv = findViewById(R.id.chat_text_view) as TextView
-                        val chats = obj.getJSONArray("chat_log")
-                        this@Main3Activity.runOnUiThread { tv.text = "" }
-                        for (i in 0..chats.length() - 1) {
-                            val c = chats.getJSONObject(i)
-                            val msg = ChatMessage(c.getString("username"), c.getString("body"), c.getLong("date"))
-                            this@Main3Activity.runOnUiThread { tv.text = msg.toString() + "\n" + tv.text }
-                        }
-                    } catch (e: JSONException) {
-                    }
-
-                    if (phase != gamedata!!.phase) {
-                        phase = gamedata!!.phase
-                        bv!!.phase = gamedata!!.phase
-                        invalidateOptionsMenu()
-                    }
-
-                    if (phase == "play")
-                        bv!!.board.unmarkTerritory()
-                    else
-                        bv!!.board.markTerritory()
-
-                    prefix = String.format("%s vs %s", gamedata!!.whitePlayer, gamedata!!.blackPlayer)
-                    changeTitle()
-                }
-
-                override fun removedStones(obj: JSONObject) {
-                    try {
-                        val coords = obj.getString("stones")
-                        val removed = obj.getBoolean("removed")
-                        bv!!.board.stoneRemoval(coords, removed)
-                        bv!!.postInvalidate()
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                    }
-
-                }
-
-                override fun removedStonesAccepted(obj: JSONObject) {
-
-                }
-
-                override fun error(msg: String) {
-                    Log.e(TAG, "got ogs error: " + msg)
-                    this@Main3Activity.runOnUiThread {
-                        AlertDialog.Builder(this@Main3Activity)
-                                .setMessage("OGS error: " + msg)
-                                .setCancelable(true)
-                                .setPositiveButton("Ok") { dialog, id -> }
-                                .show()
-                    }
-                }
-            })
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -319,7 +322,8 @@ class Main3Activity : AppCompatActivity() {
         editText.setOnEditorActionListener { textView, i, keyEvent ->
             if (i == EditorInfo.IME_NULL && keyEvent.action == KeyEvent.ACTION_UP) {
 
-                gameCon!!.sendChatMessage(ogs!!.player!!,
+                println("gameCon = ${gameCon}")
+                gameCon!!.sendChatMessage(
                         editText.text.toString(), bv!!.board.moveNumber)
                 editText.setText("")
             }

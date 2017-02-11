@@ -353,6 +353,17 @@ class OGS(private val clientId: String, private val clientSecret: String) {
                 Log.d("myApp", "socket reconnect")
             }
             socket!!.connect()
+
+            //socket!!.emit("notification/connect", createJsonObject {
+            //    put("player_id", 458)
+            //    put("auth", "ac3dd2f3a1fd8062535dcdfe5b4c8a79")
+            //})
+
+            //socket!!.emit("authenticate", createJsonObject {
+            //    put("player_id", 413)
+            //    put("username", "nathanj439")
+            //    put("auth", "27d72f2b1601ae3c47198ee8db8b22f0")
+            //})
         }
     }
 
@@ -368,6 +379,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
         val lock = Object()
         val list = ArrayList<JSONObject>()
         socket?.let { socket ->
+            println("NJ socket on game/$id/gamedata")
             socket.on("game/$id/gamedata", { objs ->
                 synchronized(lock) {
                     list.add(objs[0] as JSONObject)
@@ -376,15 +388,15 @@ class OGS(private val clientId: String, private val clientSecret: String) {
             })
             socket.emit("game/connect", createJsonObject {
                 put("game_id", id)
-                put("player_id", 0)
-                put("chat_id", 0)
-                put("game_type", "temporary")
+                put("player_id", Globals.me!!.id)
+                put("chat", 0)
             })
             synchronized(lock) {
                 while (list.isEmpty()) {
                     lock.wait()
                 }
             }
+            println("NJ socket off game/$id/gamedata")
             socket.off("game/$id/gamedata")
         }
         if (list.isEmpty())
@@ -412,11 +424,11 @@ class OGS(private val clientId: String, private val clientSecret: String) {
     /**
      * Uses the real time api to connect to a game.
      */
-    fun openGameConnection(gameId: Int, gamedata: Gamedata): GameConnection? {
+    fun openGameConnection(gameId: Int, gamedata: Gamedata, callbacks: GameConnection.OGSGameConnectionCallbacks? = null): GameConnection? {
         synchronized(this) {
             Log.d(TAG, "socket:$socket player:$player")
             if (socket != null) {
-                return GameConnection(this, socket!!, gameId, Globals.me!!.id, gamedata)
+                return GameConnection(this, socket!!, gameId, Globals.me!!.id, gamedata, callbacks)
             } else {
                 return null
             }
