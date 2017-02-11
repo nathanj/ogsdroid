@@ -1,6 +1,7 @@
 package com.ogs
 
 import android.util.Log
+import com.ogsdroid.Globals
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import io.socket.client.IO
@@ -161,7 +162,7 @@ interface OgsService {
     @GET("me/")
     fun me(): Observable<Me>
 
-    @GET("megames/")
+    @GET("megames/?started__isnull=False&ended__isnull=True")
     fun gameList(): Observable<GameList>
 }
 
@@ -411,11 +412,11 @@ class OGS(private val clientId: String, private val clientSecret: String) {
     /**
      * Uses the real time api to connect to a game.
      */
-    fun openGameConnection(gameId: Int): GameConnection? {
+    fun openGameConnection(gameId: Int, gamedata: Gamedata): GameConnection? {
         synchronized(this) {
             Log.d(TAG, "socket:$socket player:$player")
             if (socket != null) {
-                return GameConnection(this, socket!!, gameId, player!!.id)
+                return GameConnection(this, socket!!, gameId, Globals.me!!.id, gamedata)
             } else {
                 return null
             }
@@ -426,7 +427,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
         synchronized(this) {
             Log.d(TAG, "socket:$socket player:$player")
             if (socket != null) {
-                return NotificationConnection(socket!!, player!!.id, auth, callbacks)
+                return NotificationConnection(socket!!, Globals.me!!.id, auth, callbacks)
             } else {
                 return null
             }
@@ -446,7 +447,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 
 class Time(
 
-        //var data: String? = null
+        //var data: JSONObject? = null
         var thinking_time: Float? = null,
     var skip_bonus: Boolean? = null
 
@@ -454,7 +455,11 @@ class Time(
 
 //class TimeAdapter {
 //    @FromJson fun fromJson(json: String): Time {
-//        return Time(json)
+//        return Time(createJsonObject { put("asdf", "whee") })
+//    }
+//
+//    @ToJson fun toJson(time: Time): String {
+//        return "dontcare"
 //    }
 //}
 
@@ -512,6 +517,11 @@ class Gamedata {
     var initial_state: Initial_state? = null
     var start_time: Int? = null
     var clock: Clock? = null
+    var removed: String? = null
+    var auth: String? = null
+    var game_chat_auth: String? = null
+    var winner: Int? = null
+    var outcome: String? = null
 
 }
 

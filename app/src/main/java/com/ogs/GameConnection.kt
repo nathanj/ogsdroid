@@ -3,7 +3,6 @@ package com.ogs
 import android.util.Log
 import io.socket.client.Socket
 import org.json.JSONObject
-import java.util.*
 
 data class ChatMessage(val username: String, val msg: String, val date: Long) {
     override fun toString(): String {
@@ -11,7 +10,7 @@ data class ChatMessage(val username: String, val msg: String, val date: Long) {
     }
 }
 
-class GameConnection internal constructor(ogs: OGS, private val socket: Socket, private val gameId: Int, private val userId: Int) {
+class GameConnection internal constructor(ogs: OGS, private val socket: Socket, private val gameId: Int, private val userId: Int, private val gamedata: Gamedata) {
     interface OGSGameConnectionCallbacks {
         fun move(x: Int, y: Int)
         fun clock(clock: JSONObject)
@@ -81,9 +80,8 @@ class GameConnection internal constructor(ogs: OGS, private val socket: Socket, 
             callbacks?.chat(ChatMessage(username, msg, date))
         })
 
-        val gameDetails = ogs.getGameDetails(gameId)
-        gameAuth = gameDetails!!.getString("auth")
-        chatAuth = gameDetails.getString("game_chat_auth")
+        gameAuth = gamedata.auth
+        chatAuth = gamedata.game_chat_auth
 
         Log.d(TAG, "socket = $socket")
         emit("game/connect", createJsonObject {

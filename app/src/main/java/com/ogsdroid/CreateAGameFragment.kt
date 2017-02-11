@@ -13,6 +13,7 @@ import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
 import com.ogs.GameConnection
+import com.ogs.Gamedata
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -98,7 +99,7 @@ class CreateAGameFragment : Fragment() {
                 val challenge = result.getInt("challenge")
                 val game = result.getInt("game")
 
-                val conn = activity.ogs!!.openGameConnection(game)
+                val conn = activity.ogs!!.openGameConnection(game, Gamedata()) // XXX
                 if (conn == null) {
                     AlertDialog.Builder(activity)
                             .setMessage("Failed to create challenge.")
@@ -118,7 +119,7 @@ class CreateAGameFragment : Fragment() {
                                 }
                             }
                             .show()
-                    conn!!.setResetCallback(object : GameConnection.OGSGameConnectionResetCallback {
+                    conn.setResetCallback(object : GameConnection.OGSGameConnectionResetCallback {
                         override fun reset() {
                             dialog.dismiss()
                             val intent = Intent(activity, Main3Activity::class.java)
@@ -126,7 +127,7 @@ class CreateAGameFragment : Fragment() {
                             startActivity(intent)
                         }
                     })
-                    conn!!.waitForStart()
+                    conn.waitForStart()
                 }
 
             } catch (e: JSONException) {
