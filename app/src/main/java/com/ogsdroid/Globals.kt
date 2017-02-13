@@ -17,15 +17,17 @@ object Globals {
     private val refCount = AtomicInteger()
 
     var accessToken = ""
-    var me: Me? = null
+    var uiConfig: UiConfig? = null
 
     private fun saveLoginInfo(context: Context, loginInfo: LoginInfo) {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val editor = pref.edit()
+        println("saving loginInfo = ${loginInfo}")
         editor.putString("accessToken", loginInfo.access_token)
         editor.putString("refreshToken", loginInfo.refresh_token)
         editor.putLong("expiresAt", Date().time + loginInfo.expires_in)
         editor.apply()
+        accessToken = loginInfo.access_token
     }
 
     fun refreshAccessToken(context: Context, refreshToken: String): Observable<String?> {
@@ -83,7 +85,7 @@ object Globals {
                             .build()
                     println("request.headers() = ${request.headers()}")
                     val response = chain.proceed(request)
-                    println("${request.method()} ${request.url()} -> ${response.code()}")
+                    println("${request.method()} ${request.url()} -> ${response.code()} ${response.message()}")
                     response
                 }
                 .build()

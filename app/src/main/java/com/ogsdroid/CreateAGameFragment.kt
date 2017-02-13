@@ -1,6 +1,7 @@
 package com.ogsdroid
 
 import android.content.Intent
+import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AlertDialog
@@ -12,9 +13,12 @@ import android.widget.Button
 import android.widget.RadioGroup
 import android.widget.SeekBar
 import android.widget.TextView
-import com.ogs.GameConnection
-import com.ogs.Gamedata
-import org.json.JSONException
+import com.ogs.OGS
+import com.ogs.createJsonObject
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import okhttp3.MediaType
+import okhttp3.RequestBody
 import org.json.JSONObject
 
 class CreateAGameFragment : Fragment() {
@@ -25,6 +29,7 @@ class CreateAGameFragment : Fragment() {
         val gameNameText = rootView.findViewById(R.id.name) as TextView
         val mainTime = rootView.findViewById(R.id.main_time) as SeekBar
         val mainTimeText = rootView.findViewById(R.id.main_time_text) as TextView
+        var waitForGameSubscription: Disposable? = null
 
         mainTime.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
@@ -81,12 +86,74 @@ class CreateAGameFragment : Fragment() {
             Log.d(javaClass.name, "byo yomi selected = " + byoYomiTimes[byoYomiTime.progress].description)
             val result: JSONObject
             try {
-                result = activity.ogs!!.createChallenge(gameNameText.text.toString(), ranked,
-                        width, height,
-                        mainTimes[mainTime.progress].time,
-                        byoYomiTimes[byoYomiTime.progress].time,
-                        periods)
-                println("NJ result=${result.toString(2)}")
+                val post = createJsonObject {
+                    put("challenger_color", "automatic")
+                    put("min_ranking", -1000)
+                    put("max_ranking", 1000)
+                    put("game", createJsonObject {
+                        put("name", Globals.uiConfig!!.user.username)
+                        put("rules", "japanese")
+                        put("ranked", ranked)
+                        put("handicap", 0)
+                        put("pause_on_weekends", false)
+                        put("width", width)
+                        put("height", height)
+                        put("disable_analysis", true)
+                        put("time_control", "byoyomi")
+                        put("time_control_parameters", createJsonObject {
+                            put("time_control", "byoyomi")
+                            put("main_time", mainTimes[mainTime.progress].time)
+                            put("period_time", byoYomiTimes[byoYomiTime.progress].time)
+                            put("periods", periods)
+                        })
+                    })
+                }
+                val body = RequestBody.create(MediaType.parse("application/json"), post.toString())
+                val ogs = OGS("", "")
+                ogs.openSocket()
+                Globals.ogsService.createChallenge(body)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                { challenge ->
+                                    ogs.openGameSocket(challenge.game)
+                                    val keepalive = Keepalive(challenge.challenge, challenge.game, ogs)
+                                    keepalive.execute()
+
+                                    val dialog = AlertDialog.Builder(activity)
+                                            .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
+                                            .setNegativeButton("Cancel") { dialogInterface, i ->
+                                                ogs.closeGameSocket(challenge.game)
+                                                keepalive.cancel(true)
+                                                waitForGameSubscription?.dispose()
+                                                Globals.ogsService.deleteChallenge(challenge.challenge)
+                                                        .observeOn(AndroidSchedulers.mainThread())
+                                                        .subscribe {}
+                                            }
+                                            .show()
+
+                                    waitForGameSubscription = ogs.waitForGameData(challenge.game)
+                                            .subscribeOn(AndroidSchedulers.mainThread())
+                                            .subscribe(
+                                                    {
+                                                        dialog.dismiss()
+                                                        ogs.closeGameSocket(challenge.game)
+                                                        ogs.closeSocket()
+                                                        keepalive.cancel(true)
+                                                        val intent = Intent(activity, Main3Activity::class.java)
+                                                        intent.putExtra("id", challenge.game)
+                                                        startActivity(intent)
+                                                    },
+                                                    { e -> Log.e("CreateAGameFragment", "error while waiting for game data", e) }
+                                            )
+                                },
+                                { e ->
+                                    Log.e("FindAGameFragment", "create challenge failed", e)
+                                    AlertDialog.Builder(activity)
+                                            .setMessage("Create challenge failed.\n" + e.toString())
+                                            .setPositiveButton("Ok") { dialog, id -> }
+                                            .show()
+                                }
+                        )
             } catch (ex: Exception) {
                 AlertDialog.Builder(activity)
                         .setMessage("Create challenge failed.\n" + ex.toString())
@@ -95,6 +162,7 @@ class CreateAGameFragment : Fragment() {
                 return@OnClickListener
             }
 
+            /*
             try {
                 val challenge = result.getInt("challenge")
                 val game = result.getInt("game")
@@ -133,8 +201,28 @@ class CreateAGameFragment : Fragment() {
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
+            */
         })
         return rootView
+    }
+
+    inner class Keepalive(val challengeId: Int, val gameId: Int, val ogs: OGS) : AsyncTask<Void, Void, Int>() {
+        override fun doInBackground(vararg p0: Void?): Int {
+            println("doing keepalive background thread")
+            while (true) {
+                try {
+                    ogs.challengeKeepalive(challengeId, gameId)
+                    Thread.sleep(1000)
+                    if (isCancelled) {
+                        println("finished keepalive background thread")
+                        return 0
+                    }
+                } catch (ex: InterruptedException) {
+                    println("finished keepalive background thread")
+                    return 0
+                }
+            }
+        }
     }
 
     data class TimesString(val time: Int, val description: String)

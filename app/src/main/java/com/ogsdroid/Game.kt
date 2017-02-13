@@ -91,7 +91,7 @@ class Game : Comparable<Game> {
                     .flatMap { gameId -> ogs.getGameDetailsViaSocketObservable(gameId) }
                     .filter { game -> game != null }
                     // Convert to a list of game objects
-                    .map { gameDetails -> Game.fromJson(ogs.player!!.id, gameDetails!!) }
+                    .map { gameDetails -> Game.fromJson(Globals.uiConfig!!.user.id, gameDetails!!) }
                     .subscribeOn(Schedulers.io())
         }
     }

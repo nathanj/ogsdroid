@@ -22,9 +22,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.ogs.OGS;
-
-import java.io.IOException;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 
 /**
  * A login screen that offers login via email/password.
@@ -53,13 +51,13 @@ public class LoginActivity extends AppCompatActivity {
         StrictMode.setThreadPolicy(policy);
 
         // If we already have an access token then move along.
-        //SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-        //String accessToken = pref.getString("accessToken", "");
-        //if (!accessToken.equals("")) {
-        //    Intent intent = new Intent(getApplicationContext(), TabbedActivity.class);
-        //    startActivity(intent);
-        //    finish();
-        //}
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        String accessToken = pref.getString("accessToken", "");
+        if (!accessToken.equals("")) {
+            Intent intent = new Intent(getApplicationContext(), TabbedActivity.class);
+            startActivity(intent);
+            finish();
+        }
 
         setContentView(R.layout.activity_login);
         // Set up the login form.
@@ -132,6 +130,12 @@ public class LoginActivity extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
+
+
+            Globals.INSTANCE.getOgsOauthService()
+                    .login(email, password, "nathanj439_client", "sosecret", "password")
+                    .subscribeOn(AndroidSchedulers.mainThread())
+
             mAuthTask = new UserLoginTask(email, password, this);
             mAuthTask.execute((Void) null);
         }
@@ -191,17 +195,19 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            OGS ogs = Globals.INSTANCE.getOGS();
-            try {
-                ogs.login(mEmail, mPassword);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            }
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mActivity);
-            SharedPreferences.Editor editor = pref.edit();
-            editor.putString("accessToken", ogs.getAccessToken());
-            editor.apply();
+            Globals.INSTANCE.getOgsOauthService()
+                    .login(mEmail, mPassword, "nathanj439_client", "sosecret", "password")
+            //OGS ogs = Globals.INSTANCE.getOGS();
+            //try {
+            //    ogs.login(mEmail, mPassword);
+            //} catch (IOException e) {
+            //    e.printStackTrace();
+            //    return false;
+            //}
+            //SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mActivity);
+            //SharedPreferences.Editor editor = pref.edit();
+            //editor.putString("accessToken", ogs.getAccessToken());
+            //editor.apply();
             return true;
         }
 

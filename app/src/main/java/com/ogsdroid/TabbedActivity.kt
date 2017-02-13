@@ -4,7 +4,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
@@ -69,14 +68,6 @@ class TabbedActivity : AppCompatActivity() {
         super.onPostResume()
         Log.d(TAG, "onPostResume")
 
-        val pref = PreferenceManager.getDefaultSharedPreferences(this)
-        val accessToken = pref.getString("accessToken", "")
-        if (ogs == null) {
-            ogs = Globals.getOGS()
-        }
-        ogs!!.accessToken = accessToken
-        ogs!!.openSocket()
-
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.cancelAll()
 
@@ -85,7 +76,7 @@ class TabbedActivity : AppCompatActivity() {
                 .subscribe(
                         { token -> Globals.accessToken = token!! },
                         { e ->
-                            Log.e(TAG, "error while getting acces token", e)
+                            Log.e(TAG, "error while getting access token", e)
                         },
                         { loadEverything() }
                 )
@@ -114,11 +105,11 @@ class TabbedActivity : AppCompatActivity() {
     }
 
     fun loadEverything() {
-        Globals.ogsService.me()
+        Globals.ogsService.uiConfig()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { me -> Globals.me = me },
-                        { e -> Log.e(TAG, "error while getting me", e) },
+                        { uiConfig -> Globals.uiConfig = uiConfig },
+                        { e -> Log.e(TAG, "error while getting uiConfig", e) },
                         { loadGames() }
                 )
     }
@@ -129,6 +120,7 @@ class TabbedActivity : AppCompatActivity() {
                 .build()
         val adapter = moshi.adapter(Gamedata::class.java)
         val ogs = OGS("", "")
+        ogs.openSocket()
 
         Globals.ogsService.gameList()
                 // Convert to list of game ids
@@ -139,7 +131,7 @@ class TabbedActivity : AppCompatActivity() {
                 .flatMap { details ->
                     println("details = ${details}")
                     val gamedata = adapter.fromJson(details.toString())
-                    val game = Game.fromGamedata(Globals.me!!.id, gamedata)
+                    val game = Game.fromGamedata(Globals.uiConfig!!.user.id, gamedata)
                     Observable.just(game)
                 }
                 .subscribeOn(Schedulers.io())
@@ -158,6 +150,47 @@ class TabbedActivity : AppCompatActivity() {
                             myGamesAdapter.notifyDataSetChanged()
                         }
                 )
+
+        //*
+        seek = ogs.openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks { events ->
+            for (i in 0..events.length() - 1) {
+                try {
+                    val event = events.getJSONObject(i)
+                    //Log.d(TAG, event.toString());
+                    if (event.has("delete")) {
+                        this@TabbedActivity.runOnUiThread {
+                            try {
+                                challengeAdapter.remove(Challenge(event.getInt("challenge_id")))
+                                challengeAdapter.notifyDataSetChanged()
+                            } catch (e: JSONException) {
+                                e.printStackTrace()
+                            }
+                        }
+                    } else if (event.has("game_started"))
+                    else
+                    // new seek
+                    {
+                        val c = Challenge(event)
+                        //Log.d(TAG, c.toString());
+
+                        if (c.canAccept(Globals.uiConfig!!.user.ranking)) {
+                            this@TabbedActivity.runOnUiThread {
+                                challengeList.add(c)
+                                Collections.sort(challengeList)
+                                challengeAdapter.notifyDataSetChanged()
+                            }
+                        } else {
+                            Log.d(TAG, "could not accept " + c)
+                        }
+
+                    }// game started notificaton
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+
+            }
+        })
+        // */
     }
 
     override fun onDestroy() {
@@ -246,46 +279,6 @@ class TabbedActivity : AppCompatActivity() {
                         }
                 ))
 
-        //*
-        seek = ogs!!.openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks { events ->
-            for (i in 0..events.length() - 1) {
-                try {
-                    val event = events.getJSONObject(i)
-                    //Log.d(TAG, event.toString());
-                    if (event.has("delete")) {
-                        this@TabbedActivity.runOnUiThread {
-                            try {
-                                challengeAdapter.remove(Challenge(event.getInt("challenge_id")))
-                                challengeAdapter.notifyDataSetChanged()
-                            } catch (e: JSONException) {
-                                e.printStackTrace()
-                            }
-                        }
-                    } else if (event.has("game_started"))
-                    else
-                    // new seek
-                    {
-                        val c = Challenge(event)
-                        //Log.d(TAG, c.toString());
-
-                        if (c.canAccept(ogs!!.player!!.ranking)) {
-                            this@TabbedActivity.runOnUiThread {
-                                challengeList.add(c)
-                                Collections.sort(challengeList)
-                                challengeAdapter.notifyDataSetChanged()
-                            }
-                        } else {
-                            //Log.d(TAG, "could not accept " + c);
-                        }
-
-                    }// game started notificaton
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-
-            }
-        })
-        // */
     }
 
     inner class SectionsPagerAdapter internal constructor(fm: FragmentManager) : FragmentPagerAdapter(fm) {
@@ -299,7 +292,7 @@ class TabbedActivity : AppCompatActivity() {
         }
 
         override fun getCount(): Int {
-            return 2
+            return 3
         }
 
         override fun getPageTitle(position: Int): CharSequence? {

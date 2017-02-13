@@ -43,12 +43,11 @@ class FindAGameFragment : Fragment() {
     }
 
     fun acceptChallenge(c: Challenge) {
-        val ogs = Globals.getOGS()
-        subscribers.add(ogs.acceptChallengeObservable(c.challengeId)
+        subscribers.add(Globals.ogsService.acceptChallenge(c.challengeId)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { gameId ->
-                            if (gameId == 0) {
+                        { resp ->
+                            if (resp.game == 0) {
                                 AlertDialog.Builder(activity)
                                         .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))
                                         .setCancelable(true)
@@ -56,16 +55,19 @@ class FindAGameFragment : Fragment() {
                                         .show()
                             } else {
                                 val intent = Intent(activity, Main3Activity::class.java)
-                                intent.putExtra("id", gameId)
+                                intent.putExtra("id", resp.game)
                                 startActivity(intent)
                             }
                         },
                         { e ->
                             Log.e(TAG, "error while accepting challenge", e)
-                            Globals.putOGS()
+                            AlertDialog.Builder(activity)
+                                    .setMessage(String.format("Error accepting challenge. Maybe someone else accepted it first."))
+                                    .setCancelable(true)
+                                    .setPositiveButton("Ok", null)
+                                    .show()
                         },
                         {
-                            Globals.putOGS()
                         }
                 ))
     }

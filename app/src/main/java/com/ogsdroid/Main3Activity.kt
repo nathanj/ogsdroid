@@ -13,7 +13,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.Toast
 import com.ogs.ChatMessage
 import com.ogs.GameConnection
 import com.ogs.Gamedata
@@ -87,10 +86,13 @@ class Main3Activity : AppCompatActivity() {
                             Log.d(TAG, "got chat messague: " + msg.toString())
 
                             this@Main3Activity.runOnUiThread {
-                                if (msg.username != Globals.me!!.username) {
-                                    val toast = Toast.makeText(this@Main3Activity, msg.toString(), Toast.LENGTH_LONG)
-                                    toast.show()
-                                }
+                                // TODO: no toast for now, all chat messages are sent when connecting to the game.
+                                /*
+                                    if (msg.username != Globals.uiConfig!!.user.username) {
+                                        val toast = Toast.makeText(this@Main3Activity, msg.toString(), Toast.LENGTH_SHORT)
+                                        toast.show()
+                                    }
+                                */
 
                                 val tv = findViewById(R.id.chat_text_view) as TextView
                                 tv.text = msg.toString() + "\n" + tv.text

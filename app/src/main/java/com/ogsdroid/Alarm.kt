@@ -29,38 +29,45 @@ class Alarm : BroadcastReceiver() {
             return
         }
 
-        val ogs = Globals.getOGS()
-
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager?
         val wl = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OGS")
         println("wl = ${wl}")
         wl?.acquire()
 
-        ogs.notificationsObservable()
-                .map { notifications ->
-                    (0..notifications.length() - 1)
-                            .count { i -> notifications.getJSONObject(i).getString("type") == "yourMove" }
-                }
+        Globals.getAccessToken(context)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { count ->
-                            if (count > 0) {
-                                // send notification
-                                val intent = Intent(context, LoginActivity::class.java)
-                                val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                        {},
+                        { e -> Log.e("Alarm", "error while getting access token", e); wl?.release() },
+                        {
+                            Globals.ogsService.notifications()
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(
+                                            { notifications ->
+                                                val count = notifications.count { it.type == "yourMove" }
 
-                                val builder = NotificationCompat.Builder(context)
-                                        .setSmallIcon(R.drawable.testnotification)
-                                        .setContentTitle("OGS")
-                                        .setContentText(if (count == 1) "It's your move!" else "It's your move in $count games!")
-                                        .setContentIntent(pi)
+                                                if (count > 0) {
+                                                    // send notification
+                                                    val intent = Intent(context, LoginActivity::class.java)
+                                                    val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-                                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                                nm.notify(1, builder.build())
-                            }
-                            wl?.release()
-                        },
-                        { e -> Log.e("Alarm", "error while getting notifications", e); wl?.release() }
+                                                    val builder = NotificationCompat.Builder(context)
+                                                            .setSmallIcon(R.drawable.testnotification)
+                                                            .setContentTitle("OGS")
+                                                            .setContentText(if (count == 1) "It's your move!" else "It's your move in $count games!")
+                                                            .setContentIntent(pi)
+
+                                                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                                                    nm.notify(1, builder.build())
+                                                }
+                                            },
+                                            { e ->
+                                                Log.e("Alarm", "error while getting notifications", e)
+                                                wl?.release()
+                                            },
+                                            { wl?.release() }
+                                    )
+                        }
                 )
     }
 

@@ -35,7 +35,6 @@ class NotificationService : Service() {
 
             try {
                 val pref = PreferenceManager.getDefaultSharedPreferences(this)
-                ogs.accessToken = pref.getString("accessToken", "")
 
                 println("NJ NotificationService getting me")
                 ogs.me()
