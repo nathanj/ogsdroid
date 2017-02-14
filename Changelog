@@ -1,10 +1,11 @@
-0.6
+0.7
 ---
+- Update to work with the v5 website
 - Display notifications when it is your move
 - Display actual time control on the find a game screen
 - Improve pause activity behavior to disconnect from the game
 - Keep screen on during the game screen
-- Remove create game screen as it is buggy
+- Fix create a challenge to keep challenges around
 - Fix a crash when pausing the application on the create challenge screen
 
 0.5
