@@ -74,11 +74,22 @@ class TabbedActivity : AppCompatActivity() {
         Globals.getAccessToken(this)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { token -> Globals.accessToken = token!! },
+                        { token ->
+                            if (token == "") {
+                                val intent = Intent(applicationContext, LoginActivity::class.java)
+                                startActivity(intent)
+                                finish()
+                            } else {
+                                Globals.accessToken = token
+                                loadEverything()
+                            }
+                        },
                         { e ->
                             Log.e(TAG, "error while getting access token", e)
-                        },
-                        { loadEverything() }
+                            val intent = Intent(applicationContext, LoginActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                 )
 
         //println("Calling meObservable")

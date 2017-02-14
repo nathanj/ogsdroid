@@ -19,7 +19,7 @@ object Globals {
     var accessToken = ""
     var uiConfig: UiConfig? = null
 
-    private fun saveLoginInfo(context: Context, loginInfo: LoginInfo) {
+    fun saveLoginInfo(context: Context, loginInfo: LoginInfo) {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val editor = pref.edit()
         println("saving loginInfo = ${loginInfo}")
@@ -30,13 +30,13 @@ object Globals {
         accessToken = loginInfo.access_token
     }
 
-    fun refreshAccessToken(context: Context, refreshToken: String): Observable<String?> {
+    fun refreshAccessToken(context: Context, refreshToken: String): Observable<String> {
         return ogsOauthService.refreshToken(refreshToken)
                 .doOnNext { saveLoginInfo(context, it) }
                 .map { it.access_token }
     }
 
-    fun getAccessToken(context: Context): Observable<String?> {
+    fun getAccessToken(context: Context): Observable<String> {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val accessToken = pref.getString("accessToken", "")
         val refreshToken = pref.getString("refreshToken", "")
@@ -54,7 +54,7 @@ object Globals {
             return refreshAccessToken(context, refreshToken)
         } else {
             println("whoops")
-            return Observable.just(null)
+            return Observable.just("")
         }
     }
 
@@ -68,8 +68,8 @@ object Globals {
                 }
                 .build()
         Retrofit.Builder()
-                .baseUrl("https://beta.online-go.com/")
-                .client(httpClient)
+                .baseUrl("https://online-go.com/")
+                //.client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(MoshiConverterFactory.create())
                 .build()
@@ -91,7 +91,7 @@ object Globals {
                 .build()
 
         Retrofit.Builder()
-                .baseUrl("https://beta.online-go.com/api/v1/")
+                .baseUrl("https://online-go.com/api/v1/")
                 .client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(MoshiConverterFactory.create())

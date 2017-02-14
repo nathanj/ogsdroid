@@ -16,7 +16,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 
 class Alarm : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Toast.makeText(context, "Alarm running!", Toast.LENGTH_SHORT).show()
+        //Toast.makeText(context, "Alarm running!", Toast.LENGTH_SHORT).show()
         println("OGS Alarm: running")
 
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

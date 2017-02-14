@@ -22,14 +22,14 @@ interface OgsOauthService {
     @POST("oauth2/token/")
     fun login(@Query("username") username: String,
               @Query("password") password: String,
-              @Query("client_id") client_id: String = "nathanj439_client",
-              @Query("client_secret") client_secret: String = "sosecret",
+              @Query("client_id") client_id: String = "com.ogsdroid",
+              @Query("client_secret") client_secret: String = "sai",
               @Query("grant_type") grant_type: String = "password"): Observable<LoginInfo>
 
     @POST("oauth2/token/")
     fun refreshToken(@Query("refresh_token") refresh_token: String,
-                     @Query("client_id") client_id: String = "nathanj439_client",
-                     @Query("client_secret") client_secret: String = "sosecret",
+                     @Query("client_id") client_id: String = "com.ogsdroid",
+                     @Query("client_secret") client_secret: String = "sai",
                      @Query("grant_type") grant_type: String = "refresh_token"): Observable<LoginInfo>
 
 }
@@ -61,7 +61,7 @@ interface OgsService {
     @POST("challenges/{id}/accept/")
     fun acceptChallenge(@Path("id") id: Int): Observable<ChallengeResp>
 
-    @GET("notifications/")
+    @GET("menotifications/")
     fun notifications(): Observable<List<NotificationResp>>
 
     @POST("challenges/")
@@ -225,7 +225,7 @@ class OGS(private val clientId: String, private val clientSecret: String) {
 
             val options = IO.Options()
             options.transports = arrayOf("websocket")
-            socket = IO.socket("https://beta.online-go.com/", options)
+            socket = IO.socket("https://online-go.com/", options)
 
             socket!!.on(Socket.EVENT_CONNECT) {
                 Log.d("myApp", "socket connect")
