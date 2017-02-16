@@ -13,7 +13,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 object Globals {
-    private val ogs: OGS = OGS("82ff83f2631a55273c31", "cd42d95fd978348d57dc909a9aecd68d36b17bd2")
+    private val ogs: OGS = OGS()
     private val refCount = AtomicInteger()
 
     var accessToken = ""

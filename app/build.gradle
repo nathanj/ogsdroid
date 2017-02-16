@@ -33,7 +33,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.android.support:design:25.0.0'
     compile 'ch.acra:acra:4.9.0'
-    //compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile('io.socket:socket.io-client:0.8.3') {
         // excluding org.json which is provided by Android
         exclude group: 'org.json', module: 'json'

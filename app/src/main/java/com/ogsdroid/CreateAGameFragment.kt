@@ -109,7 +109,7 @@ class CreateAGameFragment : Fragment() {
                     })
                 }
                 val body = RequestBody.create(MediaType.parse("application/json"), post.toString())
-                val ogs = OGS("", "")
+                val ogs = OGS()
                 ogs.openSocket()
                 Globals.ogsService.createChallenge(body)
                         .observeOn(AndroidSchedulers.mainThread())
@@ -131,20 +131,17 @@ class CreateAGameFragment : Fragment() {
                                             }
                                             .show()
 
-                                    waitForGameSubscription = ogs.waitForGameData(challenge.game)
-                                            .subscribeOn(AndroidSchedulers.mainThread())
-                                            .subscribe(
-                                                    {
-                                                        dialog.dismiss()
-                                                        ogs.closeGameSocket(challenge.game)
-                                                        ogs.closeSocket()
-                                                        keepalive.cancel(true)
-                                                        val intent = Intent(activity, Main3Activity::class.java)
-                                                        intent.putExtra("id", challenge.game)
-                                                        startActivity(intent)
-                                                    },
-                                                    { e -> Log.e("CreateAGameFragment", "error while waiting for game data", e) }
-                                            )
+                                    ogs.listenForGameData(challenge.game) {
+                                        this@CreateAGameFragment.activity.runOnUiThread {
+                                            dialog.dismiss()
+                                            ogs.closeGameSocket(challenge.game)
+                                            ogs.closeSocket()
+                                            keepalive.cancel(true)
+                                            val intent = Intent(activity, Main3Activity::class.java)
+                                            intent.putExtra("id", challenge.game)
+                                            startActivity(intent)
+                                        }
+                                    }
                                 },
                                 { e ->
                                     Log.e("FindAGameFragment", "create challenge failed", e)
@@ -161,47 +158,6 @@ class CreateAGameFragment : Fragment() {
                         .show()
                 return@OnClickListener
             }
-
-            /*
-            try {
-                val challenge = result.getInt("challenge")
-                val game = result.getInt("game")
-
-                val conn = activity.ogs!!.openGameConnection(game, Gamedata()) // XXX
-                if (conn == null) {
-                    AlertDialog.Builder(activity)
-                            .setMessage("Failed to create challenge.")
-                            .setNegativeButton("Ok") { dialogInterface, i -> }
-                            .show()
-                } else {
-                    val dialog = AlertDialog.Builder(activity)
-                            .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
-                            .setNegativeButton("Cancel") { dialogInterface, i ->
-                                try {
-                                    activity.ogs!!.deleteChallenge(challenge)
-                                } catch (ex: Exception) {
-                                    AlertDialog.Builder(activity)
-                                            .setMessage("Cancel challenge failed.\n" + ex.toString())
-                                            .setPositiveButton("Ok") { dialog, id -> }
-                                            .show()
-                                }
-                            }
-                            .show()
-                    conn.setResetCallback(object : GameConnection.OGSGameConnectionResetCallback {
-                        override fun reset() {
-                            dialog.dismiss()
-                            val intent = Intent(activity, Main3Activity::class.java)
-                            intent.putExtra("id", game)
-                            startActivity(intent)
-                        }
-                    })
-                    conn.waitForStart()
-                }
-
-            } catch (e: JSONException) {
-                e.printStackTrace()
-            }
-            */
         })
         return rootView
     }

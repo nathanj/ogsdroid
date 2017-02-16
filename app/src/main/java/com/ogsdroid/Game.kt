@@ -75,24 +75,5 @@ class Game : Comparable<Game> {
             println("returning game=$g")
             return g
         }
-
-        fun getGamesList(ogs: OGS): Observable<Game> {
-            return ogs.listGamesObservable()
-                    // Convert to a list of game ids
-                    .flatMap { gameListObj ->
-                        val results = gameListObj.getJSONArray("results")
-                        val arr = ArrayList<Int>(results.length())
-                        for (i in 0..results.length() - 1) {
-                            arr.add(results.getJSONObject(i).getInt("id"))
-                        }
-                        Observable.fromIterable(arr)
-                    }
-                    // Convert to a list of game details
-                    .flatMap { gameId -> ogs.getGameDetailsViaSocketObservable(gameId) }
-                    .filter { game -> game != null }
-                    // Convert to a list of game objects
-                    .map { gameDetails -> Game.fromJson(Globals.uiConfig!!.user.id, gameDetails!!) }
-                    .subscribeOn(Schedulers.io())
-        }
     }
 }

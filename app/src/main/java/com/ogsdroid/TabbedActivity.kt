@@ -71,7 +71,7 @@ class TabbedActivity : AppCompatActivity() {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.cancelAll()
 
-        Globals.getAccessToken(this)
+        subscribers.add(Globals.getAccessToken(this)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { token ->
@@ -90,39 +90,17 @@ class TabbedActivity : AppCompatActivity() {
                             startActivity(intent)
                             finish()
                         }
-                )
-
-        //println("Calling meObservable")
-        //subscribers.add(ogs!!.meObservable()
-        //        .observeOn(AndroidSchedulers.mainThread())
-        //        .subscribe(
-        //                { println("onNext from me") },
-        //                { e ->
-        //                    Log.e(TAG, "error while getting me", e)
-
-        //                    AlertDialog.Builder(this@TabbedActivity)
-        //                            .setMessage("There was an error connecting to online-go.com. Please check your network connection. If your connection is fine, then your authentication token could have expired. You can remove it and type in your credentials again.")
-        //                            .setPositiveButton("Close") { dialog, id -> finish() }
-        //                            .setNegativeButton("Remove access token") { dialog, id ->
-        //                                val editor = pref.edit()
-        //                                editor.remove("accessToken")
-        //                                editor.apply()
-        //                                finish()
-        //                            }
-        //                            .show()
-        //                },
-        //                { getGameListAndOpenSeek() }
-        //))
+                ))
     }
 
     fun loadEverything() {
-        Globals.ogsService.uiConfig()
+        subscribers.add(Globals.ogsService.uiConfig()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { uiConfig -> Globals.uiConfig = uiConfig },
                         { e -> Log.e(TAG, "error while getting uiConfig", e) },
                         { loadGames() }
-                )
+                ))
     }
 
     fun loadGames() {
@@ -130,14 +108,16 @@ class TabbedActivity : AppCompatActivity() {
                 //.add(TimeAdapter())
                 .build()
         val adapter = moshi.adapter(Gamedata::class.java)
-        val ogs = OGS("", "")
+        val ogs = OGS()
         ogs.openSocket()
 
-        Globals.ogsService.gameList()
+        subscribers.add(Globals.ogsService.gameList()
                 // Convert to list of game ids
                 .flatMap { gameList -> Observable.fromIterable(gameList.results?.map { it.id }) }
                 // Convert to list of json game details
                 .flatMap { gameId -> ogs.getGameDetailsViaSocketObservable(gameId!!) }
+                // Remove any nulls which meant the call did not complete
+                .filter { it != null }
                 // Convert to list of Gamedata objects
                 .flatMap { details ->
                     println("details = ${details}")
@@ -160,7 +140,7 @@ class TabbedActivity : AppCompatActivity() {
                             Collections.sort(gameList)
                             myGamesAdapter.notifyDataSetChanged()
                         }
-                )
+                ))
 
         //*
         seek = ogs.openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks { events ->
@@ -267,29 +247,6 @@ class TabbedActivity : AppCompatActivity() {
         }
 
         return super.onOptionsItemSelected(item)
-    }
-
-    private fun getGameListAndOpenSeek() {
-        val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
-        pb?.visibility = View.VISIBLE
-
-        subscribers.add(Game.getGamesList(ogs!!)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { game ->
-                            Log.i(TAG, "onNext " + game)
-                            gameList.add(game)
-                        },
-                        { e -> Log.e(TAG, "error while getting game list", e) },
-                        {
-                            Log.i(TAG, "onComplete")
-                            val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
-                            pb?.visibility = View.GONE
-                            Collections.sort(gameList)
-                            myGamesAdapter.notifyDataSetChanged()
-                        }
-                ))
-
     }
 
     inner class SectionsPagerAdapter internal constructor(fm: FragmentManager) : FragmentPagerAdapter(fm) {
