@@ -45,7 +45,7 @@ class Main3Activity : AppCompatActivity() {
         try {
             val pref = PreferenceManager.getDefaultSharedPreferences(this)
 
-            ogs = Globals.getOGS()
+            ogs = OGS()
 
             val gameDetails = ogs!!.getGameDetailsViaSocketBlocking(currentGameId)
 
@@ -205,13 +205,8 @@ class Main3Activity : AppCompatActivity() {
                         }
 
                         override fun gamedata(obj: JSONObject) {
-                            val moshi = Moshi.Builder()
-                                    //.add(TimeAdapter())
-                                    .build()
-                            val adapter = moshi.adapter(Gamedata::class.java)
-                            val gameData: Gamedata
-                            try {
-                                gameData = adapter.fromJson(obj.toString())
+                            val gameData = try {
+                                adapter.fromJson(obj.toString())
                             } catch (ex: IOException) {
                                 throw RuntimeException(ex)
                             }
@@ -297,7 +292,7 @@ class Main3Activity : AppCompatActivity() {
             gameCon!!.disconnect()
             gameCon = null
         }
-        Globals.putOGS()
+        ogs?.closeSocket()
         ogs = null
     }
 
