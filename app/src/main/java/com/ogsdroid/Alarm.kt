@@ -11,8 +11,13 @@ import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.support.v4.app.NotificationCompat
 import android.util.Log
-import android.widget.Toast
+import com.ogs.NotificationConnection
+import com.ogs.OGS
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class Alarm : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -34,39 +39,45 @@ class Alarm : BroadcastReceiver() {
         println("wl = ${wl}")
         wl?.acquire()
 
-        Globals.getAccessToken(context)
+        val ogs = OGS()
+        ogs.openSocket()
+        var numGames = 0
+
+        val notificationConnection = ogs.openNotificationConnection(object: NotificationConnection.NotificationConnectionCallbacks {
+            override fun notification(obj: JSONObject) {
+                if (obj.getInt("player_to_move") == Globals.uiConfig?.user?.id)
+                    numGames++
+            }
+        })
+
+        Observable.timer(5, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         {},
-                        { e -> Log.e("Alarm", "error while getting access token", e); wl?.release() },
+                        {e ->
+                            Log.e("Alarm", "error while getting notifications", e)
+                            notificationConnection?.disconnect()
+                            ogs.closeSocket()
+                            wl?.release()
+                        },
                         {
-                            Globals.ogsService.notifications()
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(
-                                            { notifications ->
-                                                val count = notifications.count { it.type == "yourMove" }
+                            // send notification
+                            println("Alarm: timer fired, got $numGames games")
+                            val intent = Intent(context, LoginActivity::class.java)
+                            val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-                                                if (count > 0) {
-                                                    // send notification
-                                                    val intent = Intent(context, LoginActivity::class.java)
-                                                    val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                            val builder = NotificationCompat.Builder(context)
+                                    .setSmallIcon(R.drawable.testnotification)
+                                    .setContentTitle("OGS")
+                                    .setContentText(if (numGames == 1) "It's your move!" else "It's your move in $numGames games!")
+                                    .setContentIntent(pi)
 
-                                                    val builder = NotificationCompat.Builder(context)
-                                                            .setSmallIcon(R.drawable.testnotification)
-                                                            .setContentTitle("OGS")
-                                                            .setContentText(if (count == 1) "It's your move!" else "It's your move in $count games!")
-                                                            .setContentIntent(pi)
-
-                                                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                                                    nm.notify(1, builder.build())
-                                                }
-                                            },
-                                            { e ->
-                                                Log.e("Alarm", "error while getting notifications", e)
-                                                wl?.release()
-                                            },
-                                            { wl?.release() }
-                                    )
+                            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                            nm.notify(1, builder.build())
+                            notificationConnection?.disconnect()
+                            ogs.closeSocket()
+                            wl?.release()
                         }
                 )
     }

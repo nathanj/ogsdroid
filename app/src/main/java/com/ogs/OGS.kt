@@ -204,16 +204,16 @@ class OGS() {
         socket!!.emit("challenge/keepalive", json)
     }
 
-    //fun openNotificationConnection(auth: String, callbacks: NotificationConnection.NotificationConnectionCallbacks): NotificationConnection? {
-    //    synchronized(this) {
-    //        Log.d(TAG, "socket:$socket")
-    //        if (socket != null) {
-    //            return NotificationConnection(socket!!, Globals.uiConfig!!.user.id, auth, callbacks)
-    //        } else {
-    //            return null
-    //        }
-    //    }
-    //}
+    fun openNotificationConnection(callbacks: NotificationConnection.NotificationConnectionCallbacks): NotificationConnection? {
+        synchronized(this) {
+            Log.d(TAG, "socket:$socket")
+            if (socket != null) {
+                return NotificationConnection(socket!!, Globals.uiConfig!!.user.id, Globals.uiConfig!!.notification_auth!!, callbacks)
+            } else {
+                return null
+            }
+        }
+    }
 
     private var socket: Socket? = null
 

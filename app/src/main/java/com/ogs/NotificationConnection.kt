@@ -15,7 +15,7 @@ class NotificationConnection(
     }
 
     init {
-        socket.on("notification") { args ->
+        socket.on("active_game") { args ->
             val obj = args[0] as JSONObject
             Log.d(TAG, "got notification = " + obj)
             callbacks.notification(obj)
@@ -28,7 +28,8 @@ class NotificationConnection(
     }
 
     fun disconnect() {
-        socket.off("notification")
+        socket.emit("notification/disconnect")
+        socket.off("active_game")
     }
 
     companion object {
