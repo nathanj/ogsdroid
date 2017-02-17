@@ -23,8 +23,8 @@ class Player2 {
 data class GameList(
 
         var count: Int? = null,
-        var next: Any? = null,
-        var previous: Any? = null,
+        var next: String? = null,
+        var previous: String? = null,
         var results: List<Result>? = null
 
 )

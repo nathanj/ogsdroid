@@ -21,6 +21,7 @@ import com.ogs.Challenge
 import com.ogs.Gamedata
 import com.ogs.OGS
 import com.ogs.SeekGraphConnection
+import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -37,6 +38,7 @@ class TabbedActivity : AppCompatActivity() {
     lateinit internal var challengeAdapter: ArrayAdapter<Challenge>
     internal var seek: SeekGraphConnection? = null
     internal val subscribers = CompositeDisposable()
+    internal var nextPage = 1
 
     /**
      * Dispatch onPause() to fragments.
@@ -68,6 +70,8 @@ class TabbedActivity : AppCompatActivity() {
         super.onPostResume()
         Log.d(TAG, "onPostResume")
 
+        nextPage = 1
+
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.cancelAll()
 
@@ -93,35 +97,50 @@ class TabbedActivity : AppCompatActivity() {
                 ))
     }
 
+    var moshi: Moshi? = null
+    var adapter: JsonAdapter<Gamedata>? = null
+
     fun loadEverything() {
+
         subscribers.add(Globals.ogsService.uiConfig()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { uiConfig -> Globals.uiConfig = uiConfig },
                         { e -> Log.e(TAG, "error while getting uiConfig", e) },
-                        { loadGames() }
+                        {
+                            moshi = Moshi.Builder()
+                                    //.add(TimeAdapter())
+                                    .build()
+                            adapter = moshi?.adapter(Gamedata::class.java)
+                            ogs = OGS()
+                            ogs?.openSocket()
+                            loadGames()
+                            loadSeek()
+                        }
                 ))
     }
 
     fun loadGames() {
-        val moshi = Moshi.Builder()
-                //.add(TimeAdapter())
-                .build()
-        val adapter = moshi.adapter(Gamedata::class.java)
-        val ogs = OGS()
-        ogs.openSocket()
+        val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
+        pb?.visibility = View.VISIBLE
 
-        subscribers.add(Globals.ogsService.gameList()
+        println("loading games with nextPage=$nextPage")
+        val currentPage = nextPage
+        subscribers.add(Globals.ogsService.gameList(nextPage)
                 // Convert to list of game ids
-                .flatMap { gameList -> Observable.fromIterable(gameList.results?.map { it.id }) }
+                .flatMap { gameList ->
+                    if (gameList.next != null)
+                        nextPage++
+                    Observable.fromIterable(gameList.results?.map { it.id })
+                }
                 // Convert to list of json game details
-                .flatMap { gameId -> ogs.getGameDetailsViaSocketObservable(gameId!!) }
+                .flatMap { gameId -> ogs?.getGameDetailsViaSocketObservable(gameId!!) }
                 // Remove any nulls which meant the call did not complete
                 .filter { it != null }
                 // Convert to list of Gamedata objects
                 .flatMap { details ->
                     println("details = ${details}")
-                    val gamedata = adapter.fromJson(details.toString())
+                    val gamedata = adapter!!.fromJson(details.toString())
                     val game = Game.fromGamedata(Globals.uiConfig!!.user.id, gamedata)
                     Observable.just(game)
                 }
@@ -135,15 +154,20 @@ class TabbedActivity : AppCompatActivity() {
                         { e -> Log.e(TAG, "error while getting game list", e) },
                         {
                             Log.i(TAG, "onComplete")
-                            val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
-                            pb?.visibility = View.GONE
-                            Collections.sort(gameList)
-                            myGamesAdapter.notifyDataSetChanged()
+                            if (nextPage == currentPage) {
+                                val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
+                                pb?.visibility = View.GONE
+                                Collections.sort(gameList)
+                                myGamesAdapter.notifyDataSetChanged()
+                            } else {
+                                loadGames()
+                            }
                         }
                 ))
+    }
 
-        //*
-        seek = ogs.openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks { events ->
+    fun loadSeek() {
+        seek = ogs?.openSeekGraph(SeekGraphConnection.SeekGraphConnectionCallbacks { events ->
             for (i in 0..events.length() - 1) {
                 try {
                     val event = events.getJSONObject(i)
@@ -181,7 +205,6 @@ class TabbedActivity : AppCompatActivity() {
 
             }
         })
-        // */
     }
 
     override fun onDestroy() {

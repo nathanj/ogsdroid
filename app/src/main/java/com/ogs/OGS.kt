@@ -51,7 +51,7 @@ interface OgsService {
     fun uiConfig(): Observable<UiConfig>
 
     @GET("megames/?started__isnull=False&ended__isnull=True")
-    fun gameList(): Observable<GameList>
+    fun gameList(@Query("page") page: Int = 1): Observable<GameList>
 
     @POST("challenges/{id}/accept/")
     fun acceptChallenge(@Path("id") id: Int): Observable<ChallengeResp>
@@ -84,7 +84,7 @@ class OGS() {
 
             val options = IO.Options()
             options.transports = arrayOf("websocket")
-            socket = IO.socket("https://beta.online-go.com/", options)
+            socket = IO.socket("https://online-go.com/", options)
 
             socket!!.on(Socket.EVENT_CONNECT) {
                 Log.d("myApp", "socket connect")
