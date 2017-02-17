@@ -25,7 +25,7 @@ object Globals {
         println("saving loginInfo = ${loginInfo}")
         editor.putString("accessToken", loginInfo.access_token)
         editor.putString("refreshToken", loginInfo.refresh_token)
-        editor.putLong("expiresAt", Date().time + loginInfo.expires_in)
+        editor.putLong("expiresAt", Date().time + loginInfo.expires_in * 1000)
         editor.apply()
         accessToken = loginInfo.access_token
     }
@@ -46,7 +46,7 @@ object Globals {
         println("expiresAt   = ${expiresAt}")
         println("Date().time = ${Date().time}")
         println("timeLeft    = ${timeLeft}")
-        if (accessToken.isNotEmpty() && expiresAt - 5 * 60 > Date().time) {
+        if (accessToken.isNotEmpty() && expiresAt - 5 * 60 * 1000 > Date().time) {
             println("using access token")
             return Observable.just(accessToken)
         } else if (refreshToken.isNotEmpty()) {
