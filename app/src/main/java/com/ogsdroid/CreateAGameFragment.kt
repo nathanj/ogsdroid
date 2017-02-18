@@ -122,26 +122,36 @@ class CreateAGameFragment : Fragment() {
                                     val dialog = AlertDialog.Builder(activity)
                                             .setMessage("Challenge created. Waiting for challenger. Click cancel to delete the challenge.")
                                             .setNegativeButton("Cancel") { dialogInterface, i ->
+                                                waitForGameSubscription?.dispose()
                                                 ogs.closeGameSocket(challenge.game)
                                                 keepalive.cancel(true)
-                                                waitForGameSubscription?.dispose()
                                                 Globals.ogsService.deleteChallenge(challenge.challenge)
                                                         .observeOn(AndroidSchedulers.mainThread())
-                                                        .subscribe {}
+                                                        .subscribe(
+                                                                {},
+                                                                { e -> Log.e("CreateAGameFragment", "error while deleting challenge", e) }
+                                                        )
                                             }
                                             .show()
 
-                                    ogs.listenForGameData(challenge.game) {
-                                        this@CreateAGameFragment.activity.runOnUiThread {
-                                            dialog.dismiss()
-                                            ogs.closeGameSocket(challenge.game)
-                                            ogs.closeSocket()
-                                            keepalive.cancel(true)
-                                            val intent = Intent(activity, Main3Activity::class.java)
-                                            intent.putExtra("id", challenge.game)
-                                            startActivity(intent)
-                                        }
-                                    }
+                                    waitForGameSubscription = ogs.listenForGameData(challenge.game)
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe(
+                                                    {
+                                                        println("listenForGameData: onSuccess")
+                                                        dialog.dismiss()
+                                                        ogs.closeGameSocket(challenge.game)
+                                                        ogs.closeSocket()
+                                                        keepalive.cancel(true)
+                                                        val intent = Intent(activity, Main3Activity::class.java)
+                                                        intent.putExtra("id", challenge.game)
+                                                        startActivity(intent)
+                                                    },
+                                                    { e ->
+                                                        println("listenForGameData: onError")
+                                                        Log.e("CreateAGameFragment", "error while waiting for game data", e)
+                                                    }
+                                            )
                                 },
                                 { e ->
                                     Log.e("FindAGameFragment", "create challenge failed", e)

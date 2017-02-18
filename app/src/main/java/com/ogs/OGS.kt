@@ -3,6 +3,7 @@ package com.ogs
 import android.util.Log
 import com.ogsdroid.Globals
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -221,10 +222,23 @@ class OGS() {
         private val TAG = "OGS"
     }
 
-    fun listenForGameData(gameId: Int, block: () -> Unit) {
-        socket!!.on("game/$gameId/data", {
+    private fun sleepUntilInterrupted() {
+        try {
+            while (true) {
+                Thread.sleep(Long.MAX_VALUE)
+            }
+        } catch (ex: InterruptedException) {
+        }
+    }
+
+    fun listenForGameData(gameId: Int): Single<Boolean> {
+        return Single.create<Boolean> { emitter ->
+            socket!!.on("game/$gameId/data", {
+                socket!!.off("game/$gameId/data")
+                emitter.onSuccess(true)
+            })
+            sleepUntilInterrupted()
             socket!!.off("game/$gameId/data")
-            block()
-        })
+        }.subscribeOn(Schedulers.io())
     }
 }
