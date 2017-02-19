@@ -34,16 +34,18 @@ class Alarm : BroadcastReceiver() {
             return
         }
 
+        val uiConfig = Globals.uiConfig ?: return
+
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager?
         val wl = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OGS")
         println("wl = ${wl}")
         wl?.acquire()
 
-        val ogs = OGS()
+        val ogs = OGS(uiConfig)
         ogs.openSocket()
         var numGames = 0
 
-        val notificationConnection = ogs.openNotificationConnection(object: NotificationConnection.NotificationConnectionCallbacks {
+        val notificationConnection = ogs.openNotificationConnection(object : NotificationConnection.NotificationConnectionCallbacks {
             override fun notification(obj: JSONObject) {
                 if (obj.getInt("player_to_move") == Globals.uiConfig?.user?.id)
                     numGames++
@@ -55,7 +57,7 @@ class Alarm : BroadcastReceiver() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         {},
-                        {e ->
+                        { e ->
                             Log.e("Alarm", "error while getting notifications", e)
                             notificationConnection?.disconnect()
                             ogs.closeSocket()

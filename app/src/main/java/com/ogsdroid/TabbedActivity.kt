@@ -62,7 +62,7 @@ class TabbedActivity : AppCompatActivity() {
         super.onStop()
         Log.d(TAG, "onStop")
 
-        Globals.putOGS()
+        ogs?.closeSocket()
         ogs = null
     }
 
@@ -112,7 +112,7 @@ class TabbedActivity : AppCompatActivity() {
                                     //.add(TimeAdapter())
                                     .build()
                             adapter = moshi?.adapter(Gamedata::class.java)
-                            ogs = OGS()
+                            ogs = OGS(Globals.uiConfig!!)
                             ogs?.openSocket()
                             loadGames()
                             loadSeek()

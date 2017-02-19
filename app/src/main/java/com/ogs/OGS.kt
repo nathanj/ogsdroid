@@ -1,7 +1,7 @@
 package com.ogs
 
 import android.util.Log
-import com.ogsdroid.Globals
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
@@ -67,7 +67,7 @@ interface OgsService {
     fun deleteChallenge(@Path("id") id: Int): Observable<DeleteChallengeResp>
 }
 
-class OGS() {
+class OGS(val uiConfig: UiConfig) {
 
     init {
         println("OGS init")
@@ -109,9 +109,9 @@ class OGS() {
             //})
 
             socket!!.emit("authenticate", createJsonObject {
-                put("player_id", Globals.uiConfig!!.user.id)
-                put("username", Globals.uiConfig!!.user.username)
-                put("auth", Globals.uiConfig!!.chat_auth)
+                put("player_id", uiConfig.user.id)
+                put("username", uiConfig.user.username)
+                put("auth", uiConfig.chat_auth)
             })
         }
     }
@@ -130,12 +130,16 @@ class OGS() {
         socket?.let { socket ->
             println("NJ socket on game/$id/gamedata")
             socket.on("game/$id/gamedata", { objs ->
+                socket.off("game/$id/gamedata")
+                socket.emit("game/disconnect", createJsonObject {
+                    put("game_id", id)
+                })
                 list.add(objs[0] as JSONObject)
                 latch.countDown()
             })
             socket.emit("game/connect", createJsonObject {
                 put("game_id", id)
-                put("player_id", Globals.uiConfig!!.user.id)
+                put("player_id", uiConfig.user.id)
                 put("chat", 0)
             })
             try {
@@ -173,7 +177,7 @@ class OGS() {
         synchronized(this) {
             Log.d(TAG, "socket:$socket")
             if (socket != null) {
-                return GameConnection(this, socket!!, gameId, Globals.uiConfig!!.user.id, gamedata, callbacks)
+                return GameConnection(this, socket!!, gameId, uiConfig.user.id, gamedata, callbacks)
             } else {
                 return null
             }
@@ -209,7 +213,7 @@ class OGS() {
         synchronized(this) {
             Log.d(TAG, "socket:$socket")
             if (socket != null) {
-                return NotificationConnection(socket!!, Globals.uiConfig!!.user.id, Globals.uiConfig!!.notification_auth!!, callbacks)
+                return NotificationConnection(socket!!, uiConfig.user.id, uiConfig.notification_auth!!, callbacks)
             } else {
                 return null
             }
@@ -231,11 +235,11 @@ class OGS() {
         }
     }
 
-    fun listenForGameData(gameId: Int): Single<Boolean> {
-        return Single.create<Boolean> { emitter ->
+    fun listenForGameData(gameId: Int): Completable {
+        return Completable.create { emitter ->
             socket!!.on("game/$gameId/data", {
                 socket!!.off("game/$gameId/data")
-                emitter.onSuccess(true)
+                emitter.onComplete()
             })
             sleepUntilInterrupted()
             socket!!.off("game/$gameId/data")

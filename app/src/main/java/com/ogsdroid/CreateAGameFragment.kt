@@ -109,7 +109,7 @@ class CreateAGameFragment : Fragment() {
                     })
                 }
                 val body = RequestBody.create(MediaType.parse("application/json"), post.toString())
-                val ogs = OGS()
+                val ogs = OGS(Globals.uiConfig!!)
                 ogs.openSocket()
                 Globals.ogsService.createChallenge(body)
                         .observeOn(AndroidSchedulers.mainThread())

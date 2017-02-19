@@ -13,7 +13,6 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 object Globals {
-    private val ogs: OGS = OGS()
     private val refCount = AtomicInteger()
 
     var accessToken = ""
@@ -97,23 +96,6 @@ object Globals {
                 .addConverterFactory(MoshiConverterFactory.create())
                 .build()
                 .create(OgsService::class.java)
-    }
-
-    // Returns the OGS object. The caller must putOGS() when finished with the
-    // object.
-    fun getOGS(): OGS {
-        refCount.incrementAndGet()
-        println("NJ getOGS: refCount = ${refCount.get()}")
-        return ogs
-    }
-
-    // Closes the OGS socket if this is the last reference.
-    fun putOGS() {
-        println("NJ putOGS: refCount = ${refCount.get()}")
-        if (refCount.decrementAndGet() == 0) {
-            println("NJ putOGS: closing socket")
-            ogs.closeSocket()
-        }
     }
 }
 

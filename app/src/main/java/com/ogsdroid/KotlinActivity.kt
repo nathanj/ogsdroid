@@ -66,7 +66,7 @@ class KotlinActivity : AppCompatActivity() {
                                     .subscribe(
                                             { gameList ->
                                                 gameList.results?.forEach { g ->
-                                                    val ogs = OGS()
+                                                    val ogs = OGS(Globals.uiConfig!!)
                                                     val details = ogs.getGameDetailsViaSocketBlocking(g.id!!)
                                                     val white = g.players?.white?.username
                                                     val black = g.players?.black?.username

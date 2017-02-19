@@ -45,7 +45,7 @@ class Main3Activity : AppCompatActivity() {
         try {
             val pref = PreferenceManager.getDefaultSharedPreferences(this)
 
-            ogs = OGS()
+            ogs = OGS(Globals.uiConfig!!)
 
             val gameDetails = ogs!!.getGameDetailsViaSocketBlocking(currentGameId)
 
