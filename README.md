@@ -20,9 +20,7 @@ Todo
   * Make the board look nicer
   * Light/dark themes
   * Improve clock
-  * Notifications
   * Landscape
-  * Refresh token
 
 Credits
 -------
