@@ -66,17 +66,19 @@ class Alarm : BroadcastReceiver() {
                         {
                             // send notification
                             println("Alarm: timer fired, got $numGames games")
-                            val intent = Intent(context, LoginActivity::class.java)
-                            val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                            if (numGames > 0) {
+                                val intent = Intent(context, LoginActivity::class.java)
+                                val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-                            val builder = NotificationCompat.Builder(context)
-                                    .setSmallIcon(R.drawable.testnotification)
-                                    .setContentTitle("OGS")
-                                    .setContentText(if (numGames == 1) "It's your move!" else "It's your move in $numGames games!")
-                                    .setContentIntent(pi)
+                                val builder = NotificationCompat.Builder(context)
+                                        .setSmallIcon(R.drawable.testnotification)
+                                        .setContentTitle("OGS")
+                                        .setContentText(if (numGames == 1) "It's your move!" else "It's your move in $numGames games!")
+                                        .setContentIntent(pi)
 
-                            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                            nm.notify(1, builder.build())
+                                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                                nm.notify(1, builder.build())
+                            }
                             notificationConnection?.disconnect()
                             ogs.closeSocket()
                             wl?.release()

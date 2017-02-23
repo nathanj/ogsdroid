@@ -3,7 +3,6 @@ package com.ogs
 import android.util.Log
 import io.reactivex.Completable
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -12,6 +11,7 @@ import org.json.JSONObject
 import retrofit2.http.*
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import java.util.logging.Logger
 
 
 interface OgsOauthService {
@@ -66,6 +66,54 @@ interface OgsService {
     @DELETE("challenges/{id}")
     fun deleteChallenge(@Path("id") id: Int): Observable<DeleteChallengeResp>
 }
+
+object OgsSocket {
+    private var socket: Socket? = null
+    private val logger = Logger.getLogger(OgsSocket::class.java.name)
+
+    var uiConfig: UiConfig? = null
+
+    init {
+        logger.fine("init")
+    }
+
+    fun openSocket() {
+        uiConfig?.let { uiConfig ->
+            if (socket != null)
+                return
+
+            val options = IO.Options()
+            options.transports = arrayOf("websocket")
+            socket = IO.socket("https://online-go.com/", options)
+
+            socket!!.on(Socket.EVENT_CONNECT) {
+                logger.fine("socket connect")
+            }.on(Socket.EVENT_DISCONNECT) {
+                logger.warning("socket disconnect")
+            }.on(Socket.EVENT_CONNECT_ERROR) {
+                logger.warning("socket connect error")
+            }.on(Socket.EVENT_ERROR) {
+                logger.warning("socket error")
+            }.on(Socket.EVENT_CONNECT_TIMEOUT) {
+                logger.warning("socket connect timeout")
+            }.on(Socket.EVENT_RECONNECT) {
+                logger.warning("socket reconnect")
+            }
+            socket!!.connect()
+            socket!!.emit("authenticate", createJsonObject {
+                put("player_id", uiConfig.user.id)
+                put("username", uiConfig.user.username)
+                put("auth", uiConfig.chat_auth)
+            })
+        }
+    }
+
+    fun closeSocket() {
+        socket?.disconnect()
+        socket = null
+    }
+}
+
 
 class OGS(val uiConfig: UiConfig) {
 

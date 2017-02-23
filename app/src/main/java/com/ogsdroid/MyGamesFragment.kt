@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.Log
@@ -16,12 +17,58 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import com.ogs.Gamedata
+import com.ogs.OGS
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
+import java.util.*
 
 class MyGamesFragment : Fragment() {
+    var nextPage = 1
+    val subscribers = CompositeDisposable()
+    private val gameList = ArrayList<Game>()
+    private var myGamesAdapter: MyGamesAdapter? = null
+    val moshi = Moshi.Builder().build()
+    val adapter: JsonAdapter<Gamedata>
+    var ogs: OGS? = null
+    var refresh: SwipeRefreshLayout? = null
+    var isRefreshing = false
+    var lastRefreshTime = 0L
+
+    init {
+        println("$TAG init $this")
+        adapter = moshi.adapter(Gamedata::class.java)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        println("$TAG onCreate $this")
+
+        val ogs = OGS(Globals.uiConfig!!)
+        ogs.openSocket()
+        loadGames(ogs)
+    }
+
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.d("MyGamesFragment", "onCreateView")
+        Log.d(TAG, "onCreateView")
         val activity = activity as TabbedActivity
         val rootView = inflater!!.inflate(R.layout.fragment_my_games, container, false)
+
+        refresh = rootView.findViewById(R.id.my_games_swipe_refresh) as SwipeRefreshLayout
+        refresh?.setOnRefreshListener {
+            nextPage = 1
+            gameList.clear()
+            myGamesAdapter?.notifyDataSetChanged()
+            ogs?.let {
+                loadGames(it)
+            }
+        }
+        refresh?.isRefreshing = isRefreshing
 
         val rv = rootView.findViewById(R.id.my_games_recycler_view) as RecyclerView
         rv.setHasFixedSize(true)
@@ -32,10 +79,88 @@ class MyGamesFragment : Fragment() {
 
         val manager = GridLayoutManager(activity, columns)
         rv.layoutManager = manager
-        rv.adapter = activity.myGamesAdapter
+        myGamesAdapter = MyGamesAdapter(activity, gameList)
+        rv.adapter = myGamesAdapter
+        myGamesAdapter?.notifyDataSetChanged()
 
         return rootView
     }
+
+    override fun onResume() {
+        Log.d(TAG, "onResume")
+        super.onResume()
+
+        // Reload the games automatically after one hour.
+        if (!isRefreshing && lastRefreshTime + 1000 * 60 * 60 < Date().time) {
+            ogs?.openSocket()
+            loadGames(ogs!!)
+        }
+    }
+
+    override fun onDestroy() {
+        Log.d(TAG, "onDestroy")
+        super.onDestroy()
+        subscribers.clear()
+    }
+
+    fun loadGames(ogs: OGS) {
+        isRefreshing = true
+        refresh?.isRefreshing = true
+
+        this.ogs = ogs
+
+        lastRefreshTime = Date().time
+
+        println("$TAG loading games with nextPage=$nextPage")
+        val currentPage = nextPage
+        subscribers.add(Globals.ogsService.gameList(nextPage)
+                // Convert to list of game ids
+                .flatMap { gameList ->
+                    if (gameList.next != null)
+                        nextPage++
+                    Observable.fromIterable(gameList.results?.map { it.id })
+                }
+                // Convert to list of json game details
+                .flatMap { gameId -> ogs.getGameDetailsViaSocketObservable(gameId!!) }
+                // Remove any nulls which meant the call did not complete
+                .filter { it != null }
+                // Convert to list of Gamedata objects
+                .flatMap { details ->
+                    println("details = ${details}")
+                    val gamedata = adapter.fromJson(details.toString())
+                    val game = Game.fromGamedata(Globals.uiConfig!!.user.id, gamedata)
+                    Observable.just(game)
+                }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { game ->
+                            Log.i(TAG, "onNext " + game)
+                            gameList.add(game)
+                        },
+                        { e -> Log.e(TAG, "error while getting game list", e) },
+                        {
+                            Log.i(TAG, "onComplete")
+                            println("$TAG nextPage = ${nextPage}")
+                            println("$TAG currentPage = ${currentPage}")
+                            if (nextPage == currentPage) {
+                                refresh?.isRefreshing = false
+                                isRefreshing = false
+                                Collections.sort(gameList)
+                                println("$TAG myGamesAdapter = ${myGamesAdapter}")
+                                myGamesAdapter?.notifyDataSetChanged()
+                                ogs.closeSocket()
+                            } else {
+                                loadGames(ogs)
+                            }
+                        }
+                ))
+    }
+
+    companion object {
+        val TAG = "MyGamesFragment"
+    }
+
 }
 
 internal class MyGamesAdapter(val mActivity: Activity, val mGames: List<Game>) : RecyclerView.Adapter<MyGamesAdapter.ViewHolder>() {
@@ -79,5 +204,7 @@ internal class MyGamesAdapter(val mActivity: Activity, val mGames: List<Game>) :
     }
 
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v)
+
+
 }
 

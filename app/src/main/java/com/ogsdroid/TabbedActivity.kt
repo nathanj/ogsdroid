@@ -14,21 +14,16 @@ import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.ProgressBar
 import com.ogs.Challenge
-import com.ogs.Gamedata
 import com.ogs.OGS
+import com.ogs.OgsSocket
 import com.ogs.SeekGraphConnection
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import org.json.JSONException
 import java.util.*
+import java.util.logging.Logger
 
 class TabbedActivity : AppCompatActivity() {
     internal var ogs: OGS? = null
@@ -97,71 +92,38 @@ class TabbedActivity : AppCompatActivity() {
                 ))
     }
 
-    var moshi: Moshi? = null
-    var adapter: JsonAdapter<Gamedata>? = null
-
     fun loadEverything() {
 
         subscribers.add(Globals.ogsService.uiConfig()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { uiConfig -> Globals.uiConfig = uiConfig },
-                        { e -> Log.e(TAG, "error while getting uiConfig", e) },
+                        { uiConfig -> Globals.uiConfig = uiConfig; OgsSocket.uiConfig = uiConfig },
+                        { e ->
+                            Log.e(TAG, "error while getting uiConfig", e)
+                            val intent = Intent(applicationContext, LoginActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                        },
                         {
-                            moshi = Moshi.Builder()
-                                    //.add(TimeAdapter())
-                                    .build()
-                            adapter = moshi?.adapter(Gamedata::class.java)
                             ogs = OGS(Globals.uiConfig!!)
                             ogs?.openSocket()
-                            loadGames()
+                            //val fragment = mSectionsPagerAdapter.getItem(0) as MyGamesFragment
+                            //println("fragment = ${fragment}")
+
+
+                            // Create the adapter that will return a fragment for each of the three
+                            // primary sections of the activity.
+                            mSectionsPagerAdapter = SectionsPagerAdapter(supportFragmentManager)
+
+                            // Set up the ViewPager with the sections adapter.
+                            mViewPager = findViewById(R.id.container) as ViewPager
+                            mViewPager.adapter = mSectionsPagerAdapter
+
+                            val tabLayout = findViewById(R.id.tabs) as TabLayout
+                            tabLayout.setupWithViewPager(mViewPager)
+
+                            //fragment.loadGames(ogs!!)
                             loadSeek()
-                        }
-                ))
-    }
-
-    fun loadGames() {
-        val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
-        pb?.visibility = View.VISIBLE
-
-        println("loading games with nextPage=$nextPage")
-        val currentPage = nextPage
-        subscribers.add(Globals.ogsService.gameList(nextPage)
-                // Convert to list of game ids
-                .flatMap { gameList ->
-                    if (gameList.next != null)
-                        nextPage++
-                    Observable.fromIterable(gameList.results?.map { it.id })
-                }
-                // Convert to list of json game details
-                .flatMap { gameId -> ogs?.getGameDetailsViaSocketObservable(gameId!!) }
-                // Remove any nulls which meant the call did not complete
-                .filter { it != null }
-                // Convert to list of Gamedata objects
-                .flatMap { details ->
-                    println("details = ${details}")
-                    val gamedata = adapter!!.fromJson(details.toString())
-                    val game = Game.fromGamedata(Globals.uiConfig!!.user.id, gamedata)
-                    Observable.just(game)
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { game ->
-                            Log.i(TAG, "onNext " + game)
-                            gameList.add(game)
-                        },
-                        { e -> Log.e(TAG, "error while getting game list", e) },
-                        {
-                            Log.i(TAG, "onComplete")
-                            if (nextPage == currentPage) {
-                                val pb = this@TabbedActivity.findViewById(R.id.my_games_progress_bar) as ProgressBar?
-                                pb?.visibility = View.GONE
-                                Collections.sort(gameList)
-                                myGamesAdapter.notifyDataSetChanged()
-                            } else {
-                                loadGames()
-                            }
                         }
                 ))
     }
@@ -212,6 +174,9 @@ class TabbedActivity : AppCompatActivity() {
         Log.d(TAG, "onDestroy")
     }
 
+    lateinit var mSectionsPagerAdapter: SectionsPagerAdapter
+    lateinit var mViewPager: ViewPager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
@@ -222,16 +187,6 @@ class TabbedActivity : AppCompatActivity() {
 
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        val mSectionsPagerAdapter = SectionsPagerAdapter(supportFragmentManager)
-
-        // Set up the ViewPager with the sections adapter.
-        val mViewPager = findViewById(R.id.container) as ViewPager
-        mViewPager.adapter = mSectionsPagerAdapter
-
-        val tabLayout = findViewById(R.id.tabs) as TabLayout
-        tabLayout.setupWithViewPager(mViewPager)
 
         challengeAdapter = ArrayAdapter(this,
                 R.layout.activity_listview,
@@ -242,6 +197,11 @@ class TabbedActivity : AppCompatActivity() {
         val al = Alarm()
         //al.cancelAlarm(this);
         al.setAlarm(this)
+
+        val logger = Logger.getLogger(OgsSocket::class.java.name)
+        println("NJJJ logger = ${logger}")
+        println("NJJJ logger.level = ${logger.level}")
+        println("NJJJ logger.name = ${logger.name}")
 
 
         //Intent intent = new Intent(this, NotificationService.class);
