@@ -67,7 +67,7 @@ class Alarm : BroadcastReceiver() {
                             // send notification
                             println("Alarm: timer fired, got $numGames games")
                             if (numGames > 0) {
-                                val intent = Intent(context, LoginActivity::class.java)
+                                val intent = Intent(context, TabbedActivity::class.java)
                                 val pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
                                 val builder = NotificationCompat.Builder(context)
