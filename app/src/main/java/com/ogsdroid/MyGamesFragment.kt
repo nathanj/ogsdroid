@@ -113,6 +113,33 @@ class MyGamesFragment : Fragment() {
 
         println("$TAG loading games with nextPage=$nextPage")
         val currentPage = nextPage
+
+        subscribers.add(Globals.ogsService.overview()
+                .flatMap { overview -> Observable.fromIterable(overview.active_games) }
+                .flatMap { gamedata ->
+                    val game = Game.fromGamedata(Globals.uiConfig!!.user.id, gamedata)
+                    Observable.just(game)
+                }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { game ->
+                            Log.i(TAG, "onNext " + game)
+                            gameList.add(game)
+                        },
+                        { e -> Log.e(TAG, "error while getting game list", e) },
+                        {
+                            Log.i(TAG, "onComplete")
+                            refresh?.isRefreshing = false
+                            isRefreshing = false
+                            Collections.sort(gameList)
+                            println("$TAG myGamesAdapter = ${myGamesAdapter}")
+                            myGamesAdapter?.notifyDataSetChanged()
+                            ogs.closeSocket()
+                        }
+                ))
+
+        /*
         subscribers.add(Globals.ogsService.gameList(nextPage)
                 // Convert to list of game ids
                 .flatMap { gameList ->
@@ -155,6 +182,7 @@ class MyGamesFragment : Fragment() {
                             }
                         }
                 ))
+                */
     }
 
     companion object {

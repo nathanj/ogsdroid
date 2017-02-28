@@ -44,12 +44,32 @@ data class DeleteChallengeResp(
         val success: String
 )
 
+data class OverviewGameJson(
+        val moves: List<List<Int>>,
+        val clock: Clock,
+        val players: Players
+)
+
+data class OverviewGame(
+        val height: Int,
+        val width: Int,
+        val id: Int,
+        val json: OverviewGameJson
+)
+
+data class OverviewResp(
+        val active_games: List<OverviewGame>
+)
+
 interface OgsService {
     @GET("me/")
     fun me(): Observable<Me>
 
     @GET("ui/config/")
     fun uiConfig(): Observable<UiConfig>
+
+    @GET("ui/overview/")
+    fun overview(): Observable<OverviewResp>
 
     @GET("megames/?started__isnull=False&ended__isnull=True")
     fun gameList(@Query("page") page: Int = 1): Observable<GameList>
