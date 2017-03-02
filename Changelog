@@ -1,3 +1,9 @@
+0.8
+---
+- My Games screen now caches games list, pull down to refresh
+- Fix notifications to now work
+- Fix refresh token being requested too often
+
 0.7
 ---
 - Update to work with the v5 website
