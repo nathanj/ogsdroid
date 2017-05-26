@@ -3,6 +3,7 @@ package com.ogsdroid
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.app.Fragment
@@ -24,6 +25,11 @@ import io.reactivex.disposables.CompositeDisposable
 import org.json.JSONException
 import java.util.*
 import java.util.logging.Logger
+import android.widget.TextView
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
+
 
 class TabbedActivity : AppCompatActivity() {
     internal var ogs: OGS? = null
@@ -178,6 +184,7 @@ class TabbedActivity : AppCompatActivity() {
     lateinit var mViewPager: ViewPager
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        println("savedInstanceState = ${savedInstanceState}")
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
         setContentView(R.layout.activity_tabbed)
@@ -227,6 +234,31 @@ class TabbedActivity : AppCompatActivity() {
         if (id == R.id.action_settings) {
             val intent = Intent(applicationContext, SettingsActivity::class.java)
             startActivity(intent)
+        }
+
+        if (id == R.id.action_logs) {
+            try {
+                val process = Runtime.getRuntime().exec("logcat -d")
+                val bufferedReader = process.inputStream.bufferedReader()
+
+                val log = StringBuilder(32 * 1024)
+                bufferedReader.readLines().forEach { line -> log.append(line); log.append("\r\n") }
+
+                println("log = ${log}")
+
+
+                val intent = Intent(Intent.ACTION_SENDTO)
+                intent.data = Uri.parse("mailto:") // only email apps should handle this
+                intent.putExtra(Intent.EXTRA_EMAIL, "nathanj439@gmail.com")
+                intent.putExtra(Intent.EXTRA_CC, "nathanj439@gmail.com")
+                intent.putExtra(Intent.EXTRA_SUBJECT, "ogsdroid logs")
+                intent.putExtra(Intent.EXTRA_TEXT, log.toString())
+                if (intent.resolveActivity(packageManager) != null) {
+                    startActivity(intent)
+                }
+
+            } catch (e: IOException) {
+            }
         }
 
         return super.onOptionsItemSelected(item)

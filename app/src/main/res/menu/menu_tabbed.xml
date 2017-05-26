@@ -7,6 +7,11 @@
         android:orderInCategory="101"
         android:title="@string/action_settings"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_logs"
+        android:orderInCategory="102"
+        android:title="Capture Logs"
+        app:showAsAction="never" />
     <!--
     <item
         android:id="@+id/create_game"
