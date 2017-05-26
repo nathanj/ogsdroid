@@ -59,7 +59,7 @@ class Main3Activity : AppCompatActivity() {
             board = Board(details.handicap, details.height, details.width)
             bv!!.setBoard(board)
 
-            bv!!.zoom = pref.getString("pref_zoom", "0")
+            bv!!.zoom = pref.getString("pref_zoom", "3")
 
             for (move in details.moves) {
                 val x = move[0]
