@@ -61,9 +61,9 @@ class TabbedActivity : AppCompatActivity() {
         ogs = null
     }
 
-    override fun onPostResume() {
-        super.onPostResume()
-        Log.d(TAG, "onPostResume")
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
 
         nextPage = 1
 
