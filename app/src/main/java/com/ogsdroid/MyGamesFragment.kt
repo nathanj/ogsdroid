@@ -127,7 +127,10 @@ class MyGamesFragment : Fragment() {
                             Log.i(TAG, "onNext " + game)
                             gameList.add(game)
                         },
-                        { e -> Log.e(TAG, "error while getting game list", e) },
+                        { e ->
+                            Log.e(TAG, "error while getting game list", e)
+                            throw e
+                        },
                         {
                             Log.i(TAG, "onComplete")
                             refresh?.isRefreshing = false
