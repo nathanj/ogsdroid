@@ -178,6 +178,7 @@ class TabbedActivity : AppCompatActivity() {
     lateinit var mViewPager: ViewPager
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        println("savedInstanceState = ${savedInstanceState}")
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
         setContentView(R.layout.activity_tabbed)
