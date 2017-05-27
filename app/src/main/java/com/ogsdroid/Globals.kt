@@ -21,7 +21,7 @@ object Globals {
     fun saveLoginInfo(context: Context, loginInfo: LoginInfo) {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val editor = pref.edit()
-        println("saving loginInfo = ${loginInfo}")
+        //println("saving loginInfo = ${loginInfo}")
         editor.putString("accessToken", loginInfo.access_token)
         editor.putString("refreshToken", loginInfo.refresh_token)
         editor.putLong("expiresAt", Date().time + loginInfo.expires_in * 1000)
@@ -82,7 +82,7 @@ object Globals {
                             .newBuilder()
                             .addHeader("Authorization", "Bearer ${Globals.accessToken}")
                             .build()
-                    println("request.headers() = ${request.headers()}")
+                    //println("request.headers() = ${request.headers()}")
                     val response = chain.proceed(request)
                     println("${request.method()} ${request.url()} -> ${response.code()} ${response.message()}")
                     response
