@@ -1,3 +1,8 @@
+0.9
+---
+- Fix a bug that would cause my games to not show up
+- Fix a bug where chat messages could not be sent
+
 0.8
 ---
 - My Games screen now caches games list, pull down to refresh
