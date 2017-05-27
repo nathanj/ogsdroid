@@ -33,6 +33,8 @@
             android:gravity="bottom"
             android:hint="Say hi..."
             android:maxLines="1"
+            android:imeOptions="actionDone"
+            android:inputType="text"
              />
 
 

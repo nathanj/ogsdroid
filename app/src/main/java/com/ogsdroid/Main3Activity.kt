@@ -317,8 +317,11 @@ class Main3Activity : AppCompatActivity() {
         findViewById(R.id.chat_scroll_view).visibility = View.GONE
 
         editText.setOnEditorActionListener { textView, i, keyEvent ->
-            if (i == EditorInfo.IME_NULL && keyEvent.action == KeyEvent.ACTION_UP) {
-
+            println("textView = [${textView}], i = [${i}], keyEvent = [${keyEvent}]")
+            if (i == EditorInfo.IME_ACTION_DONE ||
+                    (i == EditorInfo.IME_NULL &&
+                            keyEvent.action == KeyEvent.ACTION_UP &&
+                            keyEvent.keyCode == KeyEvent.KEYCODE_ENTER)) {
                 println("gameCon = ${gameCon}")
                 gameCon!!.sendChatMessage(
                         editText.text.toString(), bv!!.board.moveNumber)
