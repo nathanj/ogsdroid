@@ -58,8 +58,8 @@ class Game : Comparable<Game> {
             g.id = gamedata.id
             g.board = Board(0, gamedata.height, gamedata.width)
             gamedata.json.moves.forEach {
-                val x = it[0]
-                val y = it[1]
+                val x = it[0].toInt()
+                val y = it[1].toInt()
                 if (x != -1)
                     g.board!!.addStone(x, y)
             }

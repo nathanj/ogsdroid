@@ -45,7 +45,7 @@ data class DeleteChallengeResp(
 )
 
 data class OverviewGameJson(
-        val moves: List<List<Int>>,
+        val moves: List<List<Long>>,
         val clock: Clock,
         val players: Players
 )

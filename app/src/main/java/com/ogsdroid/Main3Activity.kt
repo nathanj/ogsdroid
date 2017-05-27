@@ -62,8 +62,8 @@ class Main3Activity : AppCompatActivity() {
             bv!!.zoom = pref.getString("pref_zoom", "3")
 
             for (move in details.moves) {
-                val x = move[0]
-                val y = move[1]
+                val x = move[0].toInt()
+                val y = move[1].toInt()
                 if (x == -1)
                     bv!!.board.pass()
                 else
@@ -459,7 +459,7 @@ class Main3Activity : AppCompatActivity() {
         var width: Int = 0
         var handicap: Int = 0
         var phase: String
-        var moves: List<List<Int>>
+        var moves: List<List<Long>>
         var whitePlayer: String
         var blackPlayer: String
         var whiteId: Int = 0
