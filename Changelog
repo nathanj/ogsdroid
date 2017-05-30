@@ -1,3 +1,7 @@
+0.9.1
+-----
+- Fix a crash when user has an absolute time limit game
+
 0.9
 ---
 - Fix a bug that would cause my games to not show up
