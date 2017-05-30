@@ -4,6 +4,7 @@ import android.content.Context
 import android.preference.PreferenceManager
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import com.ogs.*
+import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
@@ -89,11 +90,14 @@ object Globals {
                 }
                 .build()
 
+        val m = Moshi.Builder()
+                .add(TimeAdapter())
+                .build()
         Retrofit.Builder()
                 .baseUrl("https://online-go.com/api/v1/")
                 .client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-                .addConverterFactory(MoshiConverterFactory.create())
+                .addConverterFactory(MoshiConverterFactory.create(m))
                 .build()
                 .create(OgsService::class.java)
     }

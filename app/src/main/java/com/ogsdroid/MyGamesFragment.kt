@@ -19,6 +19,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.ogs.Gamedata
 import com.ogs.OGS
+import com.ogs.TimeAdapter
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import io.reactivex.Observable
@@ -32,8 +33,6 @@ class MyGamesFragment : Fragment() {
     val subscribers = CompositeDisposable()
     private val gameList = ArrayList<Game>()
     private var myGamesAdapter: MyGamesAdapter? = null
-    val moshi = Moshi.Builder().build()
-    val adapter: JsonAdapter<Gamedata>
     var ogs: OGS? = null
     var refresh: SwipeRefreshLayout? = null
     var isRefreshing = false
@@ -41,7 +40,6 @@ class MyGamesFragment : Fragment() {
 
     init {
         println("$TAG init $this")
-        adapter = moshi.adapter(Gamedata::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

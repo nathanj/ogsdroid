@@ -1,5 +1,9 @@
 package com.ogs
 
+import com.squareup.moshi.*
+import org.json.JSONObject
+
+
 class Player2 {
 
     var id: Int? = null
@@ -132,15 +136,19 @@ class Time(
 
 )
 
-//class TimeAdapter {
-//    @FromJson fun fromJson(json: String): Time {
-//        return Time(createJsonObject { put("asdf", "whee") })
-//    }
-//
-//    @ToJson fun toJson(time: Time): String {
-//        return "dontcare"
-//    }
-//}
+class TimeAdapter {
+    @FromJson fun fromJson(reader: JsonReader): Time {
+        val v = reader.readJsonValue()
+        when (v) {
+            is Double -> return Time(thinking_time=v.toFloat())
+            is Map<*, *> -> {
+                val v2 = v["thinking_time"]!! as Double
+                return Time(thinking_time=v2.toFloat())
+            }
+            else -> return Time(thinking_time=0f)
+        }
+    }
+}
 
 class Clock {
 

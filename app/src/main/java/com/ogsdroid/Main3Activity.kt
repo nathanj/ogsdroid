@@ -13,10 +13,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ScrollView
 import android.widget.TextView
-import com.ogs.ChatMessage
-import com.ogs.GameConnection
-import com.ogs.Gamedata
-import com.ogs.OGS
+import com.ogs.*
 import com.squareup.moshi.Moshi
 import org.json.JSONException
 import org.json.JSONObject
@@ -50,7 +47,7 @@ class Main3Activity : AppCompatActivity() {
             val gameDetails = ogs!!.getGameDetailsViaSocketBlocking(currentGameId)
 
             val moshi = Moshi.Builder()
-                    //.add(TimeAdapter())
+                    .add(TimeAdapter())
                     .build()
             val adapter = moshi.adapter(Gamedata::class.java)
             val gameData = adapter.fromJson(gameDetails!!.toString())
