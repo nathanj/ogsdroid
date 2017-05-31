@@ -10,6 +10,11 @@
             android:title="Zoom"
             android:summary="The minimum board size where the first click will zoom the board and the second will place a stone."
             android:defaultValue="3"/>
+        <CheckBoxPreference
+            android:key="pref_submit"
+            android:title="Submit Mode"
+            android:summary="Require clicking submit in order to submit move?"
+            android:defaultValue="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

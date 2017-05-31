@@ -19,6 +19,7 @@ import org.json.JSONObject;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
 public class BoardView extends View {
     private static final String TAG = "BoardView";
     public Board board;
@@ -33,6 +34,7 @@ public class BoardView extends View {
     private Rect r, r2;
     private Matrix m = new Matrix();
     private float mx, my;
+    public boolean submitRequired = false;
     String blackPlayer = "", whitePlayer = "";
 
     public BoardView(Context context) {
@@ -128,12 +130,25 @@ public class BoardView extends View {
         return false;
     }
 
+    private boolean submitRequired() {
+        return submitRequired;
+    }
+
+    public void submitCandidateMove() {
+        String moveStr = board.getCandidateString();
+        System.out.println("candidate moveStr = " + moveStr);
+        if (gameConnection != null && !moveStr.isEmpty()) {
+            board.removeCandidateStone();
+            gameConnection.makeMove(moveStr);
+        }
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (phase.equals("play")) {
             if (shouldZoom()) {
                 if (zoomed) {
-                    if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
+                    if (event.getAction() == MotionEvent.ACTION_UP) {
                         Log.d(TAG, "placing stone at " + event.toString());
                         float x = event.getX();
                         float y = event.getY();
@@ -148,13 +163,20 @@ public class BoardView extends View {
                         String moveStr = board.addStoneAtTouch(getWidth(),
                                 getHeight(), pts[0], pts[1]);
                         Log.d(TAG, "moveStr = " + moveStr);
-                        if (gameConnection != null)
-                            gameConnection.makeMove(moveStr);
+                        if (!moveStr.isEmpty()) {
+                            if (submitRequired()) {
+                                board.addCandidateStone(moveStr);
+                            } else {
+                                if (gameConnection != null)
+                                    gameConnection.makeMove(moveStr);
+                            }
+                        }
 
                         unZoom();
                     }
                 } else {
-                    if ((event.getAction() & MotionEvent.ACTION_MOVE) > 0) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN ||
+                            event.getAction() == MotionEvent.ACTION_MOVE) {
                         mx = event.getX();
                         my = event.getY();
 
@@ -168,16 +190,22 @@ public class BoardView extends View {
                     }
                 }
             } else {
-                if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
                     String moveStr = board.addStoneAtTouch(getWidth(),
                             getHeight(), event.getX(), event.getY());
                     Log.d(TAG, "moveStr = " + moveStr);
-                    if (gameConnection != null)
-                        gameConnection.makeMove(moveStr);
+                    if (!moveStr.isEmpty()) {
+                        if (submitRequired()) {
+                            board.addCandidateStone(moveStr);
+                        } else {
+                            if (gameConnection != null)
+                                gameConnection.makeMove(moveStr);
+                        }
+                    }
                 }
             }
         } else if (phase.equals("stone removal")) {
-            if ((event.getAction() & MotionEvent.ACTION_UP) > 0) {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
                 Pair<String, Boolean> pair = board.stoneRemovalAtTouch(getWidth(),
                         getHeight(), event.getX(), event.getY());
                 if (pair != null) {

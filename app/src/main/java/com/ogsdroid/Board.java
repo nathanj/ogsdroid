@@ -25,6 +25,9 @@ class Board {
     private static int TERRITORY = (BLACK_TERRITORY | WHITE_TERRITORY);
 
     public int board[][];
+    private int candidateX = -1, candidateY = -1;
+    private String candidateString = "";
+    public int previousBoard[][];
     public int rows, cols;
     public int moveNumber = 0;
 
@@ -206,7 +209,7 @@ class Board {
             r.offset(spacing / 15, spacing / 15);
             p.setARGB(50, 0, 0, 0);
             c.drawOval(r, p);
-	    r.offset(-spacing / 15, -spacing / 15);
+            r.offset(-spacing / 15, -spacing / 15);
         }
 
         if ((v & COLOR) == WHITE)
@@ -557,13 +560,40 @@ class Board {
         captureGroup(x, y + 1, oppositeColor(lastV));
     }
 
-    public void addStone(String coords) {
+    void removeCandidateStone() {
+        if (previousBoard != null) {
+            board = previousBoard.clone();
+            for (int i = 0; i < previousBoard.length; i++)
+                board[i] = previousBoard[i].clone();
+            previousBoard = null;
+            lastV = oppositeColor(lastV);
+        }
+        candidateX = -1;
+        candidateY = -1;
+        candidateString = "";
+    }
+
+    public void addCandidateStone(String coords) {
+        removeCandidateStone();
         char c1 = coords.charAt(0);
         char c2 = coords.charAt(1);
-        lastV = oppositeColor(lastV);
-        board[(int) c2][(int) c1] = lastV;
+        int c = (int) c1 - (int) 'a';
+        int d = (int) c2 - (int) 'a';
+        candidateString = coords;
+        candidateX = c;
+        candidateY = d;
+        previousBoard = board.clone();
+        for (int i = 0; i < board.length; i++)
+            previousBoard[i] = board[i].clone();
+        Log.d("myApp", "c=" + c + " d=" + d);
+
+        addStone(c, d);
+
+//        board[(int) c2][(int) c1] = lastV;
         //Log.d("myApp", "added stone at " + coords);
     }
+
+    String getCandidateString() { return candidateString; }
 
     private boolean hasLiberty(int x, int y, int color) {
         // edges

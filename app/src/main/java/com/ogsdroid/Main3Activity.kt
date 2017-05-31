@@ -33,6 +33,7 @@ class Main3Activity : AppCompatActivity() {
 
     private var currentGameId: Int = 0
     private var ogs: OGS? = null
+    private var submitRequired = false
 
     override fun onPostResume() {
         super.onPostResume()
@@ -57,6 +58,8 @@ class Main3Activity : AppCompatActivity() {
             bv!!.setBoard(board)
 
             bv!!.zoom = pref.getString("pref_zoom", "3")
+            bv!!.submitRequired = pref.getBoolean("pref_submit", false)
+            submitRequired = pref.getBoolean("pref_submit", false)
 
             for (move in details.moves) {
                 val x = move[0].toInt()
@@ -361,6 +364,8 @@ class Main3Activity : AppCompatActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
+    fun submitRequired() = submitRequired
+
     // {{{ options
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         Log.d(TAG, "options menu phase = " + phase)
@@ -368,6 +373,7 @@ class Main3Activity : AppCompatActivity() {
         for (i in 0..menu.size() - 1) {
             val item = menu.getItem(i)
             when (item.itemId) {
+                R.id.submit -> item.isVisible = phase == "play" && submitRequired()
                 R.id.pass, R.id.resign -> item.isVisible = phase == "play"
                 R.id.accept_stones, R.id.reject_stones -> item.isVisible = phase == "stone removal"
                 else -> item.isVisible = true
@@ -378,6 +384,10 @@ class Main3Activity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.submit -> {
+                bv?.submitCandidateMove()
+                return true
+            }
             R.id.chat -> {
                 val v = findViewById(R.id.chat_text_view) as TextView
                 val v2 = findViewById(R.id.chat_edit_text) as EditText
