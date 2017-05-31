@@ -102,10 +102,10 @@ class Main3Activity : AppCompatActivity() {
                         override fun move(x: Int, y: Int) {
                             if (x == -1) {
                                 bv!!.board.pass()
-                                passSound!!.start()
+                                passSound?.start()
                             } else {
                                 bv!!.board.addStone(x, y)
-                                clickSound!!.start()
+                                clickSound?.start()
                             }
                             bv!!.postInvalidate()
                         }
@@ -281,8 +281,8 @@ class Main3Activity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
-        clickSound!!.release()
-        passSound!!.release()
+        clickSound?.release()
+        passSound?.release()
     }
 
     override fun onPause() {
@@ -336,8 +336,11 @@ class Main3Activity : AppCompatActivity() {
 
         supportActionBar!!.setHomeButtonEnabled(true)
 
-        clickSound = MediaPlayer.create(this, R.raw.click)
-        passSound = MediaPlayer.create(this, R.raw.pass)
+        val pref = PreferenceManager.getDefaultSharedPreferences(this)
+        if (pref.getBoolean("pref_sounds", true)) {
+            clickSound = MediaPlayer.create(this, R.raw.click)
+            passSound = MediaPlayer.create(this, R.raw.pass)
+        }
 
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)

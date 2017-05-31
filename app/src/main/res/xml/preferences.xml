@@ -15,6 +15,11 @@
             android:title="Submit Mode"
             android:summary="Require clicking submit in order to submit move?"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="pref_sounds"
+            android:title="Sounds"
+            android:summary="Play stone sounds"
+            android:defaultValue="true" />
     </PreferenceCategory>
 
     <PreferenceCategory
