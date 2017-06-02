@@ -239,7 +239,7 @@ class TabbedActivity : AppCompatActivity() {
             when (position) {
                 0 -> return MyGamesFragment()
                 1 -> return FindAGameFragment()
-                else -> return CreateAGameFragment()
+                else -> return AutomatchFragment()
             }
         }
 
@@ -251,7 +251,7 @@ class TabbedActivity : AppCompatActivity() {
             when (position) {
                 0 -> return "My Games"
                 1 -> return "Find a Game"
-                2 -> return "Create a Game"
+                2 -> return "Automatch"
             }
             return null
         }

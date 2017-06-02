@@ -7,6 +7,7 @@ import io.reactivex.schedulers.Schedulers
 import io.socket.client.IO
 import io.socket.client.Socket
 import okhttp3.RequestBody
+import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.http.*
 import java.util.*
@@ -104,7 +105,7 @@ object OgsSocket {
 
             val options = IO.Options()
             options.transports = arrayOf("websocket")
-            socket = IO.socket("https://online-go.com/", options)
+            socket = IO.socket("https://beta.online-go.com/", options)
 
             socket!!.on(Socket.EVENT_CONNECT) {
                 logger.fine("socket connect")
@@ -153,7 +154,7 @@ class OGS(val uiConfig: UiConfig) {
 
             val options = IO.Options()
             options.transports = arrayOf("websocket")
-            socket = IO.socket("https://online-go.com/", options)
+            socket = IO.socket("https://beta.online-go.com/", options)
 
             socket!!.on(Socket.EVENT_CONNECT) {
                 Log.d("myApp", "socket connect")
@@ -312,5 +313,47 @@ class OGS(val uiConfig: UiConfig) {
             sleepUntilInterrupted()
             socket!!.off("game/$gameId/data")
         }.subscribeOn(Schedulers.io())
+    }
+
+    fun createAutomatch(speed: String, sizes: List<String>) {
+        openSocket()
+        val json = createJsonObject {
+            put("uuid", UUID.randomUUID().toString())
+            put("size_speed_options", createJsonArray {
+                for (size in sizes) {
+                    put(createJsonObject {
+                                put("size", size)
+                                put("speed", speed)
+                            }
+                    )
+                }
+            })
+            put("lower_rank_diff", 3)
+            put("upper_rank_diff", 3)
+            put("rules", createJsonObject {
+                put("condition", "no-preference")
+                put("value", "japanese")
+            })
+            put("time_control", createJsonObject {
+                put("condition", "no-preference")
+                put("value", createJsonObject {
+                    put("system", "byoyomi")
+                })
+            })
+            put("handicap", createJsonObject {
+                put("condition", "no-preference")
+                put("value", "enabled")
+            })
+        }
+        println("creating automatch json = ${json}")
+        socket!!.on("automatch/entry", {
+            val a = it[0] as JSONObject
+            println("automatch entry = ${a.toString(2)}")
+        })
+        socket!!.emit("automatch/find_match", json)
+    }
+
+    fun cancelAutomatch(uuid: String) {
+        socket?.emit("automatch/cancel", uuid)
     }
 }
