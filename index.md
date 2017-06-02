@@ -11,7 +11,7 @@ The main reason to use this over the website is the ability to have the first
 click zoom the board so that the stones can be placed with more accuracy. This
 allows 19x19 games to be easily played on even a small screen such as a phone.
 
-[Download v0.8 APK](https://github.com/nathanj/ogsdroid/releases/download/v0.8/ogsdroid-0.8.apk)
+[Download the latest version via F-Droid](https://f-droid.org/repository/browse/?fdid=com.ogsdroid)
 
 Screenshots
 -----------
@@ -21,15 +21,6 @@ Screenshots
 ![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/5.png "Create a Game")
 ![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/3.png "The Game")
 ![screenshot](https://raw.githubusercontent.com/nathanj/ogsdroid/master/screenshots/4.png "Stone Removal")
-
-
-Todo
-----
-
-  * Make the board look nicer
-  * Light/dark themes
-  * Improve clock
-  * Landscape
 
 Credits
 -------
