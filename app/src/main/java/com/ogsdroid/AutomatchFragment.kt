@@ -1,5 +1,7 @@
 package com.ogsdroid
 
+import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -7,51 +9,58 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import com.ogs.OGS
+import java.util.*
 
 class AutomatchFragment : Fragment() {
+    lateinit var rootView: View
+
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         Log.d(javaClass.name, "onCreateView")
-        val activity = activity as TabbedActivity
-        val rootView = inflater!!.inflate(R.layout.fragment_automatch, container, false)
+        rootView = inflater!!.inflate(R.layout.fragment_automatch, container, false)
 
         val b = rootView.findViewById(R.id.blitz_automatch) as Button
         b.setOnClickListener {
-            val ogs = OGS(Globals.uiConfig!!)
-            ogs.createAutomatch("blitz", listOf("19x19"))
+            go("blitz")
         }
 
-
-//[
-//  "automatch/find_match",
-//  {
-//    "uuid": "666fc565-7fa2-4840-8d4d-70ec7df28b74",
-//    "size_speed_options": [
-//      {
-//        "size": "19x19",
-//        "speed": "live"
-//      }
-//    ],
-//    "lower_rank_diff": 3,
-//    "upper_rank_diff": 3,
-//    "rules": {
-//      "condition": "no-preference",
-//      "value": "japanese"
-//    },
-//    "time_control": {
-//      "condition": "no-preference",
-//      "value": {
-//        "system": "byoyomi"
-//      }
-//    },
-//    "handicap": {
-//      "condition": "no-preference",
-//      "value": "enabled"
-//    }
-//  }
-//]
-
+        val n = rootView.findViewById(R.id.normal_automatch) as Button
+        n.setOnClickListener {
+            go("live")
+        }
 
         return rootView
+    }
+
+    fun go(speed: String) {
+        Log.d(javaClass.name, "go speed=$speed")
+        val ogs = OGS(Globals.uiConfig!!)
+        var dialog: AlertDialog? = null
+
+        val sizeList = ArrayList<String>()
+
+        if ((rootView.findViewById(R.id.checkbox_9) as CheckBox).isChecked)
+            sizeList.add("9x9")
+        if ((rootView.findViewById(R.id.checkbox_13) as CheckBox).isChecked)
+            sizeList.add("13x13")
+        if ((rootView.findViewById(R.id.checkbox_19) as CheckBox).isChecked)
+            sizeList.add("19x19")
+
+        val uuid = ogs.createAutomatch(speed, sizeList) { obj ->
+            println("listenForGameData: onSuccess")
+            dialog?.dismiss()
+            ogs.closeSocket()
+            val intent = Intent(activity, Main3Activity::class.java)
+            intent.putExtra("id", obj.getInt("game_id"))
+            startActivity(intent)
+        }
+
+        dialog = AlertDialog.Builder(activity)
+                .setMessage("Searching for opponent...")
+                .setNegativeButton("Cancel") { dialogInterface, i ->
+                    ogs.cancelAutomatch(uuid)
+                }
+                .show()
     }
 }

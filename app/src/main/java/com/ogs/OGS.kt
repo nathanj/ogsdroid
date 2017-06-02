@@ -7,7 +7,6 @@ import io.reactivex.schedulers.Schedulers
 import io.socket.client.IO
 import io.socket.client.Socket
 import okhttp3.RequestBody
-import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.http.*
 import java.util.*
@@ -315,16 +314,17 @@ class OGS(val uiConfig: UiConfig) {
         }.subscribeOn(Schedulers.io())
     }
 
-    fun createAutomatch(speed: String, sizes: List<String>) {
+    fun createAutomatch(speed: String, sizes: List<String>, start: (JSONObject) -> Unit): String {
         openSocket()
+        val uuid = UUID.randomUUID().toString()
         val json = createJsonObject {
-            put("uuid", UUID.randomUUID().toString())
+            put("uuid", uuid)
             put("size_speed_options", createJsonArray {
                 for (size in sizes) {
                     put(createJsonObject {
-                                put("size", size)
-                                put("speed", speed)
-                            }
+                        put("size", size)
+                        put("speed", speed)
+                    }
                     )
                 }
             })
@@ -346,14 +346,30 @@ class OGS(val uiConfig: UiConfig) {
             })
         }
         println("creating automatch json = ${json}")
+        socket!!.on("automatch/list", {
+            val obj = it[0] as JSONObject
+            println("automatch list = ${obj.toString()}")
+        })
+        socket!!.on("automatch/start", {
+            val obj = it[0] as JSONObject
+            println("automatch start = ${obj.toString()}")
+            start(obj)
+        })
         socket!!.on("automatch/entry", {
             val a = it[0] as JSONObject
-            println("automatch entry = ${a.toString(2)}")
+            println("automatch entry = ${a.toString()}")
+        })
+        socket!!.on("automatch/cancel", {
+            val a = it[0] as JSONObject
+            println("automatch cancel = ${a.toString()}")
         })
         socket!!.emit("automatch/find_match", json)
+        return uuid
     }
 
     fun cancelAutomatch(uuid: String) {
+        socket?.off("automatch/entry")
+        socket?.off("automatch/start")
         socket?.emit("automatch/cancel", uuid)
     }
 }
