@@ -104,7 +104,7 @@ object OgsSocket {
 
             val options = IO.Options()
             options.transports = arrayOf("websocket")
-            socket = IO.socket("https://beta.online-go.com/", options)
+            socket = IO.socket("https://online-go.com/", options)
 
             socket!!.on(Socket.EVENT_CONNECT) {
                 logger.fine("socket connect")
@@ -153,7 +153,7 @@ class OGS(val uiConfig: UiConfig) {
 
             val options = IO.Options()
             options.transports = arrayOf("websocket")
-            socket = IO.socket("https://beta.online-go.com/", options)
+            socket = IO.socket("https://online-go.com/", options)
 
             socket!!.on(Socket.EVENT_CONNECT) {
                 Log.d("myApp", "socket connect")

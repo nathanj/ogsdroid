@@ -68,7 +68,7 @@ object Globals {
                 }
                 .build()
         Retrofit.Builder()
-                .baseUrl("https://beta.online-go.com/")
+                .baseUrl("https://online-go.com/")
                 //.client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(MoshiConverterFactory.create())
@@ -94,7 +94,7 @@ object Globals {
                 .add(TimeAdapter())
                 .build()
         Retrofit.Builder()
-                .baseUrl("https://beta.online-go.com/api/v1/")
+                .baseUrl("https://online-go.com/api/v1/")
                 .client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(MoshiConverterFactory.create(m))
