@@ -192,6 +192,9 @@ class Board {
             alpha = 100;
         }
 
+        if (last && candidateX != -1)
+            alpha = 150;
+
         float midx = (j + 1) * spacing;
         float midy = (i + 1) * spacing;
 
@@ -218,7 +221,7 @@ class Board {
             p.setARGB(alpha, 0, 0, 0);
         c.drawOval(r, p);
 
-        if (last) {
+        if (last && candidateX == -1) {
             if ((v & COLOR) == WHITE)
                 p.setARGB(255, 0, 0, 0);
             else

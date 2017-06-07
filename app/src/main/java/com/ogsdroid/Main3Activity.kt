@@ -104,6 +104,7 @@ class Main3Activity : AppCompatActivity() {
                                 bv!!.board.pass()
                                 passSound?.start()
                             } else {
+                                bv!!.board.removeCandidateStone()
                                 bv!!.board.addStone(x, y)
                                 clickSound?.start()
                             }
@@ -509,3 +510,4 @@ class Main3Activity : AppCompatActivity() {
 
     // }}}
 }
+
