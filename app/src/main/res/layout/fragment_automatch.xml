@@ -21,32 +21,33 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="horizontal">
 
                 <CheckBox
+                    android:id="@+id/checkbox_9"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/checkbox_9"
                     android:text="9x9" />
 
                 <CheckBox
+                    android:id="@+id/checkbox_13"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/checkbox_13"
                     android:text="13x13" />
 
                 <CheckBox
+                    android:id="@+id/checkbox_19"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
-                    android:id="@+id/checkbox_19"
                     android:text="19x19" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:orientation="horizontal">
 
                 <Button
