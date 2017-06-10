@@ -178,9 +178,8 @@ class TabbedActivity : AppCompatActivity() {
     lateinit var mViewPager: ViewPager
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        println("savedInstanceState = ${savedInstanceState}")
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
+        Log.d(TAG, "onCreate savedInstanceState=${savedInstanceState}")
+        super.onCreate(null)
         setContentView(R.layout.activity_tabbed)
 
         //val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()

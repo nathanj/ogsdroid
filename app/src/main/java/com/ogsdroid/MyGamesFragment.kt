@@ -43,9 +43,8 @@ class MyGamesFragment : Fragment() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        println("$TAG onCreate this=$this savedInstanceState=$savedInstanceState")
         super.onCreate(savedInstanceState)
-
-        println("$TAG onCreate $this")
 
         val ogs = OGS(Globals.uiConfig!!)
         ogs.openSocket()
