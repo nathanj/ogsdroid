@@ -1,3 +1,10 @@
+1.0
+---
+- Add preference to require submit button
+- Add preference to disable sounds
+- Replace create challenge with automatch
+- Fix some crashes
+
 0.9.1
 -----
 - Fix a crash when user has an absolute time limit game
