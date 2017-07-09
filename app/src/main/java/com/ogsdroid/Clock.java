@@ -89,6 +89,8 @@ class Clock {
     }
 
     protected String formatTime(int seconds) {
+        int days = seconds / (24 * 60 * 60);
+        seconds %= (24 * 60 * 60);
         int hours = seconds / (60 * 60);
         seconds %= (60 * 60);
         int minutes = seconds / 60;
@@ -96,7 +98,9 @@ class Clock {
 
         StringBuilder s = new StringBuilder();
 
-        if (hours > 0) {
+        if (days > 0) {
+            s.append(String.format("%dd %d:%02d:%02d", days, hours, minutes, seconds));
+        } else if (hours > 0) {
             s.append(String.format("%d:%02d:%02d", hours, minutes, seconds));
         } else if (minutes > 0) {
             s.append(String.format("%d:%02d", minutes, seconds));
