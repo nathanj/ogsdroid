@@ -17,15 +17,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import com.ogs.Gamedata
 import com.ogs.OGS
-import com.ogs.TimeAdapter
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 
 class MyGamesFragment : Fragment() {
@@ -37,18 +36,27 @@ class MyGamesFragment : Fragment() {
     var refresh: SwipeRefreshLayout? = null
     var isRefreshing = false
     var lastRefreshTime = 0L
+    var first = true
 
     init {
         println("$TAG init $this")
     }
 
+    override fun onStart() {
+        Log.d(TAG, "onStart")
+        super.onStart()
+        EventBus.getDefault().register(this)
+    }
+
+    override fun onStop() {
+        Log.d(TAG, "onStop")
+        super.onStop()
+        EventBus.getDefault().unregister(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         println("$TAG onCreate this=$this savedInstanceState=$savedInstanceState")
         super.onCreate(savedInstanceState)
-
-        val ogs = OGS(Globals.uiConfig!!)
-        ogs.openSocket()
-        loadGames(ogs)
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -83,14 +91,16 @@ class MyGamesFragment : Fragment() {
         return rootView
     }
 
-    override fun onResume() {
-        Log.d(TAG, "onResume")
-        super.onResume()
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onUiConfigAvailableEvent(ev: UiConfigAvailableEvent) {
+        Log.d(TAG, "onUiConfigAvailableEvent first=$first")
 
         // Reload the games automatically after one hour.
-        if (!isRefreshing && lastRefreshTime + 1000 * 60 * 60 < Date().time) {
-            ogs?.openSocket()
-            loadGames(ogs!!)
+        if (first || (!isRefreshing && lastRefreshTime + 1000 * 60 * 60 < Date().time)) {
+            first = false
+            val ogs = OGS(Globals.uiConfig!!)
+            ogs.openSocket()
+            loadGames(ogs)
         }
     }
 
@@ -101,6 +111,8 @@ class MyGamesFragment : Fragment() {
     }
 
     fun loadGames(ogs: OGS) {
+        Log.d(TAG, "loading games with nextPage=$nextPage")
+
         isRefreshing = true
         refresh?.isRefreshing = true
 
@@ -108,7 +120,6 @@ class MyGamesFragment : Fragment() {
 
         lastRefreshTime = Date().time
 
-        println("$TAG loading games with nextPage=$nextPage")
         val currentPage = nextPage
 
         subscribers.add(Globals.ogsService.overview()

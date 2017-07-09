@@ -21,9 +21,13 @@ import com.ogs.OgsSocket
 import com.ogs.SeekGraphConnection
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import org.greenrobot.eventbus.EventBus
 import org.json.JSONException
 import java.util.*
 import java.util.logging.Logger
+
+class AccessTokenAvailableEvent
+class UiConfigAvailableEvent
 
 class TabbedActivity : AppCompatActivity() {
     internal var ogs: OGS? = null
@@ -80,6 +84,7 @@ class TabbedActivity : AppCompatActivity() {
                                 finish()
                             } else {
                                 Globals.accessToken = token
+                                EventBus.getDefault().post(AccessTokenAvailableEvent())
                                 loadEverything()
                             }
                         },
@@ -107,23 +112,11 @@ class TabbedActivity : AppCompatActivity() {
                         {
                             ogs = OGS(Globals.uiConfig!!)
                             ogs?.openSocket()
-                            //val fragment = mSectionsPagerAdapter.getItem(0) as MyGamesFragment
-                            //println("fragment = ${fragment}")
 
-
-                            // Create the adapter that will return a fragment for each of the three
-                            // primary sections of the activity.
-                            mSectionsPagerAdapter = SectionsPagerAdapter(supportFragmentManager)
-
-                            // Set up the ViewPager with the sections adapter.
-                            mViewPager = findViewById(R.id.container) as ViewPager
-                            mViewPager.adapter = mSectionsPagerAdapter
-
-                            val tabLayout = findViewById(R.id.tabs) as TabLayout
-                            tabLayout.setupWithViewPager(mViewPager)
-
-                            //fragment.loadGames(ogs!!)
                             loadSeek()
+
+                            println("NJJ posting that ui config is available!")
+                            EventBus.getDefault().post(UiConfigAvailableEvent())
                         }
                 ))
     }
@@ -203,6 +196,17 @@ class TabbedActivity : AppCompatActivity() {
         println("NJJJ logger.level = ${logger.level}")
         println("NJJJ logger.name = ${logger.name}")
 
+        // Create the adapter that will return a fragment for each of the three
+        // primary sections of the activity.
+        mSectionsPagerAdapter = SectionsPagerAdapter(supportFragmentManager)
+
+        // Set up the ViewPager with the sections adapter.
+        mViewPager = findViewById(R.id.container) as ViewPager
+        mViewPager.adapter = mSectionsPagerAdapter
+
+        val tabLayout = findViewById(R.id.tabs) as TabLayout
+        tabLayout.setupWithViewPager(mViewPager)
+
 
         //Intent intent = new Intent(this, NotificationService.class);
         //System.out.println("NJ creating service....");
@@ -234,11 +238,15 @@ class TabbedActivity : AppCompatActivity() {
 
     inner class SectionsPagerAdapter internal constructor(fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
+        val myGames = MyGamesFragment()
+        val findAGame = FindAGameFragment()
+        val automatch = AutomatchFragment()
+
         override fun getItem(position: Int): Fragment {
             when (position) {
-                0 -> return MyGamesFragment()
-                1 -> return FindAGameFragment()
-                else -> return AutomatchFragment()
+                0 -> return myGames
+                1 -> return findAGame
+                else -> return automatch
             }
         }
 
