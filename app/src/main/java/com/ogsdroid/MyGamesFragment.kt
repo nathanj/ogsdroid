@@ -28,12 +28,11 @@ import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 
 class MyGamesFragment : Fragment() {
-    var nextPage = 1
     val subscribers = CompositeDisposable()
     private val gameList = ArrayList<Game>()
     private var myGamesAdapter: MyGamesAdapter? = null
     var ogs: OGS? = null
-    var refresh: SwipeRefreshLayout? = null
+    lateinit var refresh: SwipeRefreshLayout
     var isRefreshing = false
     var lastRefreshTime = 0L
     var first = true
@@ -65,15 +64,9 @@ class MyGamesFragment : Fragment() {
         val rootView = inflater!!.inflate(R.layout.fragment_my_games, container, false)
 
         refresh = rootView.findViewById(R.id.my_games_swipe_refresh) as SwipeRefreshLayout
-        refresh?.setOnRefreshListener {
-            nextPage = 1
-            gameList.clear()
-            myGamesAdapter?.notifyDataSetChanged()
-            ogs?.let {
-                loadGames(it)
-            }
+        refresh.setOnRefreshListener {
+                loadGames()
         }
-        refresh?.isRefreshing = isRefreshing
 
         val rv = rootView.findViewById(R.id.my_games_recycler_view) as RecyclerView
         rv.setHasFixedSize(true)
@@ -95,12 +88,12 @@ class MyGamesFragment : Fragment() {
     fun onUiConfigAvailableEvent(ev: UiConfigAvailableEvent) {
         Log.d(TAG, "onUiConfigAvailableEvent first=$first")
 
+        ogs = OGS(Globals.uiConfig!!)
+
         // Reload the games automatically after one hour.
-        if (first || (!isRefreshing && lastRefreshTime + 1000 * 60 * 60 < Date().time)) {
+        if (first || (!refresh.isRefreshing && lastRefreshTime + 1000 * 60 * 60 < Date().time)) {
             first = false
-            val ogs = OGS(Globals.uiConfig!!)
-            ogs.openSocket()
-            loadGames(ogs)
+            loadGames()
         }
     }
 
@@ -110,17 +103,21 @@ class MyGamesFragment : Fragment() {
         subscribers.clear()
     }
 
-    fun loadGames(ogs: OGS) {
-        Log.d(TAG, "loading games with nextPage=$nextPage")
+    fun loadGames() {
+        Log.d(TAG, "loading games with")
 
-        isRefreshing = true
-        refresh?.isRefreshing = true
+        val ogs = ogs
+        if (ogs == null)
+                return
 
-        this.ogs = ogs
+        ogs.openSocket()
+
+        gameList.clear()
+        myGamesAdapter?.notifyDataSetChanged()
+
+        refresh.isRefreshing = true
 
         lastRefreshTime = Date().time
-
-        val currentPage = nextPage
 
         subscribers.add(Globals.ogsService.overview()
                 .flatMap { overview -> Observable.fromIterable(overview.active_games) }
@@ -141,59 +138,13 @@ class MyGamesFragment : Fragment() {
                         },
                         {
                             Log.i(TAG, "onComplete")
-                            refresh?.isRefreshing = false
-                            isRefreshing = false
+                            refresh.isRefreshing = false
                             Collections.sort(gameList)
                             println("$TAG myGamesAdapter = ${myGamesAdapter}")
                             myGamesAdapter?.notifyDataSetChanged()
                             ogs.closeSocket()
                         }
                 ))
-
-        /*
-        subscribers.add(Globals.ogsService.gameList(nextPage)
-                // Convert to list of game ids
-                .flatMap { gameList ->
-                    if (gameList.next != null)
-                        nextPage++
-                    Observable.fromIterable(gameList.results?.map { it.id })
-                }
-                // Convert to list of json game details
-                .flatMap { gameId -> ogs.getGameDetailsViaSocketObservable(gameId!!) }
-                // Remove any nulls which meant the call did not complete
-                .filter { it != null }
-                // Convert to list of Gamedata objects
-                .flatMap { details ->
-                    println("details = ${details}")
-                    val gamedata = adapter.fromJson(details.toString())
-                    val game = Game.fromGamedata(Globals.uiConfig!!.user.id, gamedata)
-                    Observable.just(game)
-                }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        { game ->
-                            Log.i(TAG, "onNext " + game)
-                            gameList.add(game)
-                        },
-                        { e -> Log.e(TAG, "error while getting game list", e) },
-                        {
-                            Log.i(TAG, "onComplete")
-                            println("$TAG nextPage = ${nextPage}")
-                            println("$TAG currentPage = ${currentPage}")
-                            if (nextPage == currentPage) {
-                                refresh?.isRefreshing = false
-                                isRefreshing = false
-                                Collections.sort(gameList)
-                                println("$TAG myGamesAdapter = ${myGamesAdapter}")
-                                myGamesAdapter?.notifyDataSetChanged()
-                                ogs.closeSocket()
-                            } else {
-                                loadGames(ogs)
-                            }
-                        }
-                ))
-                */
     }
 
     companion object {
