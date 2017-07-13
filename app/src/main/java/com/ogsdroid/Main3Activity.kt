@@ -1,5 +1,6 @@
 package com.ogsdroid
 
+import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.StrictMode
@@ -35,13 +36,20 @@ class Main3Activity : AppCompatActivity() {
     private var ogs: OGS? = null
     private var submitRequired = false
 
-    override fun onPostResume() {
-        super.onPostResume()
-        Log.d(TAG, "onPostResume")
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
 
         val pref = PreferenceManager.getDefaultSharedPreferences(this)
 
-        ogs = OGS(Globals.uiConfig!!)
+        val uiConfig = Globals.uiConfig
+        if (uiConfig == null) {
+                val intent = Intent(applicationContext, TabbedActivity::class.java)
+                startActivity(intent)
+                finish()
+        }
+
+        ogs = OGS(uiConfig!!)
 
         val gameDetails = ogs!!.getGameDetailsViaSocketBlocking(currentGameId)
 
