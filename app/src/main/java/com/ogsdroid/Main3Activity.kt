@@ -44,9 +44,10 @@ class Main3Activity : AppCompatActivity() {
 
         val uiConfig = Globals.uiConfig
         if (uiConfig == null) {
-                val intent = Intent(applicationContext, TabbedActivity::class.java)
-                startActivity(intent)
-                finish()
+            val intent = Intent(applicationContext, TabbedActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
         }
 
         ogs = OGS(uiConfig!!)
