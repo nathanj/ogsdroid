@@ -2,7 +2,7 @@ OGS Android
 ===========
 
 This is an android application to play games on
-[online-go.com](online-go.com). It is still early in development so there may
+[https://online-go.com](online-go.com). It is still early in development so there may
 be bugs and half-implemented features. I use it daily for making
 correspondence moves on a tablet and sometimes a phone, so it works reasonably
 well.
