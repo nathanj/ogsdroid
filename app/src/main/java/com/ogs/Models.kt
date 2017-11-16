@@ -1,7 +1,13 @@
+@file:Suppress("unused", "PropertyName")
+
 package com.ogs
 
-import com.squareup.moshi.*
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
 import org.json.JSONObject
+import java.lang.reflect.Type
 
 
 class Player2 {
@@ -136,18 +142,14 @@ class Time(
 
 )
 
-class TimeAdapter {
-    @FromJson fun fromJson(reader: JsonReader): Time {
-        val v = reader.readJsonValue()
-        when (v) {
-            is Double -> return Time(thinking_time=v.toFloat())
-            is Map<*, *> -> {
-                val v2 = v["thinking_time"]!! as Double
-                return Time(thinking_time=v2.toFloat())
+// Time can be either a float which is the thinking time, or it can be an object with a key of "thinking_time".
+class TimeAdapter : JsonDeserializer<Time> {
+    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Time =
+            when (json) {
+                is JsonPrimitive -> Time(thinking_time = json.asFloat)
+                is JSONObject -> Time(thinking_time = json.getDouble("thinking_time").toFloat())
+                else -> Time(thinking_time = 0f)
             }
-            else -> return Time(thinking_time=0f)
-        }
-    }
 }
 
 class Clock {

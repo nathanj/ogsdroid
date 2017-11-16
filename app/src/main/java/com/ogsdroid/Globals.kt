@@ -2,14 +2,14 @@ package com.ogsdroid
 
 import android.content.Context
 import android.preference.PreferenceManager
+import com.google.gson.GsonBuilder
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import com.ogs.*
-import com.squareup.moshi.Moshi
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -71,7 +71,7 @@ object Globals {
                 .baseUrl("https://online-go.com/")
                 //.client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-                .addConverterFactory(MoshiConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create())
                 .build()
                 .create(OgsOauthService::class.java)
     }
@@ -90,14 +90,14 @@ object Globals {
                 }
                 .build()
 
-        val m = Moshi.Builder()
-                .add(TimeAdapter())
-                .build()
+        val g = GsonBuilder()
+                .registerTypeAdapter(Time::class.java, TimeAdapter())
+                .create()
         Retrofit.Builder()
                 .baseUrl("https://online-go.com/api/v1/")
                 .client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-                .addConverterFactory(MoshiConverterFactory.create(m))
+                .addConverterFactory(GsonConverterFactory.create(g))
                 .build()
                 .create(OgsService::class.java)
     }
