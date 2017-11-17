@@ -118,52 +118,51 @@ class Main3Activity : AppCompatActivity() {
                         bv!!.postInvalidate()
                     }
 
+                    private fun parsePeriodClock(baseTime: Long, json: JSONObject, turn: Boolean): Triple<Long, Long, Long> {
+                        val thinkingTime = json.getLong("thinking_time")
+                        val periods = if (json.has("periods")) json.getLong("periods") else 0
+                        val periodTime = if (json.has("period_time")) json.getLong("period_time") else 0
+                        val now = System.currentTimeMillis()
+                        return if (turn) {
+                            val realThinkingTime = (baseTime - now + thinkingTime * 1000) / 1000
+                            Triple(realThinkingTime, periods, periodTime)
+                        } else {
+                            Triple(thinkingTime, periods, periodTime)
+                        }
+                    }
+
                     override fun clock(clock: JSONObject) {
                         try {
 
                             Log.d("njclock", clock.toString())
                             val whoseTurn = clock.getInt("current_player")
+                            val baseTime = clock.getLong("last_move")
 
                             if (clock.get("white_time") is Number) {
                                 val now = System.currentTimeMillis()
-                                val now_delta = now - clock.getLong("now")
-                                val base_time = clock.getLong("last_move") + now_delta
                                 Log.d("njclock", "now = " + now)
-                                Log.d("njclock", "now_delta = " + now_delta)
-                                Log.d("njclock", "base_time = " + base_time)
                                 Log.d("njclock", "black time = " + clock.getLong("black_time"))
-                                Log.d("njclock", "delta = " + (clock.getLong("black_time") - System.currentTimeMillis()))
-                                bv!!.clockWhite.setTime((clock.getLong("white_time") - System.currentTimeMillis()).toInt() / 1000, 0, 0)
-                                bv!!.clockBlack.setTime((clock.getLong("black_time") - System.currentTimeMillis()).toInt() / 1000, 0, 0)
+                                Log.d("njclock", "delta = " + (clock.getLong("black_time") - now))
+                                bv!!.clockWhite.setTime((clock.getLong("white_time") - now).toLong() / 1000, 0, 0)
+                                bv!!.clockBlack.setTime((clock.getLong("black_time") - now).toLong() / 1000, 0, 0)
                             } else {
-                                var thinkingTime = 0
-                                var periods = 0
-                                var periodTime = 0
                                 try {
                                     val c = clock.getJSONObject("white_time")
-                                    Log.d("njclock", "white = " + c)
-                                    thinkingTime = c.getInt("thinking_time")
-                                    periods = c.getInt("periods")
-                                    periodTime = c.getInt("period_time")
+                                    val whiteTurn = whoseTurn == clock.getInt("white_player_id")
+                                    val (thinkingTime, periods, periodTime) = parsePeriodClock(baseTime, c, whiteTurn)
+                                    bv!!.clockWhite.setTime(thinkingTime, periods, periodTime)
                                 } catch (e: JSONException) {
-                                    //e.printStackTrace();
+                                    Log.e(TAG, "error parsing white clock: " + e)
                                 }
 
-                                bv!!.clockWhite.setTime(thinkingTime, periods, periodTime)
-
-                                thinkingTime = 0
-                                periods = 0
-                                periodTime = 0
                                 try {
                                     val c = clock.getJSONObject("black_time")
-                                    Log.d("njclock", "black = " + c)
-                                    thinkingTime = c.getInt("thinking_time")
-                                    periods = c.getInt("periods")
-                                    periodTime = c.getInt("period_time")
+                                    val blackTurn = whoseTurn == clock.getInt("black_player_id")
+                                    val (thinkingTime, periods, periodTime) = parsePeriodClock(baseTime, c, blackTurn)
+                                    bv!!.clockBlack.setTime(thinkingTime, periods, periodTime)
                                 } catch (e: JSONException) {
+                                    Log.e(TAG, "error parsing black clock: " + e)
                                 }
-
-                                bv!!.clockBlack.setTime(thinkingTime, periods, periodTime)
                             }
 
                             if (gamedata != null) {

@@ -8,6 +8,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import org.json.JSONObject
 import java.lang.reflect.Type
+import java.util.*
 
 
 class Player2 {
@@ -137,7 +138,7 @@ data class Me(
 class Time(
 
         //var data: JSONObject? = null
-        var thinking_time: Float? = null,
+        var thinking_time: Long? = null,
         var skip_bonus: Boolean? = null
 
 )
@@ -146,9 +147,14 @@ class Time(
 class TimeAdapter : JsonDeserializer<Time> {
     override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Time =
             when (json) {
-                is JsonPrimitive -> Time(thinking_time = json.asFloat)
-                is JSONObject -> Time(thinking_time = json.getDouble("thinking_time").toFloat())
-                else -> Time(thinking_time = 0f)
+                is JsonPrimitive -> Time(thinking_time = json.asLong)
+                is JSONObject -> {
+                    val lastMove = json.getLong("last_move")
+                    val think = json.getDouble("thinking_time").toLong()
+                    val now = System.currentTimeMillis()
+                    Time(thinking_time = lastMove + think * 1000 - now)
+                }
+                else -> Time(thinking_time = 0)
             }
 }
 
