@@ -10,9 +10,9 @@ import org.json.JSONObject;
 class Clock {
     private final static String TAG = "Clock";
 
-    public int thinkingTime;
-    public int periods;
-    public int periodTime;
+    public long thinkingTime;
+    public long periods;
+    public long periodTime;
     public String system; // fischer, byo-yomi, etc.
 
     private Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -38,7 +38,7 @@ class Clock {
         }
     }
 
-    public void setTime(int thinkingTime, int periods, int periodTime) {
+    public void setTime(long thinkingTime, long periods, long periodTime) {
         this.thinkingTime = thinkingTime;
         this.periods = periods;
         this.periodTime = periodTime;
@@ -88,24 +88,28 @@ class Clock {
         canvas.drawText(toString(), sx + w / 2, sy + h * 2 / 3, p);
     }
 
-    protected String formatTime(int seconds) {
-        int days = seconds / (24 * 60 * 60);
+    protected String formatTime(long seconds) {
+        long days = seconds / (24 * 60 * 60);
         seconds %= (24 * 60 * 60);
-        int hours = seconds / (60 * 60);
+        long hours = seconds / (60 * 60);
         seconds %= (60 * 60);
-        int minutes = seconds / 60;
+        long minutes = seconds / 60;
         seconds %= 60;
 
         StringBuilder s = new StringBuilder();
 
         if (days > 0) {
-            s.append(String.format("%dd %d:%02d:%02d", days, hours, minutes, seconds));
+            s.append(String.format("%dd", days));
+            if (hours > 0)
+                s.append(String.format("%dh", hours));
         } else if (hours > 0) {
-            s.append(String.format("%d:%02d:%02d", hours, minutes, seconds));
+            s.append(String.format("%dh", hours));
+            if (minutes > 0)
+                s.append(String.format("%dm", minutes));
         } else if (minutes > 0) {
-            s.append(String.format("%d:%02d", minutes, seconds));
+            s.append(String.format("%dm%02ds", minutes, seconds));
         } else {
-            s.append(String.format("%d", seconds));
+            s.append(String.format("%ds", seconds));
         }
         return s.toString();
     }
