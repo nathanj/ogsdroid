@@ -19,6 +19,9 @@ object Globals {
     var accessToken = ""
     var uiConfig: UiConfig? = null
 
+    var URL = "https://online-go.com"
+    //var URL = "https://beta.online-go.com"
+
     fun saveLoginInfo(context: Context, loginInfo: LoginInfo) {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val editor = pref.edit()
@@ -68,7 +71,7 @@ object Globals {
                 }
                 .build()
         Retrofit.Builder()
-                .baseUrl("https://online-go.com/")
+                .baseUrl(URL)
                 //.client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(GsonConverterFactory.create())
@@ -94,7 +97,7 @@ object Globals {
                 .registerTypeAdapter(Time::class.java, TimeAdapter())
                 .create()
         Retrofit.Builder()
-                .baseUrl("https://online-go.com/api/v1/")
+                .baseUrl("${URL}/api/v1/")
                 .client(httpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .addConverterFactory(GsonConverterFactory.create(g))

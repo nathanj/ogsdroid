@@ -1,6 +1,7 @@
 package com.ogs
 
 import android.util.Log
+import com.ogsdroid.Globals
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
@@ -104,7 +105,7 @@ object OgsSocket {
 
             val options = IO.Options()
             options.transports = arrayOf("websocket")
-            socket = IO.socket("https://online-go.com/", options)
+            socket = IO.socket(Globals.URL, options)
 
             socket!!.on(Socket.EVENT_CONNECT) {
                 logger.fine("socket connect")
@@ -153,7 +154,7 @@ class OGS(val uiConfig: UiConfig) {
 
             val options = IO.Options()
             options.transports = arrayOf("websocket")
-            socket = IO.socket("https://online-go.com/", options)
+            socket = IO.socket(Globals.URL, options)
 
             socket!!.on(Socket.EVENT_CONNECT) {
                 Log.d("myApp", "socket connect")
