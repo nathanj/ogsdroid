@@ -42,6 +42,7 @@
         <item>3</item>
     </string-array>
     <string name="title_activity_kotlin">KotlinActivity</string>
+    <string name="action_email_logs">Email bugreport logs</string>
 
     <string-array name="notify_time_names">
         <item>Never</item>

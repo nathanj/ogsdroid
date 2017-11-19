@@ -219,6 +219,10 @@ class TabbedActivity : AppCompatActivity() {
         return true
     }
 
+    private fun emailLogcat() {
+        throw RuntimeException("gimme logs")
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -230,6 +234,8 @@ class TabbedActivity : AppCompatActivity() {
         if (id == R.id.action_settings) {
             val intent = Intent(applicationContext, SettingsActivity::class.java)
             startActivity(intent)
+        } else if (id == R.id.action_email_logs) {
+            emailLogcat()
         }
 
         return super.onOptionsItemSelected(item)
