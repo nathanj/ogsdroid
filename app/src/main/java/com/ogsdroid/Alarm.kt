@@ -89,22 +89,17 @@ class Alarm : BroadcastReceiver() {
     fun setAlarm(context: Context) {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val notifyTime = pref.getString("pref_notify_time", "0").toLong()
-
-        if (notifyTime > 0) {
-            val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val intent = Intent(context, Alarm::class.java)
-            val pi = PendingIntent.getBroadcast(context, 0, intent, 0)
-            println("NJ OGS Alarm: setting alarm for $notifyTime")
-            am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + notifyTime, notifyTime, pi)
-        }
-    }
-
-    fun cancelAlarm(context: Context) {
+        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, Alarm::class.java)
         val pi = PendingIntent.getBroadcast(context, 0, intent, 0)
-        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        println("NJ OGS Alarm: canceling alarm")
-        am.cancel(pi)
+
+        if (notifyTime > 0) {
+            println("NJ OGS Alarm: setting alarm for $notifyTime")
+            am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + notifyTime, notifyTime, pi)
+        } else {
+            println("NJ OGS Alarm: canceling alarm")
+            am.cancel(pi)
+        }
     }
 }
 

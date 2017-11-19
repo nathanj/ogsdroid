@@ -188,7 +188,6 @@ class TabbedActivity : AppCompatActivity() {
         myGamesAdapter = MyGamesAdapter(this, gameList)
 
         val al = Alarm()
-        //al.cancelAlarm(this);
         al.setAlarm(this)
 
         val logger = Logger.getLogger(OgsSocket::class.java.name)
