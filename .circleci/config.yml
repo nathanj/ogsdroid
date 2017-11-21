@@ -23,7 +23,6 @@ jobs:
           name: Build APK
           command: ./gradlew assembleDebug
       - store_artifacts:
-      - store_artifacts:
           path: app/build/reports
           destination: reports
       - store_test_results:
