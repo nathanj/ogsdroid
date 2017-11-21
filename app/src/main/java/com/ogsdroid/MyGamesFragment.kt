@@ -63,12 +63,12 @@ class MyGamesFragment : Fragment() {
         val activity = activity as TabbedActivity
         val rootView = inflater!!.inflate(R.layout.fragment_my_games, container, false)
 
-        refresh = rootView.findViewById(R.id.my_games_swipe_refresh) as SwipeRefreshLayout
+        refresh = rootView.findViewById<SwipeRefreshLayout>(R.id.my_games_swipe_refresh)
         refresh.setOnRefreshListener {
                 loadGames()
         }
 
-        val rv = rootView.findViewById(R.id.my_games_recycler_view) as RecyclerView
+        val rv = rootView.findViewById<RecyclerView>(R.id.my_games_recycler_view)
         rv.setHasFixedSize(true)
 
         val dm = activity.resources.displayMetrics
@@ -176,8 +176,8 @@ internal class MyGamesAdapter(val mActivity: Activity, val mGames: List<Game>) :
             intent.putExtra("id", game.id)
             mActivity.startActivity(intent)
         }
-        val iv = holder.itemView.findViewById(R.id.image) as ImageView
-        val tv = holder.itemView.findViewById(R.id.my_games_text) as TextView
+        val iv = holder.itemView.findViewById<ImageView>(R.id.image)
+        val tv = holder.itemView.findViewById<TextView>(R.id.my_games_text)
         tv.text = game.name
         val b = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888)
         val c = Canvas(b)

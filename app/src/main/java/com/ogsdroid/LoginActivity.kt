@@ -43,9 +43,9 @@ class LoginActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_login)
         // Set up the login form.
-        mEmailView = findViewById(R.id.email) as AutoCompleteTextView
+        mEmailView = findViewById<AutoCompleteTextView>(R.id.email)
 
-        mPasswordView = findViewById(R.id.password) as EditText
+        mPasswordView = findViewById<EditText>(R.id.password)
         mPasswordView!!.setOnEditorActionListener(TextView.OnEditorActionListener { textView, id, keyEvent ->
             if (id == R.id.login || id == EditorInfo.IME_NULL) {
                 attemptLogin()
@@ -54,7 +54,7 @@ class LoginActivity : AppCompatActivity() {
             false
         })
 
-        val mEmailSignInButton = findViewById(R.id.email_sign_in_button) as Button
+        val mEmailSignInButton = findViewById<Button>(R.id.email_sign_in_button)
         mEmailSignInButton.setOnClickListener { attemptLogin() }
 
         mLoginFormView = findViewById(R.id.login_form)

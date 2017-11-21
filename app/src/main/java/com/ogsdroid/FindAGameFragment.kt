@@ -21,7 +21,7 @@ class FindAGameFragment : Fragment() {
         Log.d(TAG, "onCreateView")
         val activity = activity as TabbedActivity
         val rootView = inflater!!.inflate(R.layout.fragment_tabbed, container, false)
-        val lv = rootView.findViewById(R.id.my_listview) as ListView
+        val lv = rootView.findViewById<ListView>(R.id.my_listview)
         lv.adapter = activity.challengeAdapter
         lv.onItemClickListener = AdapterView.OnItemClickListener { adapterView, view, i, l ->
             val c = activity.challengeList[i]

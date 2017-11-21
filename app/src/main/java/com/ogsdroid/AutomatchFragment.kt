@@ -20,12 +20,12 @@ class AutomatchFragment : Fragment() {
         Log.d(javaClass.name, "onCreateView")
         rootView = inflater!!.inflate(R.layout.fragment_automatch, container, false)
 
-        val b = rootView.findViewById(R.id.blitz_automatch) as Button
+        val b = rootView.findViewById<Button>(R.id.blitz_automatch)
         b.setOnClickListener {
             go("blitz")
         }
 
-        val n = rootView.findViewById(R.id.normal_automatch) as Button
+        val n = rootView.findViewById<Button>(R.id.normal_automatch)
         n.setOnClickListener {
             go("live")
         }
@@ -40,11 +40,11 @@ class AutomatchFragment : Fragment() {
 
         val sizeList = ArrayList<String>()
 
-        if ((rootView.findViewById(R.id.checkbox_9) as CheckBox).isChecked)
+        if (rootView.findViewById<CheckBox>(R.id.checkbox_9).isChecked)
             sizeList.add("9x9")
-        if ((rootView.findViewById(R.id.checkbox_13) as CheckBox).isChecked)
+        if (rootView.findViewById<CheckBox>(R.id.checkbox_13).isChecked)
             sizeList.add("13x13")
-        if ((rootView.findViewById(R.id.checkbox_19) as CheckBox).isChecked)
+        if (rootView.findViewById<CheckBox>(R.id.checkbox_19).isChecked)
             sizeList.add("19x19")
 
         val uuid = ogs.createAutomatch(speed, sizeList) { obj ->

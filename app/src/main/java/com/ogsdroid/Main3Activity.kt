@@ -101,7 +101,7 @@ class Main3Activity : AppCompatActivity() {
                                 }
                             */
 
-                            val tv = findViewById(R.id.chat_text_view) as TextView
+                            val tv = findViewById<TextView>(R.id.chat_text_view)
                             tv.text = msg.toString() + "\n" + tv.text
                         }
                     }
@@ -221,7 +221,7 @@ class Main3Activity : AppCompatActivity() {
                         gamedata = GameDetails(gameData)
 
                         try {
-                            val tv = findViewById(R.id.chat_text_view) as TextView
+                            val tv = findViewById<TextView>(R.id.chat_text_view)
                             val chats = obj.getJSONArray("chat_log")
                             this@Main3Activity.runOnUiThread { tv.text = "" }
                             for (i in 0..chats.length() - 1) {
@@ -308,15 +308,15 @@ class Main3Activity : AppCompatActivity() {
         setContentView(R.layout.activity_main3)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        bv = findViewById(R.id.boardview) as BoardView
+        bv = findViewById<BoardView>(R.id.boardview)
 
-        findViewById(R.id.chat_text_view).visibility = View.GONE
-        val editText = findViewById(R.id.chat_edit_text) as EditText
+        findViewById<TextView>(R.id.chat_text_view).visibility = View.GONE
+        val editText = findViewById<EditText>(R.id.chat_edit_text)
         editText.visibility = View.GONE
-        findViewById(R.id.chat_scroll_view).visibility = View.GONE
+        findViewById<ScrollView>(R.id.chat_scroll_view).visibility = View.GONE
 
         editText.setOnEditorActionListener { textView, i, keyEvent ->
             println("textView = [${textView}], i = [${i}], keyEvent = [${keyEvent}]")
@@ -355,11 +355,11 @@ class Main3Activity : AppCompatActivity() {
                 return true
             }
         }
-        val v = findViewById(R.id.chat_text_view) as TextView
+        val v = findViewById<TextView>(R.id.chat_text_view)
         // If the chat is visible then go back to the game
         if (v.visibility == View.VISIBLE) {
-            val v2 = findViewById(R.id.chat_edit_text) as EditText
-            val sv = findViewById(R.id.chat_scroll_view) as ScrollView
+            val v2 = findViewById<EditText>(R.id.chat_edit_text)
+            val sv = findViewById<ScrollView>(R.id.chat_scroll_view)
             sv.visibility = View.GONE
             v.visibility = View.GONE
             v2.visibility = View.GONE
@@ -394,9 +394,9 @@ class Main3Activity : AppCompatActivity() {
                 return true
             }
             R.id.chat -> {
-                val v = findViewById(R.id.chat_text_view) as TextView
-                val v2 = findViewById(R.id.chat_edit_text) as EditText
-                val sv = findViewById(R.id.chat_scroll_view) as ScrollView
+                val v = findViewById<TextView>(R.id.chat_text_view)
+                val v2 = findViewById<EditText>(R.id.chat_edit_text)
+                val sv = findViewById<ScrollView>(R.id.chat_scroll_view)
 
 
                 if (v.visibility == View.GONE) {

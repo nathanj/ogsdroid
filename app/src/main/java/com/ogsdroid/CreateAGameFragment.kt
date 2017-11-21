@@ -26,9 +26,9 @@ class CreateAGameFragment : Fragment() {
         Log.d(javaClass.name, "onCreateView")
         val activity = activity as TabbedActivity
         val rootView = inflater!!.inflate(R.layout.fragment_create, container, false)
-        val gameNameText = rootView.findViewById(R.id.name) as TextView
-        val mainTime = rootView.findViewById(R.id.main_time) as SeekBar
-        val mainTimeText = rootView.findViewById(R.id.main_time_text) as TextView
+        val gameNameText = rootView.findViewById<TextView>(R.id.name)
+        val mainTime = rootView.findViewById<SeekBar>(R.id.main_time)
+        val mainTimeText = rootView.findViewById<TextView>(R.id.main_time_text)
         var waitForGameSubscription: Disposable? = null
 
         mainTime.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -47,8 +47,8 @@ class CreateAGameFragment : Fragment() {
         mainTime.progress = 3
         mainTimeText.text = "Main Time: " + mainTimes[3].description
 
-        val byoYomiText = rootView.findViewById(R.id.byo_yomi_text) as TextView
-        val byoYomiTime = rootView.findViewById(R.id.byo_yomi) as SeekBar
+        val byoYomiText = rootView.findViewById<TextView>(R.id.byo_yomi_text)
+        val byoYomiTime = rootView.findViewById<SeekBar>(R.id.byo_yomi)
         byoYomiTime.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
                 byoYomiText.text = "Byo-Yomi: " + byoYomiTimes[i].description
@@ -66,12 +66,12 @@ class CreateAGameFragment : Fragment() {
         byoYomiText.text = "Byo-Yomi: " + byoYomiTimes[3].description
 
 
-        val b = rootView.findViewById(R.id.challenge) as Button
+        val b = rootView.findViewById<Button>(R.id.challenge)
         b.setOnClickListener(View.OnClickListener {
-            val rankedGroup = rootView.findViewById(R.id.ranked_group) as RadioGroup
+            val rankedGroup = rootView.findViewById<RadioGroup>(R.id.ranked_group)
             val ranked = rankedGroup.checkedRadioButtonId == R.id.ranked
 
-            val sizeGroup = rootView.findViewById(R.id.size_group) as RadioGroup
+            val sizeGroup = rootView.findViewById<RadioGroup>(R.id.size_group)
 
             var dim = 9
             when (sizeGroup.checkedRadioButtonId) {

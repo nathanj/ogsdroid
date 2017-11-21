@@ -152,7 +152,7 @@ class KotlinActivity : AppCompatActivity() {
         }.toInt()
         val columns = dpWidth / 110
 
-        mRecyclerView = findViewById(R.id.my_recycler_view) as RecyclerView
+        mRecyclerView = findViewById<RecyclerView>(R.id.my_recycler_view)
         mRecyclerView.setHasFixedSize(true)
 
         mLayoutManager = GridLayoutManager(this, columns)
@@ -197,7 +197,7 @@ class MyAdapter(val mDataset: Array<String>) : RecyclerView.Adapter<MyAdapter.Vi
         //val cv = holder.mView.findViewById(R.id.card_view) as CardView
         //cv.setCardBackgroundColor(Color.argb(255, 200, 200, 200))
 
-        val iv = holder.mView.findViewById(R.id.image) as ImageView
+        val iv = holder.mView.findViewById<ImageView>(R.id.image)
 
         val b = createBitmap(200, 200, Config.ARGB_8888)
         val c = Canvas(b)

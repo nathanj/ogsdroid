@@ -178,7 +178,7 @@ class TabbedActivity : AppCompatActivity() {
         //val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         //StrictMode.setThreadPolicy(policy)
 
-        val toolbar = findViewById(R.id.toolbar) as Toolbar
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
         challengeAdapter = ArrayAdapter(this,
@@ -200,10 +200,10 @@ class TabbedActivity : AppCompatActivity() {
         mSectionsPagerAdapter = SectionsPagerAdapter(supportFragmentManager)
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = findViewById(R.id.container) as ViewPager
+        mViewPager = findViewById<ViewPager>(R.id.container)
         mViewPager.adapter = mSectionsPagerAdapter
 
-        val tabLayout = findViewById(R.id.tabs) as TabLayout
+        val tabLayout = findViewById<TabLayout>(R.id.tabs)
         tabLayout.setupWithViewPager(mViewPager)
 
 
