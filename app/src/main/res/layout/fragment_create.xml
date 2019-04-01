@@ -130,17 +130,17 @@
                 android:progress="3" />
 
             <TextView
-                android:id="@+id/textView"
+                android:id="@+id/handicap_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Handicap:" />
+                android:text="Handicap: 0" />
 
             <SeekBar
                 android:id="@+id/handicap"
                 style="@style/Widget.AppCompat.SeekBar.Discrete"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="10"
+                android:max="7"
                 android:progress="0" />
 
             <Button
