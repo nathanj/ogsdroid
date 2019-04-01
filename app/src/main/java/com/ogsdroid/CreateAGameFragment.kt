@@ -30,6 +30,7 @@ class CreateAGameFragment : Fragment() {
         val mainTime = rootView.findViewById<SeekBar>(R.id.main_time)
         val mainTimeText = rootView.findViewById<TextView>(R.id.main_time_text)
         var waitForGameSubscription: Disposable? = null
+        val hancidap = rootView.findViewById<SeekBar>(R.id.handicap)
 
         mainTime.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
@@ -94,7 +95,7 @@ class CreateAGameFragment : Fragment() {
                         put("name", Globals.uiConfig!!.user.username)
                         put("rules", "japanese")
                         put("ranked", ranked)
-                        put("handicap", 0)
+                        put("handicap", hancidap.progress)
                         put("pause_on_weekends", false)
                         put("width", width)
                         put("height", height)

@@ -129,6 +129,20 @@
                 android:max="5"
                 android:progress="3" />
 
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Handicap:" />
+
+            <SeekBar
+                android:id="@+id/handicap"
+                style="@style/Widget.AppCompat.SeekBar.Discrete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="10"
+                android:progress="0" />
+
             <Button
                 android:id="@+id/challenge"
                 android:layout_width="match_parent"
