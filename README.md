@@ -1,6 +1,8 @@
 OGS Android
 ===========
 
+This project is no longer maintained.
+
 This is an android application to play games on online-go.com . It is still
 early in development so be prepared for bugs and half-implemented features.
 
