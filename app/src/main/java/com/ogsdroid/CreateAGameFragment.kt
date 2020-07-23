@@ -30,6 +30,8 @@ class CreateAGameFragment : Fragment() {
         val mainTime = rootView.findViewById<SeekBar>(R.id.main_time)
         val mainTimeText = rootView.findViewById<TextView>(R.id.main_time_text)
         var waitForGameSubscription: Disposable? = null
+        val hancidap = rootView.findViewById<SeekBar>(R.id.handicap)
+        val handicap_text = rootView.findViewById<TextView>(R.id.handicap_text)
 
         mainTime.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
@@ -52,6 +54,20 @@ class CreateAGameFragment : Fragment() {
         byoYomiTime.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
                 byoYomiText.text = "Byo-Yomi: " + byoYomiTimes[i].description
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+
+            }
+        })
+        hancidap.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+                val handicap_int = hancidap.progress
+                handicap_text.text = "Handicap: " + Integer.toString(handicap_int)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {
@@ -94,7 +110,7 @@ class CreateAGameFragment : Fragment() {
                         put("name", Globals.uiConfig!!.user.username)
                         put("rules", "japanese")
                         put("ranked", ranked)
-                        put("handicap", 0)
+                        put("handicap", hancidap.progress)
                         put("pause_on_weekends", false)
                         put("width", width)
                         put("height", height)

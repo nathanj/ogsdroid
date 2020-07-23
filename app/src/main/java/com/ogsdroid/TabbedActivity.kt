@@ -246,24 +246,27 @@ class TabbedActivity : AppCompatActivity() {
         val myGames = MyGamesFragment()
         val findAGame = FindAGameFragment()
         val automatch = AutomatchFragment()
+        val createagame = CreateAGameFragment()
 
         override fun getItem(position: Int): Fragment {
             when (position) {
                 0 -> return myGames
                 1 -> return findAGame
+                2 -> return createagame
                 else -> return automatch
             }
         }
 
         override fun getCount(): Int {
-            return 3
+            return 4
         }
 
         override fun getPageTitle(position: Int): CharSequence? {
             when (position) {
                 0 -> return "My Games"
                 1 -> return "Find a Game"
-                2 -> return "Automatch"
+                2 -> return "Create a game"
+                3 -> return "Automatch"
             }
             return null
         }
